@@ -1,0 +1,14 @@
+{
+  "name": "tragedy-looper",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node scripts/test-all.mjs",
+    "build:worker": "node scripts/build-worker.mjs"
+  }
+}

@@ -1,0 +1,1730 @@
+{
+  "schemaVersion": "research-catalog-1",
+  "status": "research_data_not_executable_rules",
+  "baseline": "JP5-FirstSteps-BasicTragedyX",
+  "verifiedDate": "2026-11-08",
+  "translation": "项目工作译名，非官方中文译文",
+  "source": "BakaFire Party 惨劇RoopeR 5th 主人公の書；惨劇コモンズ5th；来源见sources目录及08-sources.md",
+  "sets": [
+    {
+      "id": "FS",
+      "mainPlots": 1,
+      "subPlots": 1,
+      "finalGuess": false,
+      "recommendedCast": [
+        6,
+        7
+      ],
+      "recommendedDays": [
+        3,
+        6
+      ],
+      "sourceRef": "JP5:p29"
+    },
+    {
+      "id": "BTX",
+      "mainPlots": 1,
+      "subPlots": 2,
+      "finalGuess": true,
+      "sourceRef": "JP5:p26,32-36"
+    }
+  ],
+  "locations": [
+    {
+      "id": "hospital",
+      "name_zh": "医院",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "shrine",
+      "name_zh": "神社",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "id": "city",
+      "name_zh": "都市",
+      "x": 0,
+      "y": 1
+    },
+    {
+      "id": "school",
+      "name_zh": "学校",
+      "x": 1,
+      "y": 1
+    }
+  ],
+  "characters": [
+    {
+      "id": "boy_student",
+      "officialAssetNumber": 1,
+      "name_ja": "男子学生",
+      "name_zh_working": "男学生",
+      "paranoiaLimit": 2,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "boy"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "other_student_same_location",
+          "effect_zh": "同区另一学生不安减1；可选择不安为0者。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_01_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_01.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_01_1.png"
+    },
+    {
+      "id": "girl_student",
+      "officialAssetNumber": 2,
+      "name_ja": "女子学生",
+      "name_zh_working": "女学生",
+      "paranoiaLimit": 3,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "other_student_same_location",
+          "effect_zh": "同区另一学生不安减1；可选择不安为0者。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_02_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_02.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_02_1.png"
+    },
+    {
+      "id": "rich_girl",
+      "officialAssetNumber": 3,
+      "name_ja": "お嬢様",
+      "name_zh_working": "大小姐",
+      "paranoiaLimit": 1,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "自身位于学校或都市时，同区一个人物友好加1；可以选择自身。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_03_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_03.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_03_1.png"
+    },
+    {
+      "id": "shrine_maiden",
+      "officialAssetNumber": 4,
+      "name_ja": "巫女",
+      "name_zh_working": "巫女",
+      "paranoiaLimit": 2,
+      "start": "shrine",
+      "forbiddenLocations": [
+        "city"
+      ],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "自身位于神社时，神社暗跃减1。"
+        },
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "得知同区一个人物的角色；可以选择自身。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_04_0.png",
+        "JP5:p38"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_04.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_04_1.png"
+    },
+    {
+      "id": "police",
+      "officialAssetNumber": 5,
+      "name_ja": "刑事",
+      "name_zh_working": "警察",
+      "paranoiaLimit": 3,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 4,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "选择本轮回确实发生过的一项公开日程事件，得知其犯人。"
+        },
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一个人物放1护卫计数器；将来该人物将死时移除1护卫替代死亡；不死本就阻止死亡则不耗护卫。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_05_0.png",
+        "JP5:p38"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_05.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_05_1.png"
+    },
+    {
+      "id": "office_worker",
+      "officialAssetNumber": 6,
+      "name_ja": "サラリーマン",
+      "name_zh_working": "上班族",
+      "paranoiaLimit": 2,
+      "start": "city",
+      "forbiddenLocations": [
+        "school"
+      ],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "得知自身角色。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_06_0.png",
+        "JP5:p39"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_06.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_06_1.png"
+    },
+    {
+      "id": "informer",
+      "officialAssetNumber": 7,
+      "name_ja": "情報屋",
+      "name_zh_working": "情报商",
+      "paranoiaLimit": 3,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "female"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "领导者先说本集合一项X的名字；剧作家公开剧本实际采用且不是该名称的一个X。若有两个可选，剧作家选。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_07_0.png",
+        "JP5:p39"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_07.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_07_1.png"
+    },
+    {
+      "id": "doctor",
+      "officialAssetNumber": 8,
+      "name_ja": "医者",
+      "name_zh_working": "医生",
+      "paranoiaLimit": 2,
+      "start": "hospital",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个人物不安加1或减1；医生有友好无视且友好至少2时，剧作家也可在剧作家能力阶段使用此能力。"
+        },
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "本轮回住院患者失去所有禁止地点。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_08_0.png",
+        "JP5:p40"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_08.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_08_1.png"
+    },
+    {
+      "id": "patient",
+      "officialAssetNumber": 9,
+      "name_ja": "入院患者",
+      "name_zh_working": "住院患者",
+      "paranoiaLimit": 2,
+      "start": "hospital",
+      "forbiddenLocations": [
+        "shrine",
+        "city",
+        "school"
+      ],
+      "tags": [
+        "boy"
+      ],
+      "abilities": [],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_09_0.png"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_09.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_09_1.png"
+    },
+    {
+      "id": "class_rep",
+      "officialAssetNumber": 10,
+      "name_ja": "委員長",
+      "name_zh_working": "班长",
+      "paranoiaLimit": 2,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "收回领导者自己一张本轮回已用的一次性行动牌。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_10_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_10.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_10_1.png"
+    },
+    {
+      "id": "irregular",
+      "officialAssetNumber": 11,
+      "name_ja": "イレギュラー",
+      "name_zh_working": "异常少年",
+      "paranoiaLimit": 3,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "boy"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "第2轮回起，得知自身角色；此能力不可被任何友好无视拒绝。",
+          "cannotRefuse": true,
+          "minLoop": 2
+        }
+      ],
+      "traits_zh": [
+        "不能分配所选规则加入的角色；原本成为普通人的位置改为集合中未被所选规则加入的其他非普通角色。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_11_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_11.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_11_1.png"
+    },
+    {
+      "id": "alien",
+      "officialAssetNumber": 12,
+      "name_ja": "異世界人",
+      "name_zh_working": "异世界人",
+      "paranoiaLimit": 2,
+      "start": "shrine",
+      "forbiddenLocations": [
+        "hospital"
+      ],
+      "tags": [
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 4,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个人物死亡。"
+        },
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一具尸体复活。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_12_0.png",
+        "JP5:p38"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_12.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_12_1.png"
+    },
+    {
+      "id": "godly_being",
+      "officialAssetNumber": 13,
+      "name_ja": "神格",
+      "name_zh_working": "神格",
+      "paranoiaLimit": 3,
+      "start": "shrine",
+      "forbiddenLocations": [],
+      "tags": [
+        "male",
+        "female"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "选择公开日程的一项事件，得知犯人；不要求已经发生。"
+        },
+        {
+          "minGoodwill": 5,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一个人物或所在地点暗跃减1。"
+        }
+      ],
+      "traits_zh": [
+        "剧本预设到场轮回；此前轮回准备时不放上棋盘。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_13_0.png",
+        "JP5:p38"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_13.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_13_1.png"
+    },
+    {
+      "id": "idol",
+      "officialAssetNumber": 14,
+      "name_ja": "アイドル",
+      "name_zh_working": "偶像",
+      "paranoiaLimit": 2,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个人物不安减1。"
+        },
+        {
+          "minGoodwill": 4,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个人物友好加1。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_14_0.png",
+        "JP5:p39"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_14.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_14_1.png"
+    },
+    {
+      "id": "journalist",
+      "officialAssetNumber": 15,
+      "name_ja": "マスコミ",
+      "name_zh_working": "记者",
+      "paranoiaLimit": 2,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "任意地点的另一个人物不安加1。"
+        },
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一个人物或所在地点暗跃加1。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_15_0.png",
+        "JP5:p39"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_15.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_15_1.png"
+    },
+    {
+      "id": "boss",
+      "officialAssetNumber": 16,
+      "name_ja": "大物",
+      "name_zh_working": "大人物",
+      "paranoiaLimit": 4,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "得知领地内另一个人物的角色。"
+        }
+      ],
+      "traits_zh": [
+        "剧本指定领地地点；剧作家使用此人物的能力时可视作其位于领地。真实位置不因此改变。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_16_0.png",
+        "JP5:p39"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_16.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_16_1.png"
+    },
+    {
+      "id": "nurse",
+      "officialAssetNumber": 17,
+      "name_ja": "ナース",
+      "name_zh_working": "护士",
+      "paranoiaLimit": 3,
+      "start": "hospital",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "female"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个不安达到自身临界的人物不安减1；能力不能拒绝。",
+          "cannotRefuse": true
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_17_0.png",
+        "JP5:p40"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_17.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_17_1.png"
+    },
+    {
+      "id": "henchman",
+      "officialAssetNumber": 18,
+      "name_ja": "手先",
+      "name_zh_working": "手下",
+      "paranoiaLimit": 1,
+      "start": "mastermind_choice_each_loop",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "本轮回自身担任犯人的事件不发生。"
+        }
+      ],
+      "traits_zh": [
+        "每轮回准备时由剧作家选择初始地点。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_18_0.png",
+        "JP5:p41"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_18.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_18_1.png"
+    },
+    {
+      "id": "forensic",
+      "officialAssetNumber": 21,
+      "name_ja": "鑑識官",
+      "name_zh_working": "鉴识官",
+      "paranoiaLimit": 3,
+      "start": "city",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "选同区两个其他人物，把其中一人上的任意一种计数器1枚移给另一人；两人必须存在，双方均无计数器时仍可声明。"
+        },
+        {
+          "minGoodwill": 5,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "得知任意地点一具尸体的角色。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_21_0.png",
+        "JP5:p40"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_21.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_21_1.png"
+    },
+    {
+      "id": "ai_character",
+      "officialAssetNumber": 22,
+      "name_ja": "A.I.",
+      "name_zh_working": "人工智能",
+      "paranoiaLimit": 4,
+      "start": "city",
+      "forbiddenLocations": [
+        "hospital",
+        "shrine",
+        "school"
+      ],
+      "tags": [
+        "construct"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "选择公开日程一种事件并结算其效果；需要犯人时视自身为犯人，所有选择由领导者做；不视为实际发生事件。"
+        }
+      ],
+      "traits_zh": [
+        "不得配为普通人；判定自身事件触发时，所有种类计数器合计作为不安数量。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_22_0.png",
+        "JP5:p40"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_22.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_22_1.png"
+    },
+    {
+      "id": "teacher",
+      "officialAssetNumber": 23,
+      "name_ja": "教師",
+      "name_zh_working": "教师",
+      "paranoiaLimit": 2,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "female"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一名学生不安加1或减1。"
+        },
+        {
+          "minGoodwill": 3,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "得知同区一名学生的角色。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_23_0.png",
+        "JP5:p37"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_23.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_23_1.png"
+    },
+    {
+      "id": "transfer_student",
+      "officialAssetNumber": 24,
+      "name_ja": "転校生",
+      "name_zh_working": "转学生",
+      "paranoiaLimit": 2,
+      "start": "school",
+      "forbiddenLocations": [],
+      "tags": [
+        "student",
+        "girl"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 3,
+          "limit": "day",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区另一个人物暗跃减1，然后友好加1；无暗跃时仍可选并获得友好。"
+        }
+      ],
+      "traits_zh": [
+        "剧本预设到场日；轮回准备时不入场，该日的日开始阶段放入学校。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_24_0.png",
+        "JP5:p38"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_24.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_24_1.png"
+    },
+    {
+      "id": "soldier",
+      "officialAssetNumber": 25,
+      "name_ja": "軍人",
+      "name_zh_working": "军人",
+      "paranoiaLimit": 3,
+      "start": "hospital",
+      "forbiddenLocations": [],
+      "tags": [
+        "adult",
+        "male"
+      ],
+      "abilities": [
+        {
+          "minGoodwill": 2,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "同区一个人物不安加2，可以选择自身。"
+        },
+        {
+          "minGoodwill": 4,
+          "limit": "loop",
+          "timing": "protagonist_ability",
+          "target": "按效果",
+          "effect_zh": "本轮回主人公不再死亡；不能阻止非死亡的失败条件。"
+        }
+      ],
+      "traits_zh": [],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_25_0.png",
+        "JP5:p41"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_25.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_25_1.png"
+    },
+    {
+      "id": "black_cat",
+      "officialAssetNumber": 26,
+      "name_ja": "黒猫",
+      "name_zh_working": "黑猫",
+      "paranoiaLimit": 0,
+      "start": "shrine",
+      "forbiddenLocations": [],
+      "tags": [
+        "animal"
+      ],
+      "abilities": [],
+      "traits_zh": [
+        "每轮回开始时神社暗跃加1。",
+        "自身为犯人的事件，事件效果替换为无事发生；与事件根本未发生要区分。"
+      ],
+      "scope": "base5",
+      "sourceRefs": [
+        "commons:chara_cards/character_26_0.png"
+      ],
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_26.png",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_26_1.png"
+    }
+  ],
+  "roles": [
+    {
+      "id": "person",
+      "name_ja": "パーソン",
+      "name_zh_working": "普通人",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [],
+      "sourceRef": "JP5:p26"
+    },
+    {
+      "id": "key_person",
+      "name_ja": "キーパーソン",
+      "name_zh_working": "关键人物",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制：此人物死亡时主人公失败，并立即结束轮回。"
+      ],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "killer",
+      "name_ja": "キラー",
+      "name_zh_working": "杀手",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "可选，日结束：同区关键人物暗跃>=2，则杀死该关键人物。",
+        "可选，日结束：自身暗跃>=4，则主人公死亡。"
+      ],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "brain",
+      "name_ja": "クロマク",
+      "name_zh_working": "幕后黑手",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "可选，剧作家能力：同区一个人物（含自身）或所在地点暗跃+1。"
+      ],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "cultist",
+      "name_ja": "カルティスト",
+      "name_zh_working": "邪教徒",
+      "maxCount": null,
+      "goodwillRefusal": "mandatory",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "可选，行动结算：无视同区人物及所在地点上的暗跃禁止；使用移动后的地点。"
+      ],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "friend",
+      "name_ja": "フレンド",
+      "name_zh_working": "朋友",
+      "maxCount": 2,
+      "goodwillRefusal": "none",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制，轮回结束：若已死，公开角色且主人公失败。",
+        "强制，轮回开始：若曾公开该角色，自身友好+1。"
+      ],
+      "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "misleader",
+      "name_ja": "ミスリーダー",
+      "name_zh_working": "误导者",
+      "maxCount": 1,
+      "goodwillRefusal": "none",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "可选，剧作家能力：同区一个人物（含自身）不安+1。"
+      ],
+      "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "serial_killer",
+      "name_ja": "シリアルキラー",
+      "name_zh_working": "连环杀手",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制，日结束：同区恰有另一个存活人物时，该人物死亡。"
+      ],
+      "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "negative",
+      "name_ja": "マイナス",
+      "name_zh_working": "消极者",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "FS"
+      ],
+      "effects_zh": [],
+      "sourceRef": "JP5:p31"
+    },
+    {
+      "id": "time_traveler",
+      "name_ja": "タイムトラベラー",
+      "name_zh_working": "时间旅行者",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "BTX"
+      ],
+      "effects_zh": [
+        "不死。",
+        "强制：无视对自身使用的友好禁止行动牌。",
+        "可选，最后一天日结束：自身友好<=2时令主人公失败并立即结束轮回。"
+      ],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "witch",
+      "name_ja": "ウィッチ",
+      "name_zh_working": "魔女",
+      "maxCount": null,
+      "goodwillRefusal": "mandatory",
+      "sets": [
+        "BTX"
+      ],
+      "effects_zh": [],
+      "sourceRef": "JP5:p34"
+    },
+    {
+      "id": "lover",
+      "name_ja": "ラバーズ",
+      "name_zh_working": "恋人",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制：主恋人死亡时，自身不安+6。"
+      ],
+      "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "loved_one",
+      "name_ja": "メインラバーズ",
+      "name_zh_working": "主恋人",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制：恋人死亡时，自身不安+6。",
+        "可选，日结束：自身不安>=3且暗跃>=1时主人公死亡。"
+      ],
+      "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "factor",
+      "name_ja": "ファクター",
+      "name_zh_working": "因子",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "BTX"
+      ],
+      "effects_zh": [
+        "强制：学校暗跃>=2时获得误导者能力（不改变角色）。",
+        "强制：都市暗跃>=2时获得关键人物能力（不改变角色）。"
+      ],
+      "sourceRef": "JP5:p35"
+    }
+  ],
+  "plots": [
+    {
+      "id": "murder_plan",
+      "name_ja": "殺人計画",
+      "name_zh_working": "杀人计划",
+      "kind": "Y",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "addedRoles": {
+        "key_person": 1,
+        "brain": 1,
+        "killer": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p32"
+    },
+    {
+      "id": "avenger",
+      "name_ja": "復讐者の灯火",
+      "name_zh_working": "复仇者之灯",
+      "kind": "Y",
+      "sets": [
+        "FS"
+      ],
+      "addedRoles": {
+        "brain": 1
+      },
+      "effect_zh": "轮回结束，幕后黑手初始地点暗跃>=2则主人公失败。",
+      "sourceRef": "JP5:p29"
+    },
+    {
+      "id": "protect_place",
+      "name_ja": "守るべき場所",
+      "name_zh_working": "应守护的地点",
+      "kind": "Y",
+      "sets": [
+        "FS"
+      ],
+      "addedRoles": {
+        "key_person": 1,
+        "cultist": 1
+      },
+      "effect_zh": "轮回结束，学校暗跃>=2则主人公失败。",
+      "sourceRef": "JP5:p29"
+    },
+    {
+      "id": "sealed_item",
+      "name_ja": "封印されしモノ",
+      "name_zh_working": "被封印之物",
+      "kind": "Y",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "brain": 1,
+        "cultist": 1
+      },
+      "effect_zh": "轮回结束，神社暗跃>=2则主人公失败。",
+      "sourceRef": "JP5:p32"
+    },
+    {
+      "id": "contract",
+      "name_ja": "僕と契約しようよ！",
+      "name_zh_working": "与我缔结契约",
+      "kind": "Y",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "key_person": 1
+      },
+      "effect_zh": "关键人物必须有girl属性；轮回结束该关键人物暗跃>=2则主人公失败。",
+      "sourceRef": "JP5:p32",
+      "castingConstraints": [
+        "key_person.tag=girl"
+      ]
+    },
+    {
+      "id": "change_future",
+      "name_ja": "未来改変プラン",
+      "name_zh_working": "未来改变计划",
+      "kind": "Y",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "cultist": 1,
+        "time_traveler": 1
+      },
+      "effect_zh": "本轮回实际发生过蝴蝶振翅，则轮回结束主人公失败；仅模拟事件效果不算发生。",
+      "sourceRef": "JP5:p32"
+    },
+    {
+      "id": "time_bomb",
+      "name_ja": "巨大時限爆弾Xの存在",
+      "name_zh_working": "巨大定时炸弹X",
+      "kind": "Y",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "witch": 1
+      },
+      "effect_zh": "轮回结束，魔女初始地点暗跃>=2则主人公失败。",
+      "sourceRef": "JP5:p32"
+    },
+    {
+      "id": "ripper_shadow",
+      "name_ja": "切り裂き魔の影",
+      "name_zh_working": "开膛手之影",
+      "kind": "X",
+      "sets": [
+        "FS"
+      ],
+      "addedRoles": {
+        "misleader": 1,
+        "serial_killer": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p29"
+    },
+    {
+      "id": "unsettling_rumor",
+      "name_ja": "不穏な噂",
+      "name_zh_working": "不安的传闻",
+      "kind": "X",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "addedRoles": {
+        "misleader": 1
+      },
+      "effect_zh": "可选，剧作家能力：任意地点暗跃+1；每轮回仅一次。",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "hideous_script",
+      "name_ja": "最低の脚本",
+      "name_zh_working": "最差的剧本",
+      "kind": "X",
+      "sets": [
+        "FS"
+      ],
+      "addedRoles": {
+        "misleader": 1,
+        "negative": {
+          "min": 0,
+          "max": 2
+        },
+        "friend": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p30"
+    },
+    {
+      "id": "circle_friends",
+      "name_ja": "友情サークル",
+      "name_zh_working": "友情圈",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "friend": 2,
+        "misleader": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "love_affair",
+      "name_ja": "恋愛風景",
+      "name_zh_working": "恋爱风景",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "lover": 1,
+        "loved_one": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "hidden_killer",
+      "name_ja": "潜む殺人鬼",
+      "name_zh_working": "潜藏的杀人鬼",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "friend": 1,
+        "serial_killer": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "paranoia_virus",
+      "name_ja": "妄想拡大ウイルス",
+      "name_zh_working": "妄想扩大病毒",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "misleader": 1
+      },
+      "effect_zh": "原始角色为普通人的人物只要不安>=3，当前角色变为连环杀手；低于3则恢复。",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "threads_fate",
+      "name_ja": "因果の糸",
+      "name_zh_working": "因果之线",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {},
+      "effect_zh": "每轮回开始，上轮结束时带有友好的所有人物卡获得不安2；清空前先记录，尸体也包括。",
+      "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "factor_x",
+      "name_ja": "不定因子χ",
+      "name_zh_working": "不定因子χ",
+      "kind": "X",
+      "sets": [
+        "BTX"
+      ],
+      "addedRoles": {
+        "factor": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "JP5:p33"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "murder",
+      "name_ja": "殺人事件",
+      "name_zh_working": "杀人事件",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "如果有可选对象，选择犯人同区的另一个人物令其死亡；不代表剧作家可以任意跳过事件。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "unease",
+      "name_ja": "不安拡大",
+      "name_zh_working": "不安扩大",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "任意一个人物不安+2，然后另一个人物暗跃+1。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "suicide",
+      "name_ja": "自殺",
+      "name_zh_working": "自杀",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "犯人死亡。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "hospital_incident",
+      "name_ja": "病院の事件",
+      "name_zh_working": "医院事件",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "医院暗跃>=1时，医院所有人物同时死亡；医院暗跃>=2时主人公也死亡。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "faraway_murder",
+      "name_ja": "遠隔殺人",
+      "name_zh_working": "远距离杀人",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "任意一个暗跃>=2的人物死亡，无同区限制。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "missing",
+      "name_ja": "行方不明",
+      "name_zh_working": "行踪不明",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "将犯人移动到任意合法地点，再在其实际所在地放1暗跃；地点限制仍适用。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "spreading",
+      "name_ja": "流布",
+      "name_zh_working": "流布",
+      "sets": [
+        "FS",
+        "BTX"
+      ],
+      "effect_zh": "从任意一个人物移除2友好（不足2则全部移除），另一个人物增加2友好；前者减少不足2不减少后者的增加值。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "evil",
+      "name_ja": "邪気の汚染",
+      "name_zh_working": "邪气污染",
+      "sets": [
+        "BTX"
+      ],
+      "effect_zh": "神社暗跃+2。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "butterfly",
+      "name_ja": "蝶の羽ばたき",
+      "name_zh_working": "蝴蝶振翅",
+      "sets": [
+        "BTX"
+      ],
+      "effect_zh": "选择友好/不安/暗跃一种，在犯人同区一个人物（可含犯人）放1枚。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "JP5:p31,36"
+    }
+  ],
+  "actionDeckEntries": [
+    {
+      "id": "protagonist.move_h",
+      "actionType": "move_h",
+      "name_zh": "横移",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.move_v",
+      "actionType": "move_v",
+      "name_zh": "纵移",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.forbid_move",
+      "actionType": "forbid_move",
+      "name_zh": "移动禁止",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": true,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.goodwill_1",
+      "actionType": "goodwill_1",
+      "name_zh": "友好+1",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.goodwill_2",
+      "actionType": "goodwill_2",
+      "name_zh": "友好+2",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": true,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.paranoia_1",
+      "actionType": "paranoia_1",
+      "name_zh": "不安+1",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.paranoia_minus_1",
+      "actionType": "paranoia_minus_1",
+      "name_zh": "不安−1",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": true,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "protagonist.forbid_intrigue",
+      "actionType": "forbid_intrigue",
+      "name_zh": "暗跃禁止",
+      "side": "protagonist",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.move_h",
+      "actionType": "move_h",
+      "name_zh": "横移",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.move_v",
+      "actionType": "move_v",
+      "name_zh": "纵移",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.move_d",
+      "actionType": "move_d",
+      "name_zh": "斜移",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": true,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.forbid_goodwill",
+      "actionType": "forbid_goodwill",
+      "name_zh": "友好禁止",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.paranoia_1",
+      "actionType": "paranoia_1",
+      "name_zh": "不安+1",
+      "side": "mastermind",
+      "copiesPerHand": 2,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.paranoia_minus_1",
+      "actionType": "paranoia_minus_1",
+      "name_zh": "不安−1",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.forbid_paranoia",
+      "actionType": "forbid_paranoia",
+      "name_zh": "不安禁止",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.intrigue_1",
+      "actionType": "intrigue_1",
+      "name_zh": "暗跃+1",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": false,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    },
+    {
+      "id": "mastermind.intrigue_2",
+      "actionType": "intrigue_2",
+      "name_zh": "暗跃+2",
+      "side": "mastermind",
+      "copiesPerHand": 1,
+      "oncePerLoop": true,
+      "placementTargets": [
+        "living_character",
+        "location"
+      ],
+      "sourceRef": "JP5:p42-43"
+    }
+  ],
+  "additionalAssetCharacters": [
+    {
+      "officialAssetNumber": 19,
+      "name_ja": "学者",
+      "name_zh_working": "学者",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_19_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_19.png"
+    },
+    {
+      "officialAssetNumber": 20,
+      "name_ja": "幻想",
+      "name_zh_working": "幻象",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_20_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_20.png"
+    },
+    {
+      "officialAssetNumber": 27,
+      "name_ja": "女の子",
+      "name_zh_working": "小女孩",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_27_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_27.png"
+    },
+    {
+      "officialAssetNumber": 28,
+      "name_ja": "コピーキャット",
+      "name_zh_working": "模仿者",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_28_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_28.png"
+    },
+    {
+      "officialAssetNumber": 29,
+      "name_ja": "教祖",
+      "name_zh_working": "教祖",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_29_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_29.png"
+    },
+    {
+      "officialAssetNumber": 30,
+      "name_ja": "ご神木",
+      "name_zh_working": "神木",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_30_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_30.png"
+    },
+    {
+      "officialAssetNumber": 31,
+      "name_ja": "妹",
+      "name_zh_working": "妹妹",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_31_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_31.png"
+    },
+    {
+      "officialAssetNumber": 32,
+      "name_ja": "アルバイト",
+      "name_zh_working": "兼职者",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_32_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_32.png"
+    },
+    {
+      "officialAssetNumber": 33,
+      "name_ja": "アルバイト？",
+      "name_zh_working": "兼职者？",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_33_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_33.png"
+    },
+    {
+      "officialAssetNumber": 34,
+      "name_ja": "従者",
+      "name_zh_working": "侍从",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_34_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_34.png"
+    },
+    {
+      "officialAssetNumber": 35,
+      "name_ja": "上位存在",
+      "name_zh_working": "上位存在",
+      "status": "asset_available_expansion_rules_not_normalized",
+      "card": "assets/commons/tragedy_commons_5th/chara_cards/character_35_0.png",
+      "portrait": "assets/commons/tragedy_commons_5th/chara_stand/chara_stand_35.png"
+    }
+  ]
+}

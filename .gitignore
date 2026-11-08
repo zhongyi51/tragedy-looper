@@ -1,0 +1,9 @@
+runtime/
+.env
+.env.*
+reports/live-*.json
+*.log
+dist/
+.openai/*.json.local
+outputs/
+reports/browser-*.json
