@@ -6,7 +6,7 @@ import {randomBytes,randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from './content.mjs';
 import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic} from './engine.mjs';
-import {configureKey,configured,decide,generateWithAi,model,rates} from './ai.mjs';
+import {configureKey,configured,decide,generateWithAi,model,rates,decisionSummary} from './ai.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
 const busy=new Set();
@@ -84,7 +84,7 @@ async function api(req,res,u,owner){const p=u.pathname;
    frames=[{seat,command,state:first},...advanceAutomatic(first,{includeBetween:g.mode!=='heroes'}).steps];
   }
   persist(g,frames,b.commandId);
-  return json(res,200,{...response(getGame(id,owner)),busy:false,transitionFrames:transitionViews(g,frames.map(f=>f.state)),decision:route==='advance'?{controller:'规则引擎'}:answer?{controller:answer.automatic?'规则引擎':'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
+  return json(res,200,{...response(getGame(id,owner)),busy:false,transitionFrames:transitionViews(g,frames.map(f=>f.state)),decision:decisionSummary(route,seat,answer)});
  }finally{busy.delete(id);}
 }
 const assetsRoot=path.resolve(root,'assets');

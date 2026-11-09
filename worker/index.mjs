@@ -1,6 +1,6 @@
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
 import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic} from '../src/engine.mjs';
-import {decide,generateWithAi,model,rates} from '../src/ai.mjs';
+import {decide,generateWithAi,model,rates,decisionSummary} from '../src/ai.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
@@ -91,7 +91,7 @@ export async function handleApi(req,env,owner){
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
   const results=await db.batch(queries);if(results.at(-1).meta.changes!==1)fail(409,'操作已过期，局面未改变');
-  return reply({...projection(await getGame(db,id,owner),env),transitionFrames:transitionViews(g,frames.map(f=>f.state),env),decision:route==='advance'?{controller:'规则引擎'}:answer?{controller:answer.automatic?'规则引擎':'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
+  return reply({...projection(await getGame(db,id,owner),env),transitionFrames:transitionViews(g,frames.map(f=>f.state),env),decision:decisionSummary(route,seat,answer)});
  }finally{await run(db,'UPDATE games SET lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',id,token);}
 }
 // Temporarily enabled owner-private Sites API verification. Sites consumes the
