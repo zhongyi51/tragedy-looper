@@ -35,3 +35,32 @@ test('HTTP simultaneous submissions advance exactly once and invalid script shap
  for(const field of ['characters','subPlots','roles','incidents','settings']){const bad={...starter,[field]:null};const v=await c('/api/scripts/validate',bad);assert.equal(v.status,200);assert.ok(v.body.errors.length);assert.equal((await c('/api/games',{script:bad})).status,400);}
  assert.equal((await c('/api/info')).status,200);
 });
+
+test('HTTP public schedule hides event identities across roles and exports',async()=>{
+ const c=client();
+ for(const mode of ['heroes','observe','mastermind']){
+  const g=(await c('/api/games',{mode})).body;
+  if(mode==='mastermind')assert.equal(g.secret.incidents[0].type,'suicide');
+  else assert.deepEqual(g.script.incidents,[{day:3}]);
+  assert.deepEqual((await c('/api/games/'+g.id+'/script')).body.incidents,[{day:3}]);
+  const replay=(await c('/api/games/'+g.id+'/replay')).body;
+  assert.deepEqual(replay.script.incidents,[{day:3}]);
+  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,[{day:3}]);assert.equal(frame.view.secret,undefined);}
+ }
+});
+
+test('HTTP location movement bluff remains legal and an invalid command leaves the game usable',async()=>{
+ const c=client();let g=(await c('/api/games',{mode:'mastermind'})).body;
+ const bad=await c('/api/games/'+g.id+'/command',{revision:0,command:{type:'place',card:'move_h#0',target:'no-such-location'}});
+ assert.equal(bad.status,400);assert.equal(bad.body.code,'ILLEGAL_ACTION');
+ assert.equal((await c('/api/games/'+g.id)).body.busy,false);
+ for(const target of ['hospital','shrine','city']){
+  const choice=g.actions.find(a=>a.command.type==='place'&&a.command.target===target&&a.command.card.startsWith('move_'));assert.ok(choice);
+  const next=await c('/api/games/'+g.id+'/command',{revision:g.revision,command:choice.command});assert.equal(next.status,200);g=next.body;
+ }
+ assert.equal(g.phaseId,'hero_cards');
+ for(let n=0;n<40&&g.day===1&&!g.winner;n++){
+  const next=await c('/api/games/'+g.id+'/bot-step',{revision:g.revision});assert.equal(next.status,200);g=next.body;assert.equal(g.busy,false);
+ }
+ assert.ok(g.day>1||g.winner);
+});

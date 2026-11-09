@@ -73,7 +73,7 @@ export async function handleApi(req,env,owner){
   let command=b.command,answer;
   if(route==='ai-step'){answer=await decide(g.state,seat,{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')});command=answer.command;}
   if(route==='bot-step')command=botCommand(g.state,seat);
-  const next=applyCommand(g.state,seat,command);if(answer)next.notes[seat]=answer.note||g.state.notes[seat];
+  const next=applyCommand(g.state,seat,command);if(answer)next.notes[seat]=answer.note||next.notes[seat];
   const state=JSON.stringify(next),queries=[statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',next.revision,JSON.stringify(command),state,hash(next),id,token)];
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
@@ -81,8 +81,25 @@ export async function handleApi(req,env,owner){
   return reply({...projection(await getGame(db,id,owner),env),decision:answer?{controller:'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
  }finally{await run(db,'UPDATE games SET lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',id,token);}
 }
+// Temporarily enabled owner-private Sites API verification. Sites consumes the
+// bypass credential before this Worker, so these requests have no user identity.
+// Keep them in a separate namespace; never impersonate an authenticated owner.
+const QA_OWNER='service:sites-qa';
+function qaRequest(req){
+ const u=new URL(req.url);u.pathname=u.pathname.replace(/^\/api\/qa\//,'/api/');
+ const game='/api/games/[a-f0-9-]+';
+ const allowed=req.method==='GET'&&(u.pathname==='/api/info'||new RegExp('^'+game+'(?:/(?:replay|usage))?$').test(u.pathname))
+  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step)$').test(u.pathname));
+ if(!allowed)fail(404,'测试接口不存在');
+ return new Request(u,req);
+}
 export function createWorker(assets){return {async fetch(req,env){try{
  const u=new URL(req.url),owner=req.headers.get('oai-authenticated-user-id');
+ if(u.pathname.startsWith('/api/qa/')){
+  if(env.SITES_QA_ENABLED!=='true')return reply({error:'测试接口未启用'},401);
+  if(req.headers.has('origin'))return reply({error:'测试接口不接受浏览器来源请求'},403);
+  return await handleApi(qaRequest(req),env,QA_OWNER);
+ }
  // Fail closed even if the platform gate is accidentally changed later.
  if(!owner)return reply({error:'需要使用站点所有者的 ChatGPT 账号登录'},401);
  if(req.headers.get('origin')&&new URL(req.headers.get('origin')).origin!==u.origin)return reply({error:'拒绝跨站请求'},403);
@@ -90,4 +107,4 @@ export function createWorker(assets){return {async fetch(req,env){try{
  if(!['GET','HEAD'].includes(req.method))return reply({error:'方法不允许'},405);
  const asset=assets[u.pathname];if(!asset)return reply({error:'文件不存在'},404);
  return new Response(req.method==='HEAD'?null:Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0)),{headers:{...security,'Content-Type':asset.type,'Cache-Control':u.pathname.startsWith('/assets/')?'private,max-age=86400':'no-cache'}});
- }catch(e){return reply({error:e instanceof HttpError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',...(e.code?{code:e.code}:{})},e.status||400);}}};}
+ }catch(e){if(e.message==='ILLEGAL_ACTION')return reply({error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'},400);return reply({error:e instanceof HttpError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',...(e.code?{code:e.code}:{})},e.status||400);}}};}

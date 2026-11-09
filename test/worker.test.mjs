@@ -33,3 +33,94 @@ test('cloud provider uncertainty keeps reservation, does not retry, and can reco
  const g=(await request('/api/games',{})).data;const result=await request('/api/games/'+g.id+'/ai-step',{revision:0});assert.equal(result.data.code,'NETWORK');assert.equal(calls,1);
  const row=sql.prepare('SELECT state,spent,locked_until FROM games WHERE id=?').get(g.id);assert.ok(row.spent>0);assert.equal(row.locked_until,0);assert.equal(JSON.parse(row.state).revision,0);assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0})).status,200);
 });
+
+test('cloud event schedules are hidden in game, script and every public replay frame',async()=>{
+ const {request}=fixture();
+ for(const mode of ['heroes','observe','mastermind']){
+  const g=(await request('/api/games',{mode})).data;
+  if(mode==='mastermind')assert.equal(g.secret.incidents[0].type,'suicide');
+  else assert.deepEqual(g.script.incidents,[{day:3}]);
+  const script=(await request('/api/games/'+g.id+'/script')).data;
+  assert.deepEqual(script.incidents,[{day:3}]);
+  const replay=(await request('/api/games/'+g.id+'/replay')).data;
+  assert.deepEqual(replay.script.incidents,[{day:3}]);
+  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,[{day:3}]);assert.equal(frame.view.secret,undefined);}
+ }
+});
+
+test('cloud location movement bluffs resolve and invalid actions do not strand the game',async()=>{
+ const {request}=fixture();let g=(await request('/api/games',{mode:'mastermind'})).data;
+ const bad=await request('/api/games/'+g.id+'/command',{revision:0,command:{type:'place',card:'move_h#0',target:'no-such-location'}});
+ assert.equal(bad.status,400);assert.equal(bad.data.code,'ILLEGAL_ACTION');
+ assert.equal((await request('/api/games/'+g.id)).data.busy,false);
+ for(const target of ['hospital','shrine','city']){
+  const option=g.actions.find(a=>a.command.type==='place'&&a.command.target===target&&a.command.card.startsWith('move_'));
+  assert.ok(option,'location movement is a legal bluff');
+  const next=await request('/api/games/'+g.id+'/command',{revision:g.revision,command:option.command});assert.equal(next.status,200);g=next.data;
+ }
+ assert.equal(g.phaseId,'hero_cards');
+ for(let n=0;n<40&&g.day===1&&!g.winner;n++){
+  const next=await request('/api/games/'+g.id+'/bot-step',{revision:g.revision});assert.equal(next.status,200);g=next.data;assert.equal(g.busy,false);
+ }
+ assert.ok(g.day>1||g.winner,'the entire first day advances after location bluffs');
+ const replay=(await request('/api/games/'+g.id+'/replay')).data;
+ assert.ok(replay.frames.some(f=>f.view.revealedCards.filter(p=>['hospital','shrine','city'].includes(p.target)&&p.card.startsWith('move_')).length>=3));
+});
+
+test('cloud expired lease can be recovered while an active lease prevents duplicate execution',async()=>{
+ const {request,sql}=fixture();const g=(await request('/api/games',{mode:'observe'})).data;
+ sql.prepare('UPDATE games SET lock_token=?,locked_until=? WHERE id=?').run('abandoned-worker',Date.now()+30000,g.id);
+ assert.equal((await request('/api/games/'+g.id)).data.busy,true);
+ assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0})).status,409);
+ sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()-1,g.id);
+ const resumed=await request('/api/games/'+g.id+'/bot-step',{revision:0});assert.equal(resumed.status,200);assert.equal(resumed.data.revision,1);assert.equal(resumed.data.busy,false);
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM frames WHERE game=?').get(g.id).n,2);
+});
+
+test('cloud QA prefix is disabled by default and never relaxes normal API authentication',async()=>{
+ const {request,env}=fixture();
+ assert.equal((await request('/api/qa/info',undefined,null)).status,401);
+ assert.equal((await request('/api/qa/games',{},null)).status,401);
+ env.SITES_QA_ENABLED='false';assert.equal((await request('/api/qa/info',undefined,null)).status,401);
+ env.SITES_QA_ENABLED=true;assert.equal((await request('/api/qa/info',undefined,null)).status,401);
+ env.SITES_QA_ENABLED='true';assert.equal((await request('/api/qa/info',undefined,null)).status,200);
+ for(const path of ['/','/api/info','/api/games'])assert.equal((await request(path,undefined,null)).status,401);
+ assert.equal((await request('/api/games',{},null)).status,401);
+});
+
+test('cloud QA API uses isolated records and rejects browser origins and unlisted routes',async()=>{
+ const {request,env,sql}=fixture();env.SITES_QA_ENABLED='true';
+ const owner=(await request('/api/games',{mode:'mastermind'})).data;
+ const created=await request('/api/qa/games',{mode:'observe'},null);assert.equal(created.status,201);const qa=created.data;
+ assert.notEqual(sql.prepare('SELECT owner FROM games WHERE id=?').get(owner.id).owner,sql.prepare('SELECT owner FROM games WHERE id=?').get(qa.id).owner);
+ assert.equal((await request('/api/qa/games/'+owner.id,undefined,null)).status,404);
+ assert.equal((await request('/api/games/'+qa.id)).status,404);
+ assert.equal((await request('/api/qa/games/'+qa.id,undefined,null)).status,200);
+ assert.equal((await request('/api/qa/games/'+qa.id+'/bot-step',{revision:0},null)).status,200);
+ assert.equal((await request('/api/qa/games/'+qa.id+'/replay',undefined,null)).status,200);
+ for(const origin of ['https://game.test','https://evil.test','null',''])assert.equal((await request('/api/qa/info',undefined,null,{Origin:origin})).status,403);
+ assert.equal((await request('/api/qa/games',undefined,null)).status,404);
+ assert.equal((await request('/api/qa/scripts/starter',undefined,null)).status,404);
+ assert.equal((await request('/api/qa/scripts/generate',{},null)).status,404);
+ assert.equal((await request('/api/qa/games/'+qa.id+'/branch',{revision:0},null)).status,404);
+ assert.equal((await request('/api/qa/games/'+qa.id+'/script',undefined,null)).status,404);
+ env.SITES_QA_ENABLED='false';assert.equal((await request('/api/qa/games/'+qa.id,undefined,null)).status,401);
+});
+
+test('cloud AI persistence never restores legacy protagonist notes after visibility migration',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit_test_not_a_real_secret';
+ let g=(await request('/api/games',{mode:'mastermind'})).data;
+ for(let i=0;i<3;i++)g=(await request('/api/games/'+g.id+'/bot-step',{revision:g.revision})).data;
+ assert.equal(g.phaseId,'hero_cards');
+ const legacy=JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state);
+ delete legacy.visibilityPolicy;legacy.notes={A:'legacy hidden culprit A',B:'legacy hidden culprit B',C:'legacy hidden culprit C',M:'mastermind private evidence'};
+ sql.prepare('UPDATE games SET state=? WHERE id=?').run(JSON.stringify(legacy),g.id);
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  assert.ok(!options.body.includes('legacy hidden culprit'));
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0,"reason":"test","note":""}'}}]}),{status:200});
+ });
+ const next=await request('/api/games/'+g.id+'/ai-step',{revision:g.revision});assert.equal(next.status,200);
+ const persisted=JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state);
+ assert.deepEqual(persisted.notes,{A:'',B:'',C:'',M:'mastermind private evidence'});
+ assert.equal(persisted.visibilityPolicy,'hidden_incident_names_v1');
+});

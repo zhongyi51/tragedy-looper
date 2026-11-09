@@ -10,7 +10,7 @@ export function validateReplay(data,catalog){
  for(const f of data.frames){
   const v=f?.view,s=v?.script;
   if(!obj(v)||!obj(s)||!str(s.title)||!['FS','BTX'].includes(s.ruleset)||!num(s.days)||!num(s.loops)||!arr(s.characters)||s.characters.some(x=>!ids.has(x))||!arr(s.incidents))fail();
-  if(s.incidents.some(e=>!obj(e)||!num(e.day)||!events.has(e.type)))fail();
+  if(s.incidents.some(e=>!obj(e)||!num(e.day)||(e.type!==undefined&&!events.has(e.type))))fail();
   if(!num(v.loop)||!num(v.day)||!num(v.revision)||!['A','B','C'].includes(v.leader)||!seats.has(v.seat)||!(v.turn===null||seats.has(v.turn))||!str(v.phase)||!str(v.phaseId)||![null,'heroes','mastermind'].includes(v.winner))fail();
   if(!obj(v.board)||!obj(v.locations)||[...locs].some(l=>!num(v.locations[l])))fail();
   for(const [id,c] of Object.entries(v.board))if(!ids.has(id)||!obj(c)||c.id!==id||!locs.has(c.location)||typeof c.present!=='boolean'||typeof c.alive!=='boolean'||['goodwill','paranoia','intrigue','guard'].some(k=>!num(c[k])))fail();
@@ -20,4 +20,16 @@ export function validateReplay(data,catalog){
   if(v.secret){mappings(v.secret.roles,ids,roles);if(!plots.has(v.secret.mainPlot)||!arr(v.secret.subPlots)||v.secret.subPlots.some(p=>!plots.has(p))||!arr(v.secret.incidents)||v.secret.incidents.some(e=>!num(e.day)||!ids.has(e.culprit)))fail();}
  }
  return data;
+}
+
+// Older public exports carried scheduled event names and named non-events.
+// Preserve explicitly omniscient M frames; sanitize every public import/export.
+export function sanitizePublicReplay(data){
+ const clean=structuredClone(data),publicScript=s=>{if(s?.incidents)s.incidents=s.incidents.map(({day})=>({day}));};
+ if(clean.perspective!=='M')publicScript(clean.script);
+ for(const f of clean.frames||[]){const v=f.view;if(!v||!(clean.perspective==='public'||v.seat!=='M'))continue;
+  publicScript(v.script);delete v.secret;
+  for(const e of v.log||[])if(e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;
+ }
+ return clean;
 }

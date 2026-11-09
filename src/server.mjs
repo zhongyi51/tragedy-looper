@@ -58,7 +58,7 @@ async function api(req,res,u,owner){const p=u.pathname;
   let command=b.command,answer;
   if(route==='ai-step')answer=await decide(g.state,seat,{...usageHooks(g),userId:'g_'+id.replaceAll('-','')}),command=answer.command;
   if(route==='bot-step')command=botCommand(g.state,seat);
-  const next=applyCommand(g.state,seat,command);if(answer)next.notes[seat]=answer.note||g.state.notes[seat];persist(g,next,command,b.commandId);
+  const next=applyCommand(g.state,seat,command);if(answer)next.notes[seat]=answer.note||next.notes[seat];persist(g,next,command,b.commandId);
   return json(res,200,{...response(getGame(id,owner)),busy:false,decision:answer?{controller:'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
  }finally{busy.delete(id);}
 }
@@ -73,12 +73,15 @@ const server=http.createServer(async(req,res)=>{try{
  if(u.pathname.startsWith('/api/'))return await api(req,res,u,session(req,res));
  let f;if(allowAssets.has(u.pathname))f=path.join(assetsRoot,u.pathname.slice('/assets/'.length));else{const allowed={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/replay-validation.mjs':'replay-validation.mjs'};if(!allowed[u.pathname])return json(res,404,{error:'文件不存在'});f=path.join(root,'public',allowed[u.pathname]);}
  if(!existsSync(f))return json(res,404,{error:'素材不存在，请检查 assets 目录是否完整'});res.writeHead(200,{'Content-Type':mime[path.extname(f)]||'application/octet-stream','Content-Length':statSync(f).size,'Cache-Control':u.pathname.startsWith('/assets/')?'public,max-age=86400':'no-cache'});createReadStream(f).pipe(res);
- }catch(e){json(res,e.message==='ILLEGAL_ACTION'?400:400,{error:String(e.message).slice(0,400),code:e.code});}});
+ }catch(e){json(res,400,e.message==='ILLEGAL_ACTION'?{error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'}:{error:String(e.message).slice(0,400),code:e.code});}});
 if(process.argv.includes('--stdin-key')){
  // Raw TTY mode prevents credential echo; no credential value is written to disk or logs.
  if(process.stdin.isTTY)process.stdin.setRawMode(true);
  process.stdin.resume();console.log('Waiting for credential JSON on stdin (input hidden).');
  await new Promise(resolve=>{let b='';const receive=chunk=>{b+=chunk.toString();if(/[\r\n]/.test(b)){try{const v=JSON.parse(b.trim());configureKey(v.key);b='';process.stdin.off('data',receive);if(process.stdin.isTTY)process.stdin.setRawMode(false);process.stdin.pause();console.log('DeepSeek credential configured in memory.');resolve();}catch{b='';console.log('Invalid credential input.');}}};process.stdin.on('data',receive);});
 }
-const port=Number(process.env.PORT||4317);server.listen(port,'127.0.0.1',()=>console.log(`Tragedy Looper ready at http://127.0.0.1:${port} · AI ${configured()?'configured':'offline'} · ${model}`));
+// Managed preview passes --port; keep the listener loopback-only even when --host is supplied.
+const portOption=process.argv.indexOf('--port'),port=Number(portOption>=0?process.argv[portOption+1]:process.env.PORT||4317);
+if(!Number.isInteger(port)||port<1||port>65535)throw Error('需要有效端口（1–65535）');
+server.listen(port,'127.0.0.1',()=>console.log(`Tragedy Looper ready at http://127.0.0.1:${port} · AI ${configured()?'configured':'offline'} · ${model}`));
 process.on('SIGINT',()=>server.close(()=>{db.close();process.exit(0);}));

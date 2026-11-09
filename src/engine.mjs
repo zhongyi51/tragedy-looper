@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.2.0';
+export const VERSION='0.2.1';
+export const VISIBILITY_POLICY='hidden_incident_names_v1';
 export const phases={setup:'轮回准备',mm_cards:'剧作家行动',hero_cards:'主人公行动',cultist:'行动结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;
 export const hash=s=>createHash('sha256').update(JSON.stringify(s)).digest('hex');
@@ -9,7 +10,12 @@ const person=(s,id)=>s.board[id];
 const currentRole=(s,id)=>s.script.subPlots.includes('paranoia_virus')&&s.script.roles[id]==='person'&&s.board[id].paranoia>=3?'serial_killer':s.script.roles[id];
 const hasRole=(s,id,r)=>currentRole(s,id)===r||(currentRole(s,id)==='factor'&&((r==='misleader'&&s.locations.school>=2)||(r==='key_person'&&s.locations.city>=2)));
 const labelTarget=id=>name(id);
+const effectiveLocationCards=new Set(['intrigue_1','intrigue_2','forbid_intrigue']);
+const locationBluff=(card,target)=>locs.includes(target)&&!effectiveLocationCards.has(card.split('#')[0]);
 function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,text,type,...extra});}
+// Older saves recorded the hidden name even when an incident did not happen.
+// Sanitize at the observation boundary too, including historical replay frames.
+function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
 function counter(s,id,type,n){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${{goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'}[type]} ${n>0?'+':''}${n}`,'counter');}
 function reveal(s,id){s.knownRoles[id]=currentRole(s,id);log(s,`${name(id)}的角色是「${name(currentRole(s,id))}」`,'reveal');}
 function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e){s.knownCulprits[day]=e.culprit;log(s,`第${day}日事件犯人：${name(e.culprit)}`,'reveal');}}
@@ -52,7 +58,7 @@ function startLoop(s){
  if(s.board.henchman)s.phase='setup';else startDay(s);
 }
 function startDay(s){s.phase='mm_cards';s.placements=[];s.dayRevealed=[];if(s.board.transfer_student&&s.day===s.script.settings.transferDay){s.board.transfer_student.present=true;log(s,'转学生到场。');}log(s,`第 ${s.day} 日。`,'day');}
-export function createGame(script){const v=validateScript(script);if(v.errors.length)throw Error(v.errors.map(e=>e.path+': '+e.message).join('\n'));const s={version:VERSION,contentHash,script:cp(script),revision:0,loop:1,leader:0,log:[],knownRoles:{},knownCulprits:{},knownPlots:[],usage:{},winner:null,notes:{A:'',B:'',C:'',M:''}};startLoop(s);return s;}
+export function createGame(script){const v=validateScript(script);if(v.errors.length)throw Error(v.errors.map(e=>e.path+': '+e.message).join('\n'));const s={version:VERSION,visibilityPolicy:VISIBILITY_POLICY,contentHash,script:cp(script),revision:0,loop:1,leader:0,log:[],knownRoles:{},knownCulprits:{},knownPlots:[],usage:{},winner:null,notes:{A:'',B:'',C:'',M:''}};startLoop(s);return s;}
 export function turn(s){if(s.phase==='over')return null;if(['mm_cards','mm_ability','cultist','refusal','reveal_plot','setup','end_area','end'].includes(s.phase))return 'M';if(s.phase==='incident')return s.pending.chooser;return ['A','B','C'][(s.leader+(s.phase==='hero_cards'?s.placements.filter(p=>p.seat!=='M').length:0))%3];}
 export function deck(s,seat){const out=[];for(const d of catalog.actionDeckEntries.filter(d=>d.side===(seat==='M'?'mastermind':'protagonist')))for(let i=0;i<d.copiesPerHand;i++){const id=d.actionType+'#'+i;out.push({id,type:d.actionType,label:d.name_zh,once:d.oncePerLoop,available:!s.usedCards[seat].includes(id)&&!s.placements.some(p=>p.seat===seat&&p.card===id)});}return out;}
 const option=(command,label)=>({command,label});
@@ -62,7 +68,7 @@ export function legalActions(s,seat=turn(s)){
  if(s.phase==='setup'){for(const l of locs)add({type:'setup',location:l},`手下初始地点：${name(l)}`);return out;}
  if(s.phase==='between'){add({type:'next_loop'},'开始下一轮回');if(s.script.ruleset==='BTX')add({type:'final_battle'},'共同放弃剩余轮回，进入最后的战斗');return out;}
  if(s.phase==='guess'){for(const c of s.script.characters.filter(c=>!s.guessed[c]))for(const r of catalog.roles.filter(r=>r.sets.includes(s.script.ruleset)))add({type:'guess',character:c,role:r.id},`${name(c)} → ${name(r.id)}`);return out;}
- if(['mm_cards','hero_cards'].includes(s.phase)){const placed=s.placements.filter(p=>(p.seat==='M')===(seat==='M')).map(p=>p.target);for(const card of deck(s,seat).filter(c=>c.available))for(const target of [...living(s).map(c=>c.id),...locs].filter(t=>!placed.includes(t)))add({type:'place',card:card.id,target},`${card.label} → ${name(target)}`);return out;}
+ if(['mm_cards','hero_cards'].includes(s.phase)){const placed=s.placements.filter(p=>(p.seat==='M')===(seat==='M')).map(p=>p.target);for(const card of deck(s,seat).filter(c=>c.available))for(const target of [...living(s).map(c=>c.id),...locs].filter(t=>!placed.includes(t)))add({type:'place',card:card.id,target},`${card.label} → ${name(target)}${locationBluff(card.id,target)?'（佯动：地点上无效果）':''}`);return out;}
  if(s.phase==='cultist'){for(let mask=0;mask<2**s.cultists.length;mask++){const label=mask?'无视暗跃禁止：'+s.cultists.filter((_,i)=>mask&(1<<i)).map(name).join('、'):'按通常禁止效果结算';add({type:'cultist',mask},label);const boss=s.cultists.indexOf('boss');if(boss>=0&&(mask&(1<<boss))&&s.script.settings.bossTerritory!==s.board.boss.location)add({type:'cultist',mask,bossArea:'territory'},label+'（使用领地）');}return out;}
  if(s.phase==='end_area'){add({type:'end_area',territory:false},'按实际地点结算日结束强制能力');if(s.board.boss?.alive&&s.board.boss.present&&hasRole(s,'boss','serial_killer'))add({type:'end_area',territory:true},'大人物以领地位置使用日结束能力');return out;}
  if(s.phase==='refusal'){const a=s.pending.action,def=chars[a.actor].abilities[a.index],r=def.cannotRefuse?'none':roles[currentRole(s,a.actor)].goodwillRefusal;if(r!=='mandatory')add({type:'refusal',refuse:false},'接受友好能力');if(r!=='none')add({type:'refusal',refuse:true},'拒绝友好能力');return out;}
@@ -123,6 +129,10 @@ export function legalActions(s,seat=turn(s)){
 }
 function resolveMovement(s){
  s.dayRevealed=cp(s.placements);log(s,'全部行动牌揭示。','cards',{cards:cp(s.placements)});
+ // Any action card may legally be placed on a location as a bluff (official
+ // FAQ Ca02). Only Intrigue cards affect locations; never move the location or
+ // a character merely because its portrait appears inside that location.
+ for(const p of s.placements.filter(p=>locationBluff(p.card,p.target))){const card=deck(s,p.seat).find(c=>c.id===p.card);log(s,`${name(p.target)}上的「${card.label}」为佯动：地点上无效果。`,'card_effect');}
  for(const c of living(s)){const types=s.placements.filter(p=>p.target===c.id).map(p=>p.card.split('#')[0]);if(types.includes('forbid_move'))continue;const h=types.includes('move_h'),v=types.includes('move_v'),d=types.includes('move_d');const def=catalog.locations.find(l=>l.id===c.location);const x=def.x^Number(d?!h:h),y=def.y^Number(d?!v:v);move(s,c.id,catalog.locations.find(l=>l.x===x&&l.y===y).id);}
  for(const p of s.placements){const c=deck(s,p.seat).find(c=>c.id===p.card);if(c.once)s.usedCards[p.seat].push(p.card);}
  s.cultists=living(s).filter(c=>hasRole(s,c.id,'cultist')).map(c=>c.id);s.ignoredAreas=[];
@@ -187,7 +197,7 @@ function beginIncident(s,type,culprit,chooser='M',simulated=false){
  afterIncident(s,simulated);
 }
 function checkIncident(s){const e=s.script.incidents.find(e=>e.day===s.day);if(!e){startEnd(s);return;}const c=s.board[e.culprit];const n=e.culprit==='ai_character'?c.goodwill+c.paranoia+c.intrigue+c.guard:c.paranoia;
- if(!c.present||!c.alive||s.suppressed.includes(e.culprit)||n<chars[e.culprit].paranoiaLimit){log(s,`预告的「${name(e.type)}」没有发生。`,'incident');startEnd(s);return;}s.occurred.push(e.day);log(s,`「${name(e.type)}」发生。`,'incident');beginIncident(s,e.type,e.culprit);
+ if(!c.present||!c.alive||s.suppressed.includes(e.culprit)||n<chars[e.culprit].paranoiaLimit){log(s,`第 ${e.day} 日预告的事件没有发生。`,'incident');startEnd(s);return;}s.occurred.push(e.day);log(s,`「${name(e.type)}」发生。`,'incident');beginIncident(s,e.type,e.culprit);
 }
 function startEnd(s){s.leader=(s.leader+1)%3;s.phase='end_area';}
 function resolveEnd(s,territory){
@@ -198,6 +208,10 @@ function resolveEnd(s,territory){
 export function applyCommand(state,seat,command){
  const legal=legalActions(state,seat);if(!legal.some(o=>eq(o.command,command)))throw Error('ILLEGAL_ACTION');
  const s=cp(state),a=command;
+ // Previous versions gave protagonist models the named incident schedule.
+ // Their persisted notes may retain those secrets: clear only the three AI
+ // protagonist notes once, preserving all board state and mastermind notes.
+ if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
  switch(a.type){
   case 'setup':s.board.henchman.location=a.location;s.board.henchman.initial=a.location;log(s,`手下在${name(a.location)}入场。`);startDay(s);break;
   case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat}向${name(a.target)}盖放一张牌。`,'placed');if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
@@ -217,7 +231,7 @@ export function applyCommand(state,seat,command){
  s.revision++;return s;
 }
 export function view(s,seat='public'){
- const isM=seat==='M',v={version:s.version,revision:s.revision,script:publicScript(s.script),loop:s.loop,day:s.day,leader:['A','B','C'][s.leader],phase:phases[s.phase],phaseId:s.phase,turn:turn(s),winner:s.winner,board:cp(s.board),locations:cp(s.locations),knownRoles:cp(s.knownRoles),knownCulprits:cp(s.knownCulprits),knownPlots:cp(s.knownPlots),guessed:s.guessed||{},log:cp(s.log),placements:s.placements.map(p=>({seat:p.seat,target:p.target,...(p.seat===seat?{card:p.card}:{})})),revealedCards:cp(s.dayRevealed||[]),hand:['M','A','B','C'].includes(seat)?deck(s,seat):[],actions:legalActions(s,seat),seat};
+ const isM=seat==='M',v={version:s.version,revision:s.revision,script:publicScript(s.script,{includeIncidentTypes:isM}),loop:s.loop,day:s.day,leader:['A','B','C'][s.leader],phase:phases[s.phase],phaseId:s.phase,turn:turn(s),winner:s.winner,board:cp(s.board),locations:cp(s.locations),knownRoles:cp(s.knownRoles),knownCulprits:cp(s.knownCulprits),knownPlots:cp(s.knownPlots),guessed:s.guessed||{},log:visibleLog(s,isM),placements:s.placements.map(p=>({seat:p.seat,target:p.target,...(p.seat===seat?{card:p.card}:{})})),revealedCards:cp(s.dayRevealed||[]),hand:['M','A','B','C'].includes(seat)?deck(s,seat):[],actions:legalActions(s,seat),seat};
  if(isM){v.secret={roles:cp(s.script.roles),mainPlot:s.script.mainPlot,subPlots:cp(s.script.subPlots),incidents:cp(s.script.incidents)};if(s.pending)v.pending=cp(s.pending);}
  // A controller sees requests but never hidden refusal causes or pending culprit ids.
  if(seat===turn(s)&&s.phase==='incident')v.choiceTitle='选择事件效果';

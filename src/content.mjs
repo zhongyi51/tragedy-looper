@@ -10,7 +10,9 @@ export const incidents=index(catalog.incidents);
 export const locs=catalog.locations.map(c=>c.id);
 export const name=id=>chars[id]?.name_zh_working||roles[id]?.name_zh_working||plots[id]?.name_zh_working||incidents[id]?.name_zh_working||catalog.locations.find(c=>c.id===id)?.name_zh||id;
 export const starter={id:'first-script',title:'起始剧本',author:'BakaFire',ruleset:'FS',days:3,loops:3,communication:'between_loops_only',characters:['boy_student','girl_student','shrine_maiden','office_worker','idol','doctor'],mainPlot:'murder_plan',subPlots:['ripper_shadow'],roles:{boy_student:'person',girl_student:'key_person',shrine_maiden:'serial_killer',office_worker:'killer',idol:'misleader',doctor:'brain'},incidents:[{day:3,type:'suicide',culprit:'girl_student'}],settings:{},specialRules:[],provenance:'官方 quickset；交流选择为本地练习设置。'};
-export function publicScript(s){return {id:s.id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:s.incidents.map(({day,type})=>({day,type})),settings:s.settings,specialRules:s.specialRules||[]};}
+// This site's hidden-incident schedule keeps only dates in protagonist/public
+// payloads. Incident effects may still become observable when they happen.
+export function publicScript(s,{includeIncidentTypes=false}={}){return structuredClone({id:s.id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:s.incidents.map(({day,type})=>({day,...(includeIncidentTypes?{type}:{})})),settings:s.settings,specialRules:s.specialRules||[]});}
 export function validateScript(s){
  const errors=[],warnings=[];const err=(path,message)=>errors.push({path,message});
  if(!s||typeof s!=='object')return {errors:[{path:'script',message:'需要剧本对象'}],warnings};
