@@ -9,7 +9,6 @@ const living=s=>Object.values(s.board).filter(c=>c.alive&&c.present);
 const person=(s,id)=>s.board[id];
 const currentRole=(s,id)=>s.script.subPlots.includes('paranoia_virus')&&s.script.roles[id]==='person'&&s.board[id].paranoia>=3?'serial_killer':s.script.roles[id];
 const hasRole=(s,id,r)=>currentRole(s,id)===r||(currentRole(s,id)==='factor'&&((r==='misleader'&&s.locations.school>=2)||(r==='key_person'&&s.locations.city>=2)));
-const labelTarget=id=>name(id);
 const effectiveLocationCards=new Set(['intrigue_1','intrigue_2','forbid_intrigue']);
 const locationBluff=(card,target)=>locs.includes(target)&&!effectiveLocationCards.has(card.split('#')[0]);
 function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,text,type,...extra});}
@@ -279,20 +278,180 @@ export function view(s,seat='public'){
  if(seat===turn(s)&&s.phase==='incident')v.choiceTitle='选择事件效果';
  return v;
 }
+const moveNames={move_h:'横移',move_v:'纵移',move_d:'斜移'};
+function moveDestination(s,id,type){const c=s.board[id],def=catalog.locations.find(l=>l.id===c.location),h=type==='move_h'||type==='move_d',v=type==='move_v'||type==='move_d';const to=catalog.locations.find(l=>l.x===(def.x^Number(h))&&l.y===(def.y^Number(v))).id;return canMove(s,id,to)?to:null;}
+function moveHint(s,id,types){return types.map(t=>{const to=moveDestination(s,id,t);return `${moveNames[t]}→${to?name(to):'禁入'}`;}).join('，');}
+function upcomingIncidents(s){return s.script.incidents.filter(e=>e.day>=s.day&&!s.occurred.includes(e.day)).sort((a,b)=>a.day-b.day);}
+// Seat-scoped summary: the mastermind sees concrete loss paths derived from the
+// secret script; protagonists only get facts already visible on their board.
+export function transitionFrames(project,initial,states){
+ const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
+ let last=signature(project(initial));const frames=[];
+ for(const state of states){
+  const {actions,hand,secret,pending,choiceTitle,...frame}=project(state),key=signature(frame);
+  if(key!==last){frame.busy=false;frames.push(frame);last=key;}
+ }
+ return frames;
+}
+export function strategicBriefing(s,seat=turn(s)){
+ if(!seat||['between','guess','over'].includes(s.phase))return [];
+ const out=[],live=living(s),daysLeft=s.script.days-s.day+1,loopsLeft=s.script.loops-s.loop;
+ out.push(`第 ${s.loop}/${s.script.loops} 轮回，第 ${s.day}/${s.script.days} 日；本轮回含今日还剩 ${daysLeft} 次出牌机会。${seat==='M'?(loopsLeft?`还需再让 ${loopsLeft+1} 个轮回全部失败。`:'这是最后一个轮回：只要本轮回失败就能获胜。'):(loopsLeft?`本轮回失败后还剩 ${loopsLeft} 次重来机会。`:'这是最后一个轮回，必须阻止所有惨剧。')}`);
+ if(seat!=='M'){
+  const pending=s.script.incidents.filter(e=>e.day>=s.day&&!s.occurred.includes(e.day)).map(e=>e.day);
+  if(pending.length)out.push(`尚未到来的事件日：${pending.map(d=>'第'+d+'日').join('、')}。事件在犯人不安达到临界时发生。`);
+  const tense=live.filter(c=>c.paranoia>=chars[c.id].paranoiaLimit-1).map(c=>`${name(c.id)} 不安 ${c.paranoia}/${chars[c.id].paranoiaLimit}${c.paranoia>=chars[c.id].paranoiaLimit?'（已达临界）':'（差1）'}`);
+  if(tense.length)out.push('接近不安临界：'+tense.join('；')+'。不安−1 每轮回只能用一次，优先用于今日或明日的高危人物。');
+  const plotted=[...live.filter(c=>c.intrigue>=1).map(c=>`${name(c.id)} 暗跃 ${c.intrigue}`),...locs.filter(l=>s.locations[l]>=1).map(l=>`${name(l)} 暗跃 ${s.locations[l]}`)];
+  if(plotted.length)out.push('已有暗跃：'+plotted.join('；')+'。暗跃常是失败条件，暗跃禁止同日只能有一张生效，三名主人公不要重复放暗跃禁止。');
+  const alone=locs.map(l=>live.filter(c=>c.location===l)).filter(g=>g.length===2).map(g=>g.map(c=>name(c.id)).join('与'));
+  if(alone.length)out.push('两人独处的地点（若一方是连环杀手，另一方日结束会死亡）：'+alone.join('；')+'。');
+  const known=Object.entries(s.knownRoles).map(([c,r])=>`${name(c)}=${name(r)}`);if(known.length)out.push('已确认角色：'+known.join('、')+'。');
+  out.push('提升友好可解锁人物能力（如公开角色、减少不安）。观察剧作家把不安+1/暗跃+1放在谁身上，通常就是犯人或关键角色。');
+  return out;
+ }
+ const sc=s.script,roleOf=r=>live.filter(c=>hasRole(s,c.id,r));
+ for(const e of upcomingIncidents(s)){
+  const c=s.board[e.culprit],limit=chars[e.culprit].paranoiaLimit,value=e.culprit==='ai_character'?c.goodwill+c.paranoia+c.intrigue+c.guard:c.paranoia,need=Math.max(0,limit-value),chances=e.day-s.day+1;
+  const state=!c.alive||!c.present?'犯人已死亡或未到场，无法发生':s.suppressed.includes(e.culprit)?'已被手下能力压制':need===0?'已达到临界，当天必定发生':`还差 ${need} 点不安，距该日还有 ${chances} 次出牌${need>chances*2?'（很难达成）':''}`;
+  let effect='';
+  if(e.type==='suicide')effect=hasRole(s,e.culprit,'key_person')?'；犯人是关键人物，自杀会直接令轮回失败':hasRole(s,e.culprit,'friend')?'；犯人是朋友，死亡会令轮回失败':'';
+  else if(e.type==='murder')effect='；可杀死与犯人同地点的一人，若能杀关键人物则轮回失败';
+  else if(e.type==='hospital_incident')effect=`；医院暗跃 ${s.locations.hospital}：≥1 医院内全员死亡，≥2 主人公死亡`;
+  else if(e.type==='faraway_murder')effect='；可杀死任意一名暗跃≥2的人物';
+  else if(e.type==='evil')effect='；神社暗跃+2';
+  out.push(`第 ${e.day} 日「${name(e.type)}」犯人 ${name(e.culprit)}（${name(c.location)}，不安 ${value}/${limit}）：${state}${effect}。`);
+ }
+ const keys=roleOf('key_person'),killers=roleOf('killer');
+ for(const k of keys){out.push(`关键人物 ${name(k.id)}（${name(k.location)}，暗跃 ${k.intrigue}）死亡即轮回失败。移动：${moveHint(s,k.id,['move_h','move_v','move_d'])}。`);}
+ for(const k of killers){const victims=keys.filter(t=>t.location===k.location);out.push(`杀手 ${name(k.id)}（${name(k.location)}，暗跃 ${k.intrigue}）：日结束可杀死同地点且暗跃≥2的关键人物${victims.length?'（当前同处：'+victims.map(t=>name(t.id)+' 暗跃 '+t.intrigue).join('、')+'）':'（当前不同处，可用移动牌让双方会合）'}；自身暗跃≥4 时可杀死主人公。移动：${moveHint(s,k.id,['move_h','move_v','move_d'])}。`);}
+ for(const k of roleOf('serial_killer')){const others=live.filter(t=>t.id!==k.id&&t.location===k.location);out.push(`连环杀手 ${name(k.id)}（${name(k.location)}）：日结束若同地点恰好只有一人，此人死亡。当前同地点 ${others.length} 人${others.length===1?'（'+name(others[0].id)+'将死亡）':''}。移动：${moveHint(s,k.id,['move_h','move_v','move_d'])}。`);}
+ for(const k of roleOf('brain'))out.push(`幕后黑手 ${name(k.id)}（${name(k.location)}）：剧作家能力阶段每日一次，可给同地点人物或该地点暗跃+1。`);
+ for(const k of roleOf('misleader'))out.push(`误导者 ${name(k.id)}（${name(k.location)}）：剧作家能力阶段每日一次，可给同地点人物不安+1，适合推高犯人不安。`);
+ for(const k of roleOf('cultist'))out.push(`邪教徒 ${name(k.id)}（${name(k.location)}）：可无视其所在地点的暗跃禁止。`);
+ const initial=r=>Object.keys(sc.roles).filter(c=>sc.roles[c]===r).map(c=>s.board[c].initial);
+ if(sc.mainPlot==='avenger')out.push(`主规则：幕后黑手初始地点（${initial('brain').map(name).join('、')}）暗跃≥2 时轮回失败；当前 ${initial('brain').map(l=>s.locations[l]).join('、')}。`);
+ if(sc.mainPlot==='protect_place')out.push(`主规则：学校暗跃≥2 时轮回失败；当前学校暗跃 ${s.locations.school}。`);
+ if(sc.mainPlot==='sealed_item')out.push(`主规则：神社暗跃≥2 时轮回失败；当前神社暗跃 ${s.locations.shrine}。`);
+ if(sc.mainPlot==='time_bomb')out.push(`主规则：魔女初始地点（${initial('witch').map(name).join('、')}）暗跃≥2 时轮回失败；当前 ${initial('witch').map(l=>s.locations[l]).join('、')}。`);
+ if(sc.mainPlot==='contract')out.push(`主规则：关键人物暗跃≥2 时轮回失败；当前 ${keys.map(k=>name(k.id)+' '+k.intrigue).join('、')||'无'}。`);
+ if(sc.mainPlot==='change_future')out.push('主规则：本轮回发生过「蝴蝶振翅」则轮回失败。');
+ for(const f of Object.values(s.board).filter(c=>c.present&&hasRole(s,c.id,'friend')))out.push(`朋友 ${name(f.id)}${f.alive?'':'（已死亡）'}：轮回结束时若已死亡则轮回失败。`);
+ for(const k of roleOf('loved_one'))out.push(`主恋人 ${name(k.id)}：不安≥3 且暗跃≥1 时日结束可杀死主人公；当前不安 ${k.paranoia}、暗跃 ${k.intrigue}。`);
+ for(const k of roleOf('time_traveler'))out.push(`时间旅行者 ${name(k.id)}：最后一日友好≤2 时可令轮回失败；当前友好 ${k.goodwill}。友好禁止可阻止主人公加友好。`);
+ const blocked=live.filter(c=>c.goodwill>0).map(c=>`${name(c.id)} 友好 ${c.goodwill}`);if(blocked.length)out.push('主人公正在积累友好：'+blocked.join('；')+'。必要时用友好禁止阻止能力解锁。');
+ out.push('策略：集中资源推进 1–2 条最快的失败路径，再用其他牌制造干扰。主人公每天最多 3 张牌，且同日两张以上暗跃禁止会全部失效；移动牌只作用于人物，不能移动地点。');
+ return out;
+}
+function incidentWeight(s,e){
+ switch(e.type){
+  case 'suicide':return hasRole(s,e.culprit,'key_person')||hasRole(s,e.culprit,'friend')?12:2;
+  case 'murder':return 8;
+  case 'hospital_incident':return s.locations.hospital>=1?9:4;
+  case 'faraway_murder':return 6;
+  case 'evil':return s.script.mainPlot==='sealed_item'?10:3;
+  case 'butterfly':return s.script.mainPlot==='change_future'?12:3;
+  default:return 4;
+ }
+}
+function plotLocations(s){
+ const sc=s.script,initial=r=>Object.keys(sc.roles).filter(c=>sc.roles[c]===r).map(c=>s.board[c].initial),out=new Set();
+ if(sc.mainPlot==='protect_place')out.add('school');if(sc.mainPlot==='sealed_item')out.add('shrine');
+ if(sc.mainPlot==='avenger')initial('brain').forEach(l=>out.add(l));if(sc.mainPlot==='time_bomb')initial('witch').forEach(l=>out.add(l));
+ if(upcomingIncidents(s).some(e=>e.type==='hospital_incident'))out.add('hospital');
+ return [...out];
+}
+// Mastermind-side evaluation of a full state; only the mastermind bot may use it.
+function mastermindValue(s){
+ if(s.winner==='mastermind'||s.phase==='between'||s.phase==='guess')return 1000;
+ if(s.winner==='heroes')return -1000;
+ const live=living(s),keys=live.filter(c=>hasRole(s,c.id,'key_person')),killers=live.filter(c=>hasRole(s,c.id,'killer'));let v=0;
+ for(const e of upcomingIncidents(s)){const c=s.board[e.culprit];if(!c.alive||!c.present||s.suppressed.includes(e.culprit))continue;const limit=Math.max(1,chars[e.culprit].paranoiaLimit);v+=incidentWeight(s,e)*Math.min(c.paranoia,limit)/limit;}
+ for(const k of keys)v+=Math.min(k.intrigue,2)*3+(killers.some(x=>x.location===k.location)?3:0);
+ for(const l of plotLocations(s))v+=Math.min(s.locations[l],2)*4;
+ for(const k of killers)v+=Math.min(k.intrigue,4);
+ for(const k of live.filter(c=>hasRole(s,c.id,'loved_one')))v+=Math.min(k.paranoia,3)+Math.min(k.intrigue,1)*2;
+ v+=Object.values(s.board).filter(c=>c.present&&!c.alive&&hasRole(s,c.id,'friend')).length*50;
+ v-=live.reduce((n,c)=>n+c.goodwill*.4+c.guard*2,0)+Object.keys(s.knownRoles).length*2+Object.keys(s.knownCulprits).length*1.5+s.knownPlots.length*2;
+ return v;
+}
+function mastermindPlacement(s,a){
+ const type=a.card.split('#')[0],t=a.target,c=s.board[t];
+ if(!c)return ['intrigue_1','intrigue_2'].includes(type)?(plotLocations(s).includes(t)&&s.locations[t]<2?(type==='intrigue_2'?9:8):1):.2;
+ const live=living(s),is=r=>hasRole(s,t,r),keys=live.filter(k=>hasRole(s,k.id,'key_person')),killers=live.filter(k=>hasRole(s,k.id,'killer'));
+ const incidents=upcomingIncidents(s).filter(e=>e.culprit===t&&!s.suppressed.includes(t)),limit=chars[t].paranoiaLimit;
+ if(type==='paranoia_1'){let n=is('loved_one')&&c.paranoia<3?5:.5;for(const e of incidents){const need=limit-c.paranoia;if(need>0&&need<=(e.day-s.day+1)*2)n=Math.max(n,incidentWeight(s,e)+(e.day===s.day?2:0));}return n;}
+ if(type==='intrigue_1'||type==='intrigue_2'){
+  if(is('key_person')&&c.intrigue<2&&(killers.length||s.script.mainPlot==='contract'||upcomingIncidents(s).some(e=>e.type==='faraway_murder')))return type==='intrigue_2'&&c.intrigue===0?9:7;
+  if(is('killer'))return c.intrigue<4?3:.5;if(is('loved_one')&&c.intrigue<1)return 5;return .8;
+ }
+ if(type.startsWith('move')){
+  const to=moveDestination(s,t,type);if(!to||to===c.location)return .1;
+  const there=live.filter(x=>x.location===to&&x.id!==t);
+  if(is('killer')&&keys.some(k=>k.location===to))return 9+(keys.some(k=>k.location===to&&k.intrigue>=2)?2:0);
+  if(is('key_person')&&killers.some(k=>k.location===to))return 9+(c.intrigue>=2?2:0);
+  if((is('key_person')||is('friend'))&&there.length===1&&hasRole(s,there[0].id,'serial_killer'))return 10;
+  if(is('serial_killer')&&there.length===1)return hasRole(s,there[0].id,'key_person')||hasRole(s,there[0].id,'friend')?11:4;
+  if(upcomingIncidents(s).some(e=>e.culprit===t&&e.type==='murder')&&keys.some(k=>k.location===to))return 6;
+  return .5;
+ }
+ if(type==='forbid_goodwill')return is('time_traveler')&&s.day>=s.script.days-1?8:c.goodwill>=1?2+c.goodwill:.3;
+ if(type==='forbid_paranoia')return incidents.some(e=>e.day<=s.day+1)&&c.paranoia>=limit?5:.2;
+ return .3;
+}
+const reducesParanoia=(a,i)=>['boy_student','girl_student','nurse'].includes(a)||a==='idol'&&i===0;
+// Protagonist bot: only its own observation. Mastermind card targets are public
+// and are the main signal for where a threat is being built.
+function revealedHistory(v){
+ const h={paranoia:{},intrigue:{}};
+ for(const e of v.log)for(const p of e.type==='cards'&&e.cards||[]){if(p.seat!=='M')continue;const t=p.card.split('#')[0];if(t==='paranoia_1')h.paranoia[p.target]=(h.paranoia[p.target]||0)+1;if(t.startsWith('intrigue'))h.intrigue[p.target]=(h.intrigue[p.target]||0)+1;}
+ return h;
+}
+function heroScore(v,a,history){
+ const c=v.board[a.target];
+ if(a.type==='place'){
+  const type=a.card.split('#')[0],mmTargets=v.placements.filter(p=>p.seat==='M').map(p=>p.target),targeted=mmTargets.includes(a.target);
+  const soon=v.script.incidents.some(e=>e.day>=v.day&&e.day<=v.day+1);
+  // Shared convention: once a teammate answers a mastermind target, others avoid a second Forbid Intrigue that would cancel it.
+  const answered=v.placements.some(p=>p.seat!=='M'&&p.seat!==v.seat&&mmTargets.includes(p.target))?.3:1;
+  if(!c)return type==='forbid_intrigue'?(targeted?7+v.locations[a.target]+(history.intrigue[a.target]||0):v.locations[a.target]>=1?2:.2)*answered:.1;
+  const limit=chars[c.id].paranoiaLimit,gap=limit-c.paranoia,suspect=history.paranoia[c.id]||0;
+  if(type==='paranoia_minus_1')return c.paranoia>0&&gap<=1?(soon?11:7)+(targeted?2:0)+suspect:targeted&&c.paranoia>0&&gap<=2?4+suspect:.1;
+  if(type==='forbid_intrigue')return (targeted?6+c.intrigue+(history.intrigue[c.id]||0):c.intrigue>=1?2:.2)*answered;
+  if(type==='goodwill_1'||type==='goodwill_2'){const min=Math.min(...chars[c.id].abilities.map(x=>x.minGoodwill),99);if(min===99)return .3;if(c.goodwill>=min)return 1;return 4.5-Math.max(0,min-c.goodwill-(type==='goodwill_2'?2:1))*.6-(targeted?.4:0);}
+  if(type==='forbid_move')return targeted?3:.3;
+  return type==='paranoia_1'?.05:.4;
+ }
+ if(a.type==='goodwill'){
+  const t=a.target&&v.board[a.target],ratio=t?t.paranoia/Math.max(1,chars[t.id].paranoiaLimit):0,unknown=t&&!v.knownRoles[t.id];
+  if(reducesParanoia(a.actor,a.index)||a.actor==='doctor'&&a.index===0||a.actor==='teacher'&&a.index===0)return a.amount===1?-1:t?.paranoia>0?3+ratio*5:-1;
+  if(['office_worker','irregular','boss'].includes(a.actor)||['shrine_maiden','forensic','teacher'].includes(a.actor)&&a.index===1)return unknown?4:-1;
+  if(a.actor==='shrine_maiden')return v.locations.shrine>0?5:-1;
+  if(a.actor==='transfer_student'||a.actor==='godly_being'&&a.index===1)return t?.intrigue>0||(!t&&v.locations[a.target]>0)?5:-1;
+  if(a.actor==='soldier')return a.index===1?5:-1;
+  if(a.actor==='alien')return a.index===1?5:-2;
+  if(a.actor==='journalist'||a.actor==='ai_character')return -1;
+  if(a.actor==='police'||a.actor==='godly_being')return a.index===0?(v.knownCulprits[a.day]?-1:4):2;
+  if(a.actor==='henchman')return 4;
+  if(a.actor==='forensic')return .2;
+  return 1;
+ }
+ if(a.type==='pass')return 0;if(a.type==='next_loop')return 10;if(a.type==='final_battle')return 0;
+ if(a.type==='guess')return v.knownRoles[a.character]===a.role?10:a.role==='person'?1:0;
+ return 1;
+}
 export function botCommand(s,seat=turn(s)){
  const options=legalActions(s,seat);if(!options.length)throw Error('NO_ACTION');
- // Baseline bot uses exactly its permitted observation. Its strength is intentionally modest.
- const v=view(s,seat),ls=Object.values(v.board).filter(c=>c.alive&&c.present);let best=options[0],score=-Infinity;
- for(let i=0;i<options.length;i++){const o=options[i],a=o.command;let n=0;const c=v.board[a.target];
-  if(a.type==='place'){
-   const type=a.card.split('#')[0];n=(i%7)*.001;
-   if(seat==='M'){
-    const role=v.secret.roles[a.target];if(type==='intrigue_1'||type==='intrigue_2')n=c?(role==='key_person'?8:role==='killer'?7:1):4;
-    if(type==='paranoia_1'&&c)n=v.secret.incidents.some(e=>e.culprit===c.id&&e.day>=v.day)?10-c.paranoia:1;
-    if(type.startsWith('move')&&c){n=2;const ser=ls.find(t=>v.secret.roles[t.id]==='serial_killer');if(ser&&role==='key_person')n=4;}
-   }else{if(c&&type==='paranoia_minus_1')n=c.paranoia>=chars[c.id].paranoiaLimit?12:0;if(c&&type==='goodwill_1')n=7-c.goodwill;if(c&&type==='goodwill_2')n=6-c.goodwill;if(c&&type==='forbid_move')n=1;if(c&&type==='forbid_intrigue')n=c.intrigue?5:0;}
-  }else if(a.type==='pass')n=-10;else if(a.type==='next_loop')n=10;else if(a.type==='refusal')n=a.refuse?5:0;else if(a.type==='guess')n=v.knownRoles[a.character]===a.role?10:a.role==='person'?1:0;else n=1;
-  if(n>score){score=n;best=o;}
+ if(options.length===1)return options[0].command;
+ let best=options[0],score=-Infinity;
+ if(seat==='M'){
+  // Placements resolve later, so use the threat heuristic; every other mastermind
+  // decision resolves now and can be judged by one-step lookahead.
+  const placing=options[0].command.type==='place';
+  for(const [i,o] of options.entries()){const n=(placing?mastermindPlacement(s,o.command):mastermindValue(applyCommand(s,seat,o.command)))+(i%7)*.001;if(n>score){score=n;best=o;}}
+  return best.command;
  }
+ const v=view(s,seat),history=revealedHistory(v);
+ for(const [i,o] of options.entries()){const n=heroScore(v,o.command,history)+(i%7)*.001;if(n>score){score=n;best=o;}}
  return best.command;
 }

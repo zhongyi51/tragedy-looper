@@ -66,3 +66,10 @@ test('automatic continuation stops after forced victory or a pause during settle
   vm.createContext(c);vm.runInContext(source.slice(source.indexOf('async function runAuto('),source.indexOf('async function resumeRules(')),c);await c.runAuto();assert.deepEqual(calls,['advance']);assert.equal(c.auto,false);
  }
 });
+test('final guess choices mark roles the protagonists already confirmed',()=>{
+ const s=createGame(starter);s.script.ruleset='BTX';s.phase='guess';s.guessed={};s.knownRoles={office_worker:'killer'};
+ const v=view(s,'A'),groups=renderFunctions().choiceGroups(v),office=groups.find(gr=>gr.items.some(it=>v.actions[it.i].command.character==='office_worker'));
+ assert.match(office.detail,/已确认/);
+ assert.equal(office.items.filter(it=>it.cls==='known').map(it=>v.actions[it.i].command.role).join(),'killer');
+ assert.ok(groups.filter(gr=>gr!==office).every(gr=>gr.items.every(it=>!it.cls)));
+});
