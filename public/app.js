@@ -154,7 +154,7 @@ function choiceGroups(v){
   if(a.type==='pass')return;
   if(a.type==='goodwill'){const ab=char(a.actor).abilities[a.index];add(a.actor+a.index,`${name(a.actor)} · 能力 ${a.index+1}`,`♡${ab.minGoodwill} · ${ab.limit==='loop'?'每轮回一次':'每天一次'} · ${ab.effect_zh}`,{...item,text:optionText(o),hl:a.target});}
   else if(a.type==='mm')add(a.actor+a.ability,o.label.split(' → ')[0],'',{...item,text:optionText(o),hl:a.target});
-  else if(a.type==='guess')add(a.character,name(a.character),'',{...item,text:name(a.role),hl:a.character});
+  else if(a.type==='guess'){const known=v.knownRoles[a.character];add(a.character,name(a.character),known?'已确认：'+name(known):'',{...item,text:name(a.role)+(known===a.role?' ✓':''),hl:a.character,cls:known===a.role?'known':''});}
   else if(a.type==='incident')add('incident',v.choiceTitle||'选择事件效果','',{...item,text:o.label,hl:a.target});
   else add(a.type,'','',{...item,text:o.label,hl:a.target||a.actor});
  });
@@ -164,7 +164,7 @@ function choicePanel(v,blocked){
  const pass=v.actions.findIndex(o=>o.command.type==='pass'),groups=choiceGroups(v);
  if(v.phaseId==='between'){const next=v.actions.findIndex(o=>o.command.type==='next_loop'),final=v.actions.findIndex(o=>o.command.type==='final_battle');
   return `<div class="between-panel"><div class="between-copy"><span class="eyebrow">TIME REWINDS</span><b>第 ${v.loop+1} 轮回即将开始</b><p>计数器与人物位置将复原，已确认的角色和你的笔记会保留。</p></div><div class="row">${next>=0?btn('开始第 '+(v.loop+1)+' 轮回','choose','primary big',`data-index="${next}" ${blocked?'disabled':''}`):''}${final>=0?btn('放弃剩余轮回，进入最后的战斗','choose','',`data-index="${final}" ${blocked?'disabled':''}`):''}</div></div>`;}
- const groupHtml=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head"><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div>`:''}<div class="choice-items">${gr.items.map(it=>`<button class="choice" data-do="choose" data-index="${it.i}" ${it.hl?`data-hl="${esc(it.hl)}"`:''} ${blocked?'disabled':''}>${esc(it.text)}</button>`).join('')}</div></div>`;
+ const groupHtml=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head"><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div>`:''}<div class="choice-items">${gr.items.map(it=>`<button class="choice ${it.cls||''}" data-do="choose" data-index="${it.i}" ${it.hl?`data-hl="${esc(it.hl)}"`:''} ${blocked?'disabled':''}>${esc(it.text)}</button>`).join('')}</div></div>`;
  return `<div class="choice-panel ${v.phaseId==='guess'?'guess-panel':''}">${groups.map(groupHtml).join('')}${pass>=0?`<div class="choice-pass">${btn(v.actions[pass].label,'choose',groups.length?'':'primary',`data-index="${pass}" ${blocked?'disabled':''}`)}${groups.length?'<span class="hint">不使用能力也可以直接结束此阶段。</span>':''}</div>`:''}</div>`;
 }
 function hand(v){
