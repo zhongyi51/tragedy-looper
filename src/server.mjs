@@ -5,7 +5,7 @@ import path from 'node:path';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from './content.mjs';
-import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic} from './engine.mjs';
+import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic,transitionFrames} from './engine.mjs';
 import {configureKey,configured,decide,generateWithAi,model,rates,decisionSummary} from './ai.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
@@ -19,15 +19,6 @@ const session=(req,res)=>{let id=req.headers.cookie?.match(/(?:^|; )tl_session=(
 function getGame(id,owner){const row=db.prepare('SELECT * FROM games WHERE id=? AND owner=?').get(id,owner);if(!row)throw Error('对局不存在');return {...row,state:JSON.parse(row.state)};}
 function seatFor(g){return g.mode==='mastermind'?'M':g.mode==='observe'?'public':turn(g.state)!=='M'&&turn(g.state)?turn(g.state):'A';}
 function response(g){return {...view(g.state,seatFor(g)),id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:configured(),model,busy:busy.has(g.id)};}
-function transitionViews(g,states){
- const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
- let last=signature(response(g));const frames=[];
- for(const state of states){
-  const {actions,hand,secret,pending,choiceTitle,...frame}=response({...g,state}),key=signature(frame);
-  if(key!==last){frame.busy=false;frames.push(frame);last=key;}
- }
- return frames;
-}
 function persist(g,frames,commandId){
  const next=frames.at(-1)?.state||g.state;
  db.exec('BEGIN IMMEDIATE');try{
@@ -84,7 +75,7 @@ async function api(req,res,u,owner){const p=u.pathname;
    frames=[{seat,command,state:first},...advanceAutomatic(first,{includeBetween:g.mode!=='heroes'}).steps];
   }
   persist(g,frames,b.commandId);
-  return json(res,200,{...response(getGame(id,owner)),busy:false,transitionFrames:transitionViews(g,frames.map(f=>f.state)),decision:decisionSummary(route,seat,answer)});
+  return json(res,200,{...response(getGame(id,owner)),busy:false,transitionFrames:transitionFrames(state=>response({...g,state}),g.state,frames.map(f=>f.state)),decision:decisionSummary(route,seat,answer)});
  }finally{busy.delete(id);}
 }
 const assetsRoot=path.resolve(root,'assets');

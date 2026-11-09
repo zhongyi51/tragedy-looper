@@ -9,8 +9,6 @@
   "scripts": {
     "start": "node src/server.mjs",
     "test": "node scripts/test-all.mjs",
-    "build:worker": "node scripts/build-worker.mjs",
-    "dev": "node src/server.mjs",
     "build": "node scripts/build-worker.mjs"
   }
 }

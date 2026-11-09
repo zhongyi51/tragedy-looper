@@ -9,7 +9,6 @@ const living=s=>Object.values(s.board).filter(c=>c.alive&&c.present);
 const person=(s,id)=>s.board[id];
 const currentRole=(s,id)=>s.script.subPlots.includes('paranoia_virus')&&s.script.roles[id]==='person'&&s.board[id].paranoia>=3?'serial_killer':s.script.roles[id];
 const hasRole=(s,id,r)=>currentRole(s,id)===r||(currentRole(s,id)==='factor'&&((r==='misleader'&&s.locations.school>=2)||(r==='key_person'&&s.locations.city>=2)));
-const labelTarget=id=>name(id);
 const effectiveLocationCards=new Set(['intrigue_1','intrigue_2','forbid_intrigue']);
 const locationBluff=(card,target)=>locs.includes(target)&&!effectiveLocationCards.has(card.split('#')[0]);
 function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,text,type,...extra});}
@@ -285,6 +284,15 @@ function moveHint(s,id,types){return types.map(t=>{const to=moveDestination(s,id
 function upcomingIncidents(s){return s.script.incidents.filter(e=>e.day>=s.day&&!s.occurred.includes(e.day)).sort((a,b)=>a.day-b.day);}
 // Seat-scoped summary: the mastermind sees concrete loss paths derived from the
 // secret script; protagonists only get facts already visible on their board.
+export function transitionFrames(project,initial,states){
+ const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
+ let last=signature(project(initial));const frames=[];
+ for(const state of states){
+  const {actions,hand,secret,pending,choiceTitle,...frame}=project(state),key=signature(frame);
+  if(key!==last){frame.busy=false;frames.push(frame);last=key;}
+ }
+ return frames;
+}
 export function strategicBriefing(s,seat=turn(s)){
  if(!seat||['between','guess','over'].includes(s.phase))return [];
  const out=[],live=living(s),daysLeft=s.script.days-s.day+1,loopsLeft=s.script.loops-s.loop;
