@@ -1,11 +1,11 @@
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
-import {createGame,applyCommand,view,turn,botCommand,hash,VERSION} from '../src/engine.mjs';
+import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic} from '../src/engine.mjs';
 import {decide,generateWithAi,model,rates} from '../src/ai.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
-class HttpError extends Error{constructor(status,message){super(message);this.status=status;}}
-const fail=(status,text)=>{throw new HttpError(status,text);};
+class HttpError extends Error{constructor(status,message,code='HTTP_'+status){super(message);this.status=status;this.code=code;}}
+const fail=(status,text,code)=>{throw new HttpError(status,text,code);};
 const statement=(db,sql,...args)=>db.prepare(sql).bind(...args);
 const one=(db,sql,...args)=>statement(db,sql,...args).first();
 const run=(db,sql,...args)=>statement(db,sql,...args).run();
@@ -15,10 +15,19 @@ async function readBody(req){
  const reader=req.body?.getReader();if(!reader)return {};let size=0,chunks=[];
  for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>1024*1024){await reader.cancel();fail(413,'请求超过1MB');}chunks.push(value);}
  const b=new Uint8Array(size);let at=0;for(const c of chunks){b.set(c,at);at+=c.length;}
- const parsed=JSON.parse(new TextDecoder().decode(b)||'{}');if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))fail(400,'需要 JSON 对象');return parsed;
+ let parsed;try{parsed=JSON.parse(new TextDecoder().decode(b)||'{}');}catch{fail(400,'请求不是有效 JSON，未执行操作。','INVALID_JSON');}if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))fail(400,'需要 JSON 对象');return parsed;
 }
 async function getGame(db,id,owner){const g=await one(db,'SELECT * FROM games WHERE id=? AND owner=?',id,owner);if(!g)fail(404,'对局不存在');return {...g,state:JSON.parse(g.state)};}
 function projection(g,env){const seat=g.mode==='mastermind'?'M':g.mode==='observe'?'public':turn(g.state)!=='M'&&turn(g.state)?turn(g.state):'A';return {...view(g.state,seat),id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:!!env.DEEPSEEK_API_KEY,model,busy:g.locked_until>Date.now()};}
+function transitionViews(g,states,env){
+ const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
+ let last=signature(projection(g,env));const frames=[];
+ for(const state of states){
+  const {actions,hand,secret,pending,choiceTitle,...frame}=projection({...g,state},env),key=signature(frame);
+  if(key!==last){frame.busy=false;frames.push(frame);last=key;}
+ }
+ return frames;
+}
 async function createStored(db,owner,mode,state,budget){const id=crypto.randomUUID();await db.batch([
  statement(db,'INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)',id,owner,mode,JSON.stringify(state),budget,new Date().toISOString()),
  statement(db,'INSERT INTO frames(game,revision,command,state,hash) VALUES(?,?,?,?,?)',id,0,'null',JSON.stringify(state),hash(state))
@@ -52,7 +61,7 @@ export async function handleApi(req,env,owner){
   if(p.endsWith('/generate'))return reply(generateScript(b));
   if(p.endsWith('/ai-generate')){let cost=0;const script=await generateWithAi(b,{apiKey:env.DEEPSEEK_API_KEY,onReserve:n=>{if(n>.03)fail(400,'生成预算超过 $0.03');},onUsage:async data=>{cost+=data.estimatedCost;await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',crypto.randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return reply({script,estimatedCost:cost});}
  }
- const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|replay|script|usage|branch))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;let g=await getGame(db,id,owner);
+ const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|branch))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;let g=await getGame(db,id,owner);
  if(!route&&req.method==='GET')return reply(projection(g,env));
  if(['replay','script'].includes(route)&&req.method==='GET'){const full=u.searchParams.get('full')==='1';if(full&&g.mode!=='mastermind'&&g.state.phase!=='over')fail(403,'终局前无法访问私密答案');return reply(route==='replay'?await exportReplay(db,g,full):full?g.state.script:publicScript(g.state.script));}
  if(route==='usage'&&req.method==='GET'){if(g.state.phase!=='over')fail(403,'用量明细在终局开放');return reply((await rows(db,'SELECT data FROM calls WHERE game=?',id)).map(r=>JSON.parse(r.data)));}
@@ -61,24 +70,28 @@ export async function handleApi(req,env,owner){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')fail(403,'终局后可以创建分支');
   const f=await one(db,'SELECT state FROM frames WHERE game=? AND revision=?',id,b.revision);if(!f)fail(400,'回放位置不存在');const state=JSON.parse(f.state);state.revision=0;return reply(projection(await createStored(db,owner,g.mode,state,g.budget),env),201);
  }
- if(!['command','ai-step','bot-step'].includes(route))fail(404,'接口不存在');
+ if(!['command','ai-step','bot-step','advance'].includes(route))fail(404,'接口不存在');
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))fail(400,'无效提交标识');
  if(b.commandId&&await one(db,'SELECT revision FROM receipts WHERE game=? AND command_id=?',id,b.commandId))return reply(projection(await getGame(db,id,owner),env));
  if(!Number.isInteger(b.revision))fail(400,'需要局面版本');const token=crypto.randomUUID();
  const locked=await one(db,"UPDATE games SET lock_token=?,locked_until=? WHERE id=? AND owner=? AND locked_until<? AND json_extract(state,'$.revision')=? RETURNING id",token,Date.now()+300000,id,owner,Date.now(),b.revision);
- if(!locked)fail(409,'局面已变化或正在处理，请刷新');
+ if(!locked)fail(409,'局面已变化或正在处理，请刷新','STATE_CONFLICT');
  try{
   g=await getGame(db,id,owner);const seat=turn(g.state);if(!seat)fail(400,'本局已结束');const human=g.mode==='heroes'?seat!=='M':g.mode==='mastermind'?seat==='M':false;
   if(route==='command'&&!human)fail(403,'当前由对手控制');if(route==='ai-step'&&human)fail(403,'当前是你的行动');
-  let command=b.command,answer;
-  if(route==='ai-step'){answer=await decide(g.state,seat,{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')});command=answer.command;}
-  if(route==='bot-step')command=botCommand(g.state,seat);
-  const next=applyCommand(g.state,seat,command);if(answer)next.notes[seat]=answer.note||next.notes[seat];
-  const state=JSON.stringify(next),queries=[statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',next.revision,JSON.stringify(command),state,hash(next),id,token)];
+  let command=b.command,answer,frames=[];
+  if(route==='advance')frames=advanceAutomatic(g.state,{includeBetween:g.mode!=='heroes'}).steps;
+  else{
+   if(route==='ai-step'){answer=await decide(g.state,seat,{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')});command=answer.command;}
+   if(route==='bot-step')command=botCommand(g.state,seat);
+   const first=applyCommand(g.state,seat,command);if(answer)first.notes[seat]=answer.note||first.notes[seat];
+   frames=[{seat,command,state:first},...advanceAutomatic(first,{includeBetween:g.mode!=='heroes'}).steps];
+  }
+  const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
   const results=await db.batch(queries);if(results.at(-1).meta.changes!==1)fail(409,'操作已过期，局面未改变');
-  return reply({...projection(await getGame(db,id,owner),env),decision:answer?{controller:'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
+  return reply({...projection(await getGame(db,id,owner),env),transitionFrames:transitionViews(g,frames.map(f=>f.state),env),decision:route==='advance'?{controller:'规则引擎'}:answer?{controller:answer.automatic?'规则引擎':'DeepSeek',automatic:!!answer.automatic}:route==='bot-step'?{controller:'练习机器人'}:null});
  }finally{await run(db,'UPDATE games SET lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',id,token);}
 }
 // Temporarily enabled owner-private Sites API verification. Sites consumes the
@@ -89,22 +102,33 @@ function qaRequest(req){
  const u=new URL(req.url);u.pathname=u.pathname.replace(/^\/api\/qa\//,'/api/');
  const game='/api/games/[a-f0-9-]+';
  const allowed=req.method==='GET'&&(u.pathname==='/api/info'||new RegExp('^'+game+'(?:/(?:replay|usage))?$').test(u.pathname))
-  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step)$').test(u.pathname));
+  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step|advance)$').test(u.pathname));
  if(!allowed)fail(404,'测试接口不存在');
  return new Request(u,req);
 }
-export function createWorker(assets){return {async fetch(req,env){try{
+export function createWorker(assets){return {async fetch(req,env){
+ const requestId=crypto.randomUUID();let result;
+ try{result=await(async()=>{
  const u=new URL(req.url),owner=req.headers.get('oai-authenticated-user-id');
  if(u.pathname.startsWith('/api/qa/')){
-  if(env.SITES_QA_ENABLED!=='true')return reply({error:'测试接口未启用'},401);
+  if(env.SITES_QA_ENABLED!=='true')return reply({error:'测试接口未启用',code:'QA_DISABLED'},401);
   if(req.headers.has('origin'))return reply({error:'测试接口不接受浏览器来源请求'},403);
   return await handleApi(qaRequest(req),env,QA_OWNER);
  }
  // Fail closed even if the platform gate is accidentally changed later.
- if(!owner)return reply({error:'需要使用站点所有者的 ChatGPT 账号登录'},401);
+ if(!owner)return reply({error:'需要使用站点所有者的 ChatGPT 账号登录',code:'AUTH_REQUIRED'},401);
  if(req.headers.get('origin')&&new URL(req.headers.get('origin')).origin!==u.origin)return reply({error:'拒绝跨站请求'},403);
  if(u.pathname.startsWith('/api/'))return await handleApi(req,env,owner);
  if(!['GET','HEAD'].includes(req.method))return reply({error:'方法不允许'},405);
  const asset=assets[u.pathname];if(!asset)return reply({error:'文件不存在'},404);
  return new Response(req.method==='HEAD'?null:Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0)),{headers:{...security,'Content-Type':asset.type,'Cache-Control':u.pathname.startsWith('/assets/')?'private,max-age=86400':'no-cache'}});
- }catch(e){if(e.message==='ILLEGAL_ACTION')return reply({error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'},400);return reply({error:e instanceof HttpError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',...(e.code?{code:e.code}:{})},e.status||400);}}};}
+ })();}catch(e){result=e.message==='ILLEGAL_ACTION'?reply({error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'},400):reply({error:e instanceof HttpError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',code:e.code||'REQUEST_FAILED'},e.status||400);}
+ const headers=new Headers(result.headers);headers.set('X-Request-Id',requestId);
+ if(result.status>=400&&result.headers.get('content-type')?.includes('application/json')){
+  const data=await result.json(),code=data.code||'HTTP_'+result.status;
+  // Correlation only: do not log bodies, credentials, user IDs or game IDs.
+  console.warn(JSON.stringify({event:'api_error',requestId,status:result.status,code,route:new URL(req.url).pathname.replace(/\/[a-f0-9]{8}-[a-f0-9-]{27,}/g,'/:game')}));
+  return new Response(JSON.stringify({...data,code,requestId}),{status:result.status,headers});
+ }
+ return new Response(result.body,{status:result.status,headers});
+}};}

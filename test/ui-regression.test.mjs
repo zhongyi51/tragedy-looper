@@ -7,7 +7,7 @@ import {createGame,view} from '../src/engine.mjs';
 import {validateReplay,sanitizePublicReplay} from '../public/replay-validation.mjs';
 const source=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function renderFunctions(){const context={catalog,esc,glyph:{move_h:'↔'},name:id=>catalog.incidents.find(e=>e.id===id)?.name_zh_working||id};vm.createContext(context);vm.runInContext(source.slice(source.indexOf('const seatName='),source.indexOf('function game(')),context);return context;}
+function renderFunctions(){const context={syncRequired:false,actionErrorCode:'',requestKind:'',selected:null,catalog,esc,glyph:{move_h:'↔'},name:id=>catalog.incidents.find(e=>e.id===id)?.name_zh_working||id};vm.createContext(context);vm.runInContext(source.slice(source.indexOf('const seatName='),source.indexOf('function game(')),context);return context;}
 test('board cards render backs without hidden names and reveal only at resolution',()=>{
  const c=renderFunctions(),p={seat:'M',target:'doctor'},v={phaseId:'hero_cards',placements:[p],revealedCards:[]};
  let html=c.boardPlacement(v,p);assert.match(html,/card-back/);assert.doesNotMatch(html,/face-up/);assert.match(html,/牌面未公开/);assert.doesNotMatch(html,/横向移动/);
@@ -31,10 +31,10 @@ test('replay import accepts concealed schedules and rejects an unknown supplied 
 
 test('idle AI and revealed-card handoff give explicit actionable prompts',()=>{
  const c=renderFunctions();Object.assign(c,{working:false,auto:false,actionError:'',btn:(label,action)=>`<button data-do="${action}">${label}</button>`});
- const v={mode:'heroes',turn:'M',phaseId:'cultist',winner:null};
- assert.equal(c.turnGuidance(v).title,'等待你启动 AI');assert.match(c.coreTurn(v),/让 AI 完成结算/);assert.match(c.coreTurn(v),/data-do="auto"/);
- v.mode='mastermind';assert.match(c.turnGuidance(v).title,/轮到你/);assert.match(c.turnGuidance(v).detail,/执行选择/);assert.doesNotMatch(c.coreTurn(v),/data-do="auto"/);
- c.working=true;c.auto=true;assert.match(c.turnGuidance(v).title,/AI 正在处理/);
+ const v={mode:'heroes',turn:'M',phaseId:'cultist',phase:'行动结算',winner:null,actions:[{command:{type:'cultist'}}]};
+ assert.equal(c.turnGuidance(v).title,'等待你启动 AI');assert.match(c.coreTurn(v),/让 AI 继续/);assert.match(c.coreTurn(v),/data-do="auto"/);
+ v.mode='mastermind';assert.match(c.turnGuidance(v).title,/轮到你/);assert.match(c.turnGuidance(v).detail,/选择结算方式/);assert.doesNotMatch(c.coreTurn(v),/data-do="auto"/);
+ c.working=true;c.auto=true;c.requestKind='rules';assert.match(c.turnGuidance(v).title,/规则结算/);assert.doesNotMatch(c.turnGuidance(v).title,/AI/);
 });
 test('legacy public replay names are stripped at import/export without changing full replay',()=>{
  const v=view(createGame(starter),'public');v.script.incidents=structuredClone(starter.incidents);v.log.push({type:'incident',day:2,text:'预告的「医院事件」没有发生。'});
@@ -49,4 +49,20 @@ test('revealing cards completes on old board before any character movement start
  c.render=()=>stages.push(c.transitionView?.board===prev.board?'old-board':'new-board');c.animateCards=async()=>{stages.push('flip-start');await new Promise(resolve=>{finishCards=resolve;});stages.push('flip-end');};c.animateBoardChanges=async()=>stages.push('move-start');
  const pending=c.animateTransition(prev,next,{},null);await Promise.resolve();assert.deepEqual(stages,['old-board','flip-start']);finishCards();await pending;
  assert.deepEqual(stages,['old-board','flip-start','flip-end','new-board','move-start']);assert.equal(c.transitionView,null);
+});
+
+test('public transition frames play reveal, movement, counters and final state in order',async()=>{
+ const prev={id:'game',revision:5,day:1,loop:1,board:{doctor:{location:'hospital'}},revealedCards:[]};
+ const reveal={...prev,revision:6,phaseId:'cultist',board:{doctor:{location:'school'}},revealedCards:Array(6).fill({})},counters={...reveal,revision:7,phaseId:'mm_ability',placements:[]},next={...counters,revision:8,phaseId:'hero_ability'};
+ const stages=[],c={reduced:()=>false,page:'game',Element:{prototype:{animate(){}}},transitionView:null,g:next,document:{querySelectorAll:()=>[]},render(){}};vm.createContext(c);vm.runInContext(source.slice(source.indexOf('const boardPositions='),source.indexOf('function newModal(')),c);
+ c.animateCards=async(_prev,state)=>stages.push('cards:'+state.revision);c.animateBoardChanges=async(_prev,state)=>stages.push('changes:'+state.revision);
+ await c.animateTransition(prev,next,{},null,[reveal,counters,next]);assert.deepEqual(stages,['cards:6','changes:6','cards:7','changes:7','cards:8','changes:8']);assert.equal(c.transitionView,null);
+ c.reduced=()=>true;stages.length=0;await c.animateTransition(prev,next,{},null,[reveal,counters,next]);assert.deepEqual(stages,[]);
+});
+
+test('automatic continuation stops after forced victory or a pause during settlement',async()=>{
+ for(const finish of ['victory','pause']){
+  const calls=[],c={working:false,auto:false,syncRequired:false,g:{id:'game',revision:6,phaseId:'cultist',winner:null},advancedRevision:'',info:{configured:true},render(){},toast(){},humanTurn:()=>false,setTimeout,step:async(_command,route)=>{calls.push(route);if(finish==='victory')c.g.winner='heroes';else c.auto=false;}};
+  vm.createContext(c);vm.runInContext(source.slice(source.indexOf('async function runAuto('),source.indexOf('async function resumeRules(')),c);await c.runAuto();assert.deepEqual(calls,['advance']);assert.equal(c.auto,false);
+ }
 });

@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.2.1';
+export const VERSION='0.2.2';
 export const VISIBILITY_POLICY='hidden_incident_names_v1';
 export const phases={setup:'轮回准备',mm_cards:'剧作家行动',hero_cards:'主人公行动',cultist:'行动结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;
@@ -229,6 +229,48 @@ export function applyCommand(state,seat,command){
   case 'guess':{const correct=a.role===currentRole(s,a.character);log(s,`${name(a.character)} → ${name(a.role)}：${correct?'正确':'错误'}`,'guess');if(!correct){s.phase='over';s.winner='mastermind';}else{s.guessed[a.character]=a.role;if(Object.keys(s.guessed).length===s.script.characters.length){s.phase='over';s.winner='heroes';}}break;}
  }
  s.revision++;return s;
+}
+// Acknowledgements and forced rules are engine work, even if the active seat
+// normally belongs to an AI. Preserve optional choices whenever they can affect
+// the game; a choice between aliases for the same resolution needs no player.
+export function automaticCommand(s,seat=turn(s)){
+ const actions=legalActions(s,seat);
+ if(actions.length===1)return cp(actions[0].command);
+ if(actions.length<2)return null;
+ if(s.phase==='cultist'){
+  const blocks=s.placements.filter(p=>p.card.split('#')[0]==='forbid_intrigue');
+  // No active prohibition, no matching Intrigue addition, or no cultist in
+  // its area: every mask resolves identically, including old saved states.
+  const target=blocks.length===1?blocks[0].target:null;
+  const receivesIntrigue=target&&(locs.includes(target)||s.board[target]?.alive&&s.board[target]?.present)
+   &&s.placements.some(p=>p.target===target&&['intrigue_1','intrigue_2'].includes(p.card.split('#')[0]));
+  const area=locs.includes(target)?target:s.board[target]?.location;
+  const canIgnore=receivesIntrigue&&s.cultists.some(id=>s.board[id]?.location===area||id==='boss'&&s.script.settings.bossTerritory===area);
+  if(!canIgnore)return cp(actions[0].command);
+ }
+ if(s.phase==='end_area'){
+  const first=hash(applyCommand(s,seat,actions[0].command));
+  if(actions.slice(1).every(a=>hash(applyCommand(s,seat,a.command))===first))return cp(actions[0].command);
+ }
+ return null;
+}
+const automaticBoundaries=new Set(['setup','mm_cards','hero_cards','between','guess']);
+// Pure bounded transition chain. Return each intermediate frame so adapters
+// can persist/replay the exact rules without another HTTP or model request.
+export function advanceAutomatic(initial,{maxSteps=64,stopBefore,includeBetween=false}={}){
+ if(!Number.isInteger(maxSteps)||maxSteps<0||maxSteps>128)throw Error('INVALID_AUTOMATIC_LIMIT');
+ if(stopBefore!==undefined&&typeof stopBefore!=='function')throw Error('INVALID_AUTOMATIC_BOUNDARY');
+ let state=initial;const steps=[];
+ for(;;){
+  const seat=turn(state);
+  if(!seat)return {state,steps,reason:'terminal'};
+  if(automaticBoundaries.has(state.phase)&&!(state.phase==='between'&&includeBetween)||stopBefore?.(state,seat))return {state,steps,reason:'boundary'};
+  const command=automaticCommand(state,seat);
+  if(!command)return {state,steps,reason:'decision'};
+  if(steps.length>=maxSteps)return {state,steps,reason:'limit'};
+  state=applyCommand(state,seat,command);
+  steps.push({seat,command,state});
+ }
 }
 export function view(s,seat='public'){
  const isM=seat==='M',v={version:s.version,revision:s.revision,script:publicScript(s.script,{includeIncidentTypes:isM}),loop:s.loop,day:s.day,leader:['A','B','C'][s.leader],phase:phases[s.phase],phaseId:s.phase,turn:turn(s),winner:s.winner,board:cp(s.board),locations:cp(s.locations),knownRoles:cp(s.knownRoles),knownCulprits:cp(s.knownCulprits),knownPlots:cp(s.knownPlots),guessed:s.guessed||{},log:visibleLog(s,isM),placements:s.placements.map(p=>({seat:p.seat,target:p.target,...(p.seat===seat?{card:p.card}:{})})),revealedCards:cp(s.dayRevealed||[]),hand:['M','A','B','C'].includes(seat)?deck(s,seat):[],actions:legalActions(s,seat),seat};

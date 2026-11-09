@@ -1,5 +1,5 @@
 import {catalog,contentHash,generateScript,validateScript} from './content.mjs';
-import {view,legalActions,sameCommand,VISIBILITY_POLICY} from './engine.mjs';
+import {view,legalActions,sameCommand,VISIBILITY_POLICY,automaticCommand} from './engine.mjs';
 // Credentials stay in process memory (environment or hidden stdin at startup).
 let key=process.env.DEEPSEEK_API_KEY||'';
 export function configureKey(value){if(typeof value!=='string'||value.length<10)throw Error('无效密钥');key=value;}
@@ -58,7 +58,8 @@ export async function decide(s,seat,options={}){
   if(s.revision!==revision||s.phase!==phase||!legalActions(s,seat).some(a=>sameCommand(a.command,chosen.command)))throw new AiError('STALE_MODEL_ACTION','等待模型期间局面已变化；未执行旧动作，请刷新后重试。');
   return structuredClone(chosen.command);
  }
- if(actions.length===1)return {command:currentCommand(actions[0]),reason:'仅有一个合法选择，由引擎处理。',note:privateNote,automatic:true};
+ const forced=automaticCommand(s,seat);
+ if(forced)return {command:currentCommand({command:forced}),reason:'确定性规则结算，由引擎处理。',note:privateNote,automatic:true};
  const observation=view(s,seat),visibleHistory=observation.log;delete observation.log;observation.actions=actions.map(decisionOption);
  const messages=[{role:'system',content:SYSTEM},{role:'user',content:JSON.stringify({seat,script:observation.script,...(seat==='M'?{secret:observation.secret}:{})})},{role:'user',content:JSON.stringify({observation,visibleHistory,privateNote})}];
  for(let attempt=0;attempt<2;attempt++){

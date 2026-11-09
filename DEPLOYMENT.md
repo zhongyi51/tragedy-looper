@@ -37,5 +37,5 @@ node --check dist/server/index.js
 - 默认关闭，只有精确字符串 `true` 会启用；验证结束必须改回 `false`。不得在公开站点开启此通道。
 - 请求仍必须通过所有者私有的 Sites 平台访问门禁；应用端拒绝所有带 `Origin` 的浏览器来源请求。
 - QA 使用固定独立的 `service:sites-qa` 存档空间，无法读取、修改或枚举用户存档；用户正常接口也无法读取 QA 对局。
-- 只开放 `GET /api/qa/info`、`POST /api/qa/games`、单局读取，以及单局 `command` / `ai-step` / `bot-step`、回放和用量读取。不开启对局列表、剧本工坊、分支或其他接口。
+- 只开放 `GET /api/qa/info`、`POST /api/qa/games`、单局读取，以及单局 `command` / `ai-step` / `bot-step` / `advance`、回放和用量读取。不开启对局列表、剧本工坊、分支或其他接口。
 - 真实 AI 测试复用现有服务端 `DEEPSEEK_API_KEY`，遵守每局预算与租约；不读取、返回或复制密钥。QA 对局独立保留，正常玩家列表不会出现测试记录。

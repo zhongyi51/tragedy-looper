@@ -64,3 +64,18 @@ test('HTTP location movement bluff remains legal and an invalid command leaves t
  }
  assert.ok(g.day>1||g.winner);
 });
+
+test('HTTP malformed JSON is a structured nonmutating error and includes a request identifier',async()=>{
+ const r=await fetch(base+'/api/games',{method:'POST',headers:{'Content-Type':'application/json'},body:'<!DOCTYPE html><p>bad request</p>'});
+ assert.equal(r.status,400);assert.match(r.headers.get('content-type'),/application\/json/);
+ const error=await r.json();assert.equal(error.code,'INVALID_JSON');assert.equal(error.requestId,r.headers.get('x-request-id'));assert.ok(error.requestId);
+ const next=await fetch(base+'/api/info');assert.equal(next.status,200);assert.ok(next.headers.get('x-request-id'));assert.notEqual(next.headers.get('x-request-id'),error.requestId);
+});
+
+test('HTTP deterministic advance preserves real card decisions and receipt retries do not advance them',async()=>{
+ const c=client();const g=(await c('/api/games',{mode:'observe'})).body;
+ const body={revision:g.revision,commandId:'rules-only'};
+ const advanced=await c('/api/games/'+g.id+'/advance',body);assert.equal(advanced.status,200);assert.equal(advanced.body.revision,g.revision);assert.equal(advanced.body.busy,false);assert.deepEqual(advanced.body.transitionFrames,[]);assert.equal(advanced.body.decision.controller,'规则引擎');
+ const duplicate=await c('/api/games/'+g.id+'/advance',body);assert.equal(duplicate.status,200);assert.equal(duplicate.body.revision,g.revision);
+ const replay=(await c('/api/games/'+g.id+'/replay')).body;assert.equal(replay.frames.length,1);
+});

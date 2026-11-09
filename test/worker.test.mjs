@@ -124,3 +124,14 @@ test('cloud AI persistence never restores legacy protagonist notes after visibil
  assert.deepEqual(persisted.notes,{A:'',B:'',C:'',M:'mastermind private evidence'});
  assert.equal(persisted.visibilityPolicy,'hidden_incident_names_v1');
 });
+
+test('cloud errors are JSON with stable codes and request identifiers matching response headers',async t=>{
+ const {worker,env,sql}=fixture();const logs=[];t.mock.method(console,'warn',line=>logs.push(JSON.parse(line)));
+ const missing=await worker.fetch(new Request('https://game.test/api/info'),env),auth=await missing.json();
+ assert.equal(missing.status,401);assert.equal(auth.code,'AUTH_REQUIRED');assert.equal(auth.requestId,missing.headers.get('x-request-id'));
+ const bad=await worker.fetch(new Request('https://game.test/api/games',{method:'POST',headers:{'oai-authenticated-user-id':'sensitive-user-identifier','Content-Type':'application/json'},body:'<!DOCTYPE html><h1>Not JSON</h1>'}),env),data=await bad.json();
+ assert.equal(bad.status,400);assert.equal(data.code,'INVALID_JSON');assert.equal(data.requestId,bad.headers.get('x-request-id'));assert.notEqual(data.requestId,auth.requestId);
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,0);
+ assert.equal(logs.length,2);for(const entry of logs){assert.equal(entry.event,'api_error');assert.ok(entry.requestId);assert.ok(!JSON.stringify(entry).includes('sensitive-user-identifier'));assert.ok(!JSON.stringify(entry).includes('Not JSON'));}
+ const ok=await worker.fetch(new Request('https://game.test/api/info',{headers:{'oai-authenticated-user-id':'owner-1'}}),env);assert.equal(ok.status,200);assert.ok(ok.headers.get('x-request-id'));
+});
