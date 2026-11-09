@@ -63,7 +63,7 @@ $env:TEST_SET='BTX'
 node test/live.mjs
 ```
 
-扩展验证见 [v0.2 测试报告](reports/TEST-REPORT-v0.2.md)，包括 400 局随机流程测试；[v0.1 测试报告](reports/TEST-REPORT.md)记录此前真实 DeepSeek 整局用量。脚本生成“结构合法”并不保证平衡；正式发行前仍需要玩家试玩和独立规则复审，不声称已通过所有扩展或比赛级反作弊认证。
+验证记录与真实 DeepSeek 用量汇总见 [测试报告](reports/TEST-REPORT.md)。脚本生成“结构合法”并不保证平衡；正式发行前仍需要玩家试玩和独立规则复审，不声称已通过所有扩展或比赛级反作弊认证。
 
 ## 文件结构
 
