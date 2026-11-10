@@ -1,4 +1,4 @@
-import {readFileSync,writeFileSync,mkdirSync,cpSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,cpSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const root=fileURLToPath(new URL('../',import.meta.url)),read=p=>readFileSync(path.join(root,p),'utf8').replace(/^\uFEFF/,'');
@@ -10,10 +10,13 @@ const strip=s=>s.replace(/^import .*?;\r?\n/gm,'').replace(/\bexport (?=(?:const
 let content=strip(read('src/content.mjs')).replace(/const catalog=.*?;\r?\n/,`const catalog=${JSON.stringify(catalog)};\n`);
 let ai=strip(read('src/ai.mjs')).replace("process.env.DEEPSEEK_API_KEY||''","''").replace("process.env.DEEPSEEK_MODEL||'deepseek-flash'","'deepseek-flash'").replace("(process.env.DEEPSEEK_BASE_URL||'https://api.deepseek.com')","('https://api.deepseek.com')").replace('Buffer.byteLength(JSON.stringify(messages))','new TextEncoder().encode(JSON.stringify(messages)).length');
 const assets={},add=(url,p,type)=>assets[url]={data:readFileSync(path.join(root,p)).toString('base64'),type};
-for(const [url,p,type] of [['/','public/index.html','text/html; charset=utf-8'],['/app.js','public/app.js','text/javascript; charset=utf-8'],['/style.css','public/style.css','text/css; charset=utf-8'],['/replay-validation.mjs','public/replay-validation.mjs','text/javascript; charset=utf-8']])add(url,p,type);
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
+// Same rule as the local server: the client is every known file type under public/.
+for(const d of readdirSync(path.join(root,'public'),{recursive:true,withFileTypes:true}).filter(d=>d.isFile()&&types[path.extname(d.name)]).sort((a,b)=>path.join(a.parentPath,a.name).localeCompare(path.join(b.parentPath,b.name)))){const p=path.relative(root,path.join(d.parentPath,d.name)).split(path.sep).join('/');add(p.replace(/^public/,''),p,types[path.extname(d.name)]);}
+assets['/']=assets['/index.html'];
 for(const c of catalog.characters)for(const key of ['portrait','card'])add('/'+c[key],c[key],'image/png');
 for(const n of ['click_001','drop_001','confirmation_001','error_001','glitch_001','bong_001','open_001'])add('/assets/audio/Audio/'+n+'.ogg','assets/audio/Audio/'+n+'.ogg','audio/ogg');
-const bundle="import {createHash} from 'node:crypto';\n"+content+'\n'+strip(read('src/engine.mjs'))+'\n'+ai+'\n'+strip(read('worker/index.mjs'))+'\nconst ASSETS='+JSON.stringify(assets)+';\nexport default createWorker(ASSETS);\n';
+const bundle="import {createHash} from 'node:crypto';\n"+content+'\n'+strip(read('src/engine.mjs'))+'\n'+ai+'\n'+strip(read('src/play.mjs'))+'\n'+strip(read('worker/index.mjs'))+'\nconst ASSETS='+JSON.stringify(assets)+';\nexport default createWorker(ASSETS);\n';
 if(/sk-[a-zA-Z0-9]{20,}/.test(bundle))throw Error('疑似凭据，不可构建');
 mkdirSync(path.join(root,'dist/server'),{recursive:true});mkdirSync(path.join(root,'dist/.openai'),{recursive:true});
 writeFileSync(path.join(root,'dist/server/index.js'),bundle);
