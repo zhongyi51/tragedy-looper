@@ -11,13 +11,18 @@ const currentRole=(s,id)=>s.script.subPlots.includes('paranoia_virus')&&s.script
 const hasRole=(s,id,r)=>currentRole(s,id)===r||(currentRole(s,id)==='factor'&&((r==='misleader'&&s.locations.school>=2)||(r==='key_person'&&s.locations.city>=2)));
 const effectiveLocationCards=new Set(['intrigue_1','intrigue_2','forbid_intrigue']);
 const locationBluff=(card,target)=>locs.includes(target)&&!effectiveLocationCards.has(card.split('#')[0]);
-function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,text,type,...extra});}
+// While a command is applied with a trace, every log entry also records what the table looked
+// like right after it, so clients can play one visible beat per entry.
+let tracing=null;
+const beat=s=>cp({phase:s.phase,log:s.log.length,board:s.board,locations:s.locations,placements:s.placements,dayRevealed:s.dayRevealed||[],knownRoles:s.knownRoles,knownCulprits:s.knownCulprits,knownPlots:s.knownPlots,guessed:s.guessed||{},occurred:s.occurred||[],loop:s.loop,day:s.day,leader:s.leader,winner:s.winner,heroImmortal:!!s.heroImmortal,patientFree:!!s.patientFree,suppressed:s.suppressed||[]});
+// `who` names the character or location an entry is about; `by` the seat whose card caused it.
+function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,text,type,...extra});tracing?.push(beat(s));}
 // Older saves recorded the hidden name even when an incident did not happen.
 // Sanitize at the observation boundary too, including historical replay frames.
 function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
-function counter(s,id,type,n){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${{goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'}[type]} ${n>0?'+':''}${n}`,'counter');}
-function reveal(s,id){s.knownRoles[id]=currentRole(s,id);log(s,`${name(id)}的角色是「${name(currentRole(s,id))}」`,'reveal');}
-function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e){s.knownCulprits[day]=e.culprit;log(s,`第${day}日事件犯人：${name(e.culprit)}`,'reveal');}}
+function counter(s,id,type,n,by){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${{goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'}[type]} ${n>0?'+':''}${n}`,'counter',{who:id,...(by?{by}:{})});}
+function reveal(s,id){s.knownRoles[id]=currentRole(s,id);log(s,`${name(id)}的角色是「${name(currentRole(s,id))}」`,'reveal',{who:id});}
+function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e){s.knownCulprits[day]=e.culprit;log(s,`第${day}日事件犯人：${name(e.culprit)}`,'reveal',{who:e.culprit});}}
 function addUsage(s,key,scope='day'){s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`]=true;}
 function used(s,key,scope='day'){return !!s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`];}
 function stopped(s){return ['between','guess','over'].includes(s.phase);}
@@ -34,18 +39,18 @@ function finishLoop(s,forced=false){
  if(sc.mainPlot==='change_future'&&s.occurred.some(day=>sc.incidents.find(e=>e.day===day)?.type==='butterfly'))failed=true;
  s.placements=[];s.pending=null;
  if(!failed){s.phase='over';s.winner='heroes';log(s,'成功跨越惨剧，主人公获胜。','victory');return;}
- log(s,`第 ${s.loop} 轮回失败。`,'loop');
+ log(s,`第 ${s.loop} 轮回失败。`,'failed');
  if(s.loop<sc.loops)s.phase='between';else if(sc.ruleset==='FS'){s.phase='over';s.winner='mastermind';log(s,'所有轮回失败，剧作家获胜。First Steps 没有最后的战斗。','defeat');}else enterGuess(s);
 }
 function kill(s,ids){
- const died=[];for(const id of new Set(ids)){let c=person(s,id);if(!c?.alive||!c.present||hasRole(s,id,'time_traveler'))continue;if(c.guard>0){counter(s,id,'guard',-1);continue;}c.alive=false;died.push(id);log(s,`${name(id)}死亡。`,'death');}
+ const died=[];for(const id of new Set(ids)){let c=person(s,id);if(!c?.alive||!c.present||hasRole(s,id,'time_traveler'))continue;if(c.guard>0){counter(s,id,'guard',-1);continue;}c.alive=false;died.push(id);log(s,`${name(id)}死亡。`,'death',{who:id});}
  // Trigger the whole forced batch before ending a loop; never let iteration order decide casualties.
  for(const c of living(s)){if((hasRole(s,c.id,'lover')&&died.some(id=>hasRole(s,id,'loved_one')))||(hasRole(s,c.id,'loved_one')&&died.some(id=>hasRole(s,id,'lover'))))counter(s,c.id,'paranoia',6);}
  if(died.some(id=>hasRole(s,id,'key_person')))finishLoop(s,true);
 }
 function killHeroes(s){if(s.heroImmortal){log(s,'主人公的死亡被阻止。');return;}log(s,'主人公死亡。','death');finishLoop(s,true);}
 function canMove(s,id,loc){return locs.includes(loc)&&(id==='patient'&&s.patientFree||!chars[id].forbiddenLocations.includes(loc));}
-function move(s,id,loc){let c=person(s,id);if(canMove(s,id,loc)&&c.location!==loc){c.location=loc;log(s,`${name(id)}移动至${name(loc)}。`,'move');}}
+function move(s,id,loc){let c=person(s,id);if(c.location===loc)return;if(!canMove(s,id,loc)){if(locs.includes(loc))log(s,`${name(id)}不能进入${name(loc)}。`,'blocked',{who:id});return;}c.location=loc;log(s,`${name(id)}移动至${name(loc)}。`,'move',{who:id});}
 function enterGuess(s){s.phase='guess';s.pending=null;s.guessed={};s.placements=[];s.dayRevealed=[];s.locations=Object.fromEntries(locs.map(l=>[l,0]));for(const c of Object.values(s.board))Object.assign(c,{goodwill:0,paranoia:0,intrigue:0,guard:0,alive:true,present:true,location:c.initial});log(s,'进入最后的战斗：逐人指认，首次错误即失败。','loop');}
 function startLoop(s){
  const old=s.board||{},fate=Object.values(old).filter(c=>c.goodwill>0).map(c=>c.id);
@@ -127,12 +132,12 @@ export function legalActions(s,seat=turn(s)){
  return out;
 }
 function resolveMovement(s){
- s.dayRevealed=cp(s.placements);log(s,'全部行动牌揭示。','cards',{cards:cp(s.placements)});
+ s.phase='cultist';s.dayRevealed=cp(s.placements);log(s,'六张牌同时翻开。','cards',{cards:cp(s.placements)});
  // Any action card may legally be placed on a location as a bluff (official
  // FAQ Ca02). Only Intrigue cards affect locations; never move the location or
  // a character merely because its portrait appears inside that location.
- for(const p of s.placements.filter(p=>locationBluff(p.card,p.target))){const card=deck(s,p.seat).find(c=>c.id===p.card);log(s,`${name(p.target)}上的「${card.label}」为佯动：地点上无效果。`,'card_effect');}
- for(const c of living(s)){const types=s.placements.filter(p=>p.target===c.id).map(p=>p.card.split('#')[0]);if(types.includes('forbid_move'))continue;const h=types.includes('move_h'),v=types.includes('move_v'),d=types.includes('move_d');const def=catalog.locations.find(l=>l.id===c.location);const x=def.x^Number(d?!h:h),y=def.y^Number(d?!v:v);move(s,c.id,catalog.locations.find(l=>l.x===x&&l.y===y).id);}
+ for(const p of s.placements.filter(p=>locationBluff(p.card,p.target))){const card=deck(s,p.seat).find(c=>c.id===p.card);log(s,`${name(p.target)}上的「${card.label}」为佯动：地点上无效果。`,'card_effect',{who:p.target,by:p.seat});}
+ for(const c of living(s)){const types=s.placements.filter(p=>p.target===c.id).map(p=>p.card.split('#')[0]);if(types.includes('forbid_move')){if(types.some(t=>t.startsWith('move_')))log(s,`${name(c.id)}的移动被禁止。`,'blocked',{who:c.id});continue;}const h=types.includes('move_h'),v=types.includes('move_v'),d=types.includes('move_d');const def=catalog.locations.find(l=>l.id===c.location);const x=def.x^Number(d?!h:h),y=def.y^Number(d?!v:v);move(s,c.id,catalog.locations.find(l=>l.x===x&&l.y===y).id);}
  for(const p of s.placements){const c=deck(s,p.seat).find(c=>c.id===p.card);if(c.once)s.usedCards[p.seat].push(p.card);}
  s.cultists=living(s).filter(c=>hasRole(s,c.id,'cultist')).map(c=>c.id);s.ignoredAreas=[];
  const prohibits=s.placements.filter(p=>p.card.startsWith('forbid_intrigue')).length;
@@ -142,12 +147,17 @@ function resolveMovement(s){
 }
 function resolveCounters(s){
  const multiple=s.placements.filter(p=>p.card.startsWith('forbid_intrigue')).length>1;
+ const blocked=(target,what)=>log(s,`${name(target)}的${what}被禁止。`,'blocked',{who:target});
  for(const target of [...living(s).map(c=>c.id),...locs]){
-  const ts=s.placements.filter(p=>p.target===target).map(p=>p.card.split('#')[0]);const area=locs.includes(target)?target:s.board[target].location;
-  const goodBlock=ts.includes('forbid_goodwill')&&!(s.board[target]&&hasRole(s,target,'time_traveler'));
-  if(!goodBlock)for(const t of ts)if(t==='goodwill_1'||t==='goodwill_2')counter(s,target,'goodwill',Number(t.at(-1)));
-  if(!ts.includes('forbid_paranoia')){for(const t of ts.filter(t=>t==='paranoia_1'))counter(s,target,'paranoia',1);for(const t of ts.filter(t=>t==='paranoia_minus_1'))counter(s,target,'paranoia',-1);}
-  if(!ts.includes('forbid_intrigue')||multiple||s.ignoredAreas.includes(area))for(const t of ts)if(t==='intrigue_1'||t==='intrigue_2')counter(s,target,'intrigue',Number(t.at(-1)));
+  const cards=s.placements.filter(p=>p.target===target).map(p=>({seat:p.seat,type:p.card.split('#')[0]})),ts=cards.map(c=>c.type),of=(...types)=>cards.filter(c=>types.includes(c.type));
+  const person=Boolean(s.board[target]),area=person?s.board[target].location:target;
+  if(person){
+   const goodwill=of('goodwill_1','goodwill_2'),paranoia=[...of('paranoia_1'),...of('paranoia_minus_1')];
+   if(!ts.includes('forbid_goodwill')||hasRole(s,target,'time_traveler'))for(const c of goodwill)counter(s,target,'goodwill',Number(c.type.at(-1)),c.seat);else if(goodwill.length)blocked(target,'友好');
+   if(!ts.includes('forbid_paranoia'))for(const c of paranoia)counter(s,target,'paranoia',c.type==='paranoia_1'?1:-1,c.seat);else if(paranoia.length)blocked(target,'不安');
+  }
+  const intrigue=of('intrigue_1','intrigue_2');
+  if(!ts.includes('forbid_intrigue')||multiple||s.ignoredAreas.includes(area))for(const c of intrigue)counter(s,target,'intrigue',Number(c.type.at(-1)),c.seat);else if(intrigue.length)blocked(target,'暗跃');
  }
  s.placements=[];s.phase='mm_ability';s.cultists=[];s.ignoredAreas=[];
 }
@@ -205,25 +215,29 @@ function resolveEnd(s,territory){
  for(const c of living(s).filter(c=>hasRole(s,c.id,'serial_killer'))){const area=c.id==='boss'&&territory?s.script.settings.bossTerritory:c.location;const others=living(s).filter(t=>t.id!==c.id&&t.location===area);if(others.length===1)victims.push(others[0].id);}
  kill(s,victims);
 }
-export function applyCommand(state,seat,command){
+// `trace`, when given, receives one beat per log entry written by this command.
+export function applyCommand(state,seat,command,trace){
  const legal=legalActions(state,seat);if(!legal.some(o=>eq(o.command,command)))throw Error('ILLEGAL_ACTION');
- const s=cp(state),a=command;
+ tracing=trace||null;
+ try{return apply(cp(state),seat,command);}finally{tracing=null;}
+}
+function apply(s,seat,a){
  // Previous versions gave protagonist models the named incident schedule.
  // Their persisted notes may retain those secrets: clear only the three AI
  // protagonist notes once, preserving all board state and mastermind notes.
  if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
  switch(a.type){
   case 'setup':s.board.henchman.location=a.location;s.board.henchman.initial=a.location;log(s,`手下在${name(a.location)}入场。`);startDay(s);break;
-  case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat}向${name(a.target)}盖放一张牌。`,'placed');if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
+  case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat}向${name(a.target)}盖放一张牌。`,'placed',{who:a.target,by:seat});if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
   case 'cultist':{s.cultists.forEach((id,i)=>{if(a.mask&(1<<i))s.ignoredAreas.push(id==='boss'&&a.bossArea==='territory'?s.script.settings.bossTerritory:s.board[id].location);});resolveCounters(s);break;}
   case 'end_area':resolveEnd(s,a.territory);break;
   case 'mm':addUsage(s,a.ability==='rumor'?'rumor':a.actor+':'+(a.ability==='doctor'?'mm':a.ability),a.ability==='rumor'?'loop':'day');counter(s,a.target,a.ability==='brain'||a.ability==='rumor'?'intrigue':'paranoia',a.amount??1);break;
-  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);log(s,`请求${name(a.actor)}的友好能力 ${a.index+1}。`,'ability');s.phase='refusal';s.pending={action:a};break;}
-  case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,'友好能力被拒绝。','refused');else executeGoodwill(s,pending);break;}
+  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);log(s,`请求${name(a.actor)}的友好能力 ${a.index+1}。`,'ability',{who:a.actor,ability:a.index});s.phase='refusal';s.pending={action:a};break;}
+  case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,`${name(pending.actor)}拒绝了请求。`,'refused',{who:pending.actor});else executeGoodwill(s,pending);break;}
   case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`副规则公开：${name(a.plot)}`,'reveal');s.pending=null;s.phase='hero_ability';break;
   case 'incident':{const p=cp(s.pending);switch(p.incident){case 'murder':case 'faraway_murder':kill(s,[a.target]);break;case 'unease':counter(s,a.target,'paranoia',2);counter(s,a.to,'intrigue',1);break;case 'spreading':counter(s,a.target,'goodwill',-2);counter(s,a.to,'goodwill',2);break;case 'missing':move(s,p.culprit,a.target);counter(s,s.board[p.culprit].location,'intrigue',1);break;case 'butterfly':counter(s,a.target,a.counter,1);break;}afterIncident(s,p.simulated);break;}
   case 'end_ability':addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else finishLoop(s,true);break;
-  case 'pass':if(s.phase==='mm_ability')s.phase='hero_ability';else if(s.phase==='hero_ability')checkIncident(s);else if(s.phase==='end'){if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;
+  case 'pass':if(s.phase==='mm_ability')s.phase='hero_ability';else if(s.phase==='hero_ability')checkIncident(s);else if(s.phase==='end'){log(s,`第 ${s.day} 日结束。`,'dayend');if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;
   case 'next_loop':s.loop++;startLoop(s);break;
   case 'final_battle':enterGuess(s);break;
   case 'guess':{const correct=a.role===currentRole(s,a.character);log(s,`${name(a.character)} → ${name(a.role)}：${correct?'正确':'错误'}`,'guess');if(!correct){s.phase='over';s.winner='mastermind';}else{s.guessed[a.character]=a.role;if(Object.keys(s.guessed).length===s.script.characters.length){s.phase='over';s.winner='heroes';}}break;}
@@ -257,7 +271,7 @@ export function automaticCommand(s,seat=turn(s)){
 const automaticBoundaries=new Set(['setup','mm_cards','hero_cards','between','guess']);
 // Pure bounded transition chain. Return each intermediate frame so adapters
 // can persist/replay the exact rules without another HTTP or model request.
-export function advanceAutomatic(initial,{maxSteps=64,stopBefore,includeBetween=false}={}){
+export function advanceAutomatic(initial,{maxSteps=64,stopBefore,includeBetween=false,trace=false}={}){
  if(!Number.isInteger(maxSteps)||maxSteps<0||maxSteps>128)throw Error('INVALID_AUTOMATIC_LIMIT');
  if(stopBefore!==undefined&&typeof stopBefore!=='function')throw Error('INVALID_AUTOMATIC_BOUNDARY');
  let state=initial;const steps=[];
@@ -268,8 +282,8 @@ export function advanceAutomatic(initial,{maxSteps=64,stopBefore,includeBetween=
   const command=automaticCommand(state,seat);
   if(!command)return {state,steps,reason:'decision'};
   if(steps.length>=maxSteps)return {state,steps,reason:'limit'};
-  state=applyCommand(state,seat,command);
-  steps.push({seat,command,state});
+  const beats=trace?[]:undefined;state=applyCommand(state,seat,command,beats);
+  steps.push({seat,command,state,...(trace?{beats}:{})});
  }
 }
 // `team` is for one human holding all three protagonist hands: every protagonist
@@ -289,12 +303,23 @@ function moveHint(s,id,types){return types.map(t=>{const to=moveDestination(s,id
 function upcomingIncidents(s){return s.script.incidents.filter(e=>e.day>=s.day&&!s.occurred.includes(e.day)).sort((a,b)=>a.day-b.day);}
 // Seat-scoped summary: the mastermind sees concrete loss paths derived from the
 // secret script; protagonists only get facts already visible on their board.
-export function transitionFrames(project,initial,states){
+// What the acting client plays back: one public frame per visible beat of each step, then the
+// step's settled state. A beat is shown on the state the step started from, so nothing a
+// half-applied command has not decided yet (whose turn, which choices) is ever projected.
+export function transitionFrames(project,initial,steps){
  const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
- let last=signature(project(initial));const frames=[];
- for(const state of states){
-  const {actions,hand,hands,secret,pending,choiceTitle,...frame}=project(state),key=signature(frame);
-  if(key!==last){frame.busy=false;frames.push(frame);last=key;}
+ const publicFrame=state=>{const {actions,hand,hands,secret,pending,choiceTitle,...frame}=project(state);frame.busy=false;return frame;};
+ let last=signature(project(initial)),before=initial;const frames=[];
+ for(const step of steps){
+  let own=0;
+  for(const {phase,log,...visible} of step.beats||[]){
+   const frame=publicFrame({...before,...visible,log:step.state.log.slice(0,log)}),key=signature(frame);
+   if(key===last)continue;
+   frame.phaseId=phase;frame.phase=phases[phase];frames.push(frame);last=key;own++;
+  }
+  const settled=publicFrame(step.state),key=signature(settled);
+  if(key!==last){frames.push(settled);last=key;}else if(own)frames[frames.length-1]=settled;
+  before=step.state;
  }
  return frames;
 }
