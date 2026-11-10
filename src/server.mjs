@@ -7,7 +7,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from './content.mjs';
 import {createGame,view,hash,VERSION} from './engine.mjs';
 import {configureKey,configured,generateWithAi,model,rates} from './ai.mjs';
-import {MODES,project,playStep,stepReport} from './play.mjs';
+import {MODES,project,playStep,stepReport,saveSummary} from './play.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
 const busy=new Set();
@@ -34,7 +34,7 @@ function replay(g,full=false){const seat=full?'M':'public';return {format:'trage
 async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/info')return json(res,200,{version:VERSION,configured:configured(),model,rates,contentHash});
  if(p==='/api/catalog')return json(res,200,catalog);
- if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(g=>({id:g.id,mode:g.mode,created:g.created,title:JSON.parse(g.state).script.title,phase:JSON.parse(g.state).phase,spent:JSON.parse(g.state).phase==='over'?g.spent:null})));
+ if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await body(req),script=b.script||starter,mode=MODES.includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('预算范围 $0.01–$10');
   const state=createGame(script),id=randomUUID();db.exec('BEGIN');try{db.prepare('INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)').run(id,owner,mode,JSON.stringify(state),budget,new Date().toISOString());db.prepare('INSERT INTO frames VALUES(?,?,?,?,?)').run(id,0,'null',JSON.stringify(state),hash(state));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}return json(res,201,response(getGame(id,owner)));

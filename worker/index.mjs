@@ -1,7 +1,7 @@
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
 import {createGame,view,hash,VERSION} from '../src/engine.mjs';
 import {generateWithAi,model,rates} from '../src/ai.mjs';
-import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport} from '../src/play.mjs';
+import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
@@ -41,7 +41,7 @@ export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储尚未就绪');const u=new URL(req.url),p=u.pathname;
  if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true});
  if(p==='/api/catalog')return reply(catalog);
- if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(g=>({id:g.id,mode:g.mode,created:g.created,title:JSON.parse(g.state).script.title,phase:JSON.parse(g.state).phase,spent:JSON.parse(g.state).phase==='over'?g.spent:null})));
+ if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await readBody(req),budget=Number(b.budget??.5);if(!Number.isFinite(budget)||budget<.01||budget>10)fail(400,'预算范围 $0.01–$10');
   const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(b.script||starter),budget);return reply(projection(g,env),201);

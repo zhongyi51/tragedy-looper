@@ -17,6 +17,12 @@ export const humanControls=(mode,seat)=>mode==='heroes'?seat!=='M':mode==='maste
 // A human protagonist holds all three hands, so they get the team view.
 export const project=(mode,state)=>view(state,viewerSeat(mode,state),{team:mode==='heroes'});
 
+// One row of the saved-games list. Spend stays hidden until the end, like the usage log.
+export function saveSummary(row){
+ const state=JSON.parse(row.state),over=state.phase==='over';
+ return {id:row.id,mode:row.mode,created:row.created,title:state.script.title,phase:state.phase,loop:state.loop,day:state.day,winner:state.winner,spent:over?row.spent:null};
+}
+
 // Returns the frames to persist. Throws before any model request when the
 // route does not match whoever controls the active seat.
 export async function playStep({state,mode,route,command,ai={}}){
