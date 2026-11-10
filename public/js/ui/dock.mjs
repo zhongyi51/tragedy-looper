@@ -2,6 +2,7 @@ import {esc,icon,btn} from '../html.mjs';
 import {char,name,seatName,seatMark,cardLabel,cardMeta,PLACING,SEATS} from '../lookup.mjs';
 import {humanTurn,turnGuidance,turnControl,choiceGroups} from '../guidance.mjs';
 import {cardFace} from './board.mjs';
+import {settlementHtml} from './settlement.mjs';
 
 export const reconnectControl=ctx=>ctx.actionErrorCode==='AUTH'
  ?'<a class="btn" data-reauth href="/signin-with-chatgpt" target="_top">重新登录并恢复对局</a>'
@@ -77,8 +78,8 @@ function waiting(v,ctx){
 
 // ctx is the client state (working, selected, peekSeat, errors, aiFeed…).
 export function dockHtml(v,ctx){
- if(v.winner&&!ctx.working)return `<div class="dock over">${outcome(v)}</div>`;
+ if(v.winner&&!ctx.working)return `<div class="dock over">${settlementHtml(v)}${outcome(v)}</div>`;
  const human=humanTurn(v),placing=PLACING.includes(v.phaseId),blocked=Boolean(ctx.working||ctx.syncRequired||v.busy);
  const body=human&&placing?hand(v,ctx,blocked):human&&v.actions?.length&&!(v.actions.length===1&&!['between','guess'].includes(v.phaseId))?choices(v,blocked):!human?waiting(v,ctx):'';
- return `<div class="dock${human?' human':''}${placing&&human?' placing':''}" id="dock" aria-busy="${Boolean(ctx.working)}"><div class="dock-top">${prompt(v,ctx)}${tracker(v,ctx)}</div>${body}</div>`;
+ return `<div class="dock${human?' human':''}${placing&&human?' placing':''}" id="dock" aria-busy="${Boolean(ctx.working)}">${settlementHtml(v)}<div class="dock-top">${prompt(v,ctx)}${tracker(v,ctx)}</div>${body}</div>`;
 }

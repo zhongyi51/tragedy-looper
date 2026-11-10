@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {catalog,starter,validateScript} from '../src/content.mjs';
-import {createGame,view,applyCommand} from '../src/engine.mjs';
+import {createGame,view,applyCommand,advanceAutomatic,legalActions} from '../src/engine.mjs';
+import {settlementHtml} from '../public/js/ui/settlement.mjs';
 import {validateReplay,sanitizePublicReplay} from '../public/replay-validation.mjs';
 import {setCatalog,name,cardPreview} from '../public/js/lookup.mjs';
 import {cardsOn,boardHtml} from '../public/js/ui/board.mjs';
@@ -15,6 +16,28 @@ import {createSession,outcomeBanner} from '../public/js/session.mjs';
 import {parseDraft,blankDraft,roleNeeds,editDraft} from '../public/js/script-draft.mjs';
 
 setCatalog(catalog);
+test('ability results remain in the dock after automatic day advance and reload',()=>{
+ const s=createGame(starter);s.phase='hero_ability';s.board.boy_student.goodwill=2;s.board.girl_student.paranoia=1;
+ const action=legalActions(s).find(a=>a.command.actor==='boy_student').command;
+ const next=advanceAutomatic(applyCommand(s,'A',action)).state;
+ assert.equal(next.day,2);assert.equal(next.board.girl_student.paranoia,0);
+ const v={...view(next,'A'),mode:'heroes'};
+ const html=settlementHtml(v);assert.match(html,/友好能力 1 开始结算/);assert.match(html,/女学生 · 不安 -1/);
+ assert.match(html,/日结束：结算强制效果/);assert.match(dockHtml(v,{}),/最近结算/);
+ assert.equal(settlementHtml(JSON.parse(JSON.stringify(v))),html);
+ assert.equal(settlementHtml({log:[]}), '');
+ assert.match(settlementHtml({log:[{type:'phase',loop:1,day:1,text:'<script>bad</script>'}]}), /&lt;script&gt;/);
+});
+
+test('a human ability decision renders choices and cannot trigger automatic opponent play',async()=>{
+ const s=createGame(starter);s.phase='hero_ability';s.board.boy_student.goodwill=2;s.board.girl_student.paranoia=1;
+ const g={...view(s,'A'),id:'ability-game',mode:'heroes'};
+ assert.match(dockHtml(g,{}),/class="choice /);assert.match(dockHtml(g,{}),/男学生/);
+ const state={g,page:'game',autoPlay:true,aiFeed:[]},routes=[];
+ const client=createSession({state,api:async route=>{routes.push(route);return g;},render:()=>{},storage:{getItem:()=>null,setItem:()=>{}},wait:async()=>{}});
+ client.kick();assert.deepEqual(routes,[]);await client.runAuto();
+ assert.deepEqual(routes,['/games/ability-game/advance']);assert.equal(state.g.phaseId,'hero_ability');
+});
 const table=(mode,seat,s=createGame(starter))=>({...view(s,seat),id:'game',mode,budget:.5,spent:null,aiConfigured:true,busy:false});
 
 test('board cards render backs without hidden names and reveal only at resolution',()=>{
