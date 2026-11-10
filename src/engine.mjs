@@ -200,7 +200,7 @@ function checkIncident(s){const e=s.script.incidents.find(e=>e.day===s.day);if(!
 }
 function startEnd(s){s.leader=(s.leader+1)%3;s.phase='end_area';}
 function resolveEnd(s,territory){
- s.phase='end';const victims=[];
+ log(s,'日结束：结算强制效果。','phase');s.phase='end';const victims=[];
  for(const c of living(s).filter(c=>hasRole(s,c.id,'serial_killer'))){const area=c.id==='boss'&&territory?s.script.settings.bossTerritory:c.location;const others=living(s).filter(t=>t.id!==c.id&&t.location===area);if(others.length===1)victims.push(others[0].id);}
  kill(s,victims);
 }
@@ -216,13 +216,13 @@ export function applyCommand(state,seat,command){
   case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat}向${name(a.target)}盖放一张牌。`,'placed');if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
   case 'cultist':{s.cultists.forEach((id,i)=>{if(a.mask&(1<<i))s.ignoredAreas.push(id==='boss'&&a.bossArea==='territory'?s.script.settings.bossTerritory:s.board[id].location);});resolveCounters(s);break;}
   case 'end_area':resolveEnd(s,a.territory);break;
-  case 'mm':addUsage(s,a.ability==='rumor'?'rumor':a.actor+':'+(a.ability==='doctor'?'mm':a.ability),a.ability==='rumor'?'loop':'day');counter(s,a.target,a.ability==='brain'||a.ability==='rumor'?'intrigue':'paranoia',a.amount??1);break;
+  case 'mm':log(s,'剧作家发动能力。','ability');addUsage(s,a.ability==='rumor'?'rumor':a.actor+':'+(a.ability==='doctor'?'mm':a.ability),a.ability==='rumor'?'loop':'day');counter(s,a.target,a.ability==='brain'||a.ability==='rumor'?'intrigue':'paranoia',a.amount??1);break;
   case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);log(s,`请求${name(a.actor)}的友好能力 ${a.index+1}。`,'ability');s.phase='refusal';s.pending={action:a};break;}
-  case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,'友好能力被拒绝。','refused');else executeGoodwill(s,pending);break;}
+  case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,'友好能力被拒绝。','refused');else{log(s,`${name(pending.actor)}的友好能力 ${pending.index+1} 开始结算。`,'ability');executeGoodwill(s,pending);}break;}
   case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`副规则公开：${name(a.plot)}`,'reveal');s.pending=null;s.phase='hero_ability';break;
   case 'incident':{const p=cp(s.pending);switch(p.incident){case 'murder':case 'faraway_murder':kill(s,[a.target]);break;case 'unease':counter(s,a.target,'paranoia',2);counter(s,a.to,'intrigue',1);break;case 'spreading':counter(s,a.target,'goodwill',-2);counter(s,a.to,'goodwill',2);break;case 'missing':move(s,p.culprit,a.target);counter(s,s.board[p.culprit].location,'intrigue',1);break;case 'butterfly':counter(s,a.target,a.counter,1);break;}afterIncident(s,p.simulated);break;}
-  case 'end_ability':addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else finishLoop(s,true);break;
-  case 'pass':if(s.phase==='mm_ability')s.phase='hero_ability';else if(s.phase==='hero_ability')checkIncident(s);else if(s.phase==='end'){if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;
+  case 'end_ability':log(s,'剧作家发动日结束能力。','ability');addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else finishLoop(s,true);break;
+  case 'pass':if(s.phase==='mm_ability'){log(s,'剧作家能力阶段结束。','phase');s.phase='hero_ability';}else if(s.phase==='hero_ability'){log(s,legal.length===1?'主人公能力阶段结束：当前没有可用的友好能力。':'主人公结束友好能力阶段。','phase');checkIncident(s);}else if(s.phase==='end'){if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;
   case 'next_loop':s.loop++;startLoop(s);break;
   case 'final_battle':enterGuess(s);break;
   case 'guess':{const correct=a.role===currentRole(s,a.character);log(s,`${name(a.character)} → ${name(a.role)}：${correct?'正确':'错误'}`,'guess');if(!correct){s.phase='over';s.winner='mastermind';}else{s.guessed[a.character]=a.role;if(Object.keys(s.guessed).length===s.script.characters.length){s.phase='over';s.winner='heroes';}}break;}

@@ -207,6 +207,19 @@ function logPanel(v,readOnly){
  else body=`<div class="logentries">${events.map(entry).join('')}</div>`;
  return `<section class="panel logpanel"><div class="tabs" role="tablist">${tabs.map(([id,t])=>`<button role="tab" aria-selected="${tab===id}" class="${tab===id?'active':''}" data-do="tab" data-tab="${id}">${t}${id==='log'?` <small>${v.log.length}</small>`:''}</button>`).join('')}</div>${body}</section>`;
 }
+// Persist public settlement feedback even when automatic resolution moves on,
+// reduced motion is enabled, or the player reloads the saved game.
+function resolutionSummary(v){
+ const log=v.log||[],start=log.findLastIndex(e=>['ability','refused','incident'].includes(e.type));
+ const latestPhase=log.findLast(e=>e.type==='phase');
+ if(start<0&&!latestPhase)return '';
+ const first=start>=0?log[start]:latestPhase;
+ const following=start>=0?log.slice(start+1):[];
+ const stop=following.findIndex(e=>['placed','cards','day','loop'].includes(e.type));
+ const effects=stop<0?following:following.slice(0,stop);
+ const lines=[first,...effects].slice(0,8);
+ return `<section class="resolution-summary" aria-label="最近能力与事件结算"><div class="resolution-title"><b>最近结算</b><small>轮回 ${first.loop} · 第 ${first.day} 日</small></div><ol>${lines.map(e=>`<li>${esc(e.text)}</li>`).join('')}</ol></section>`;
+}
 function game(v=transitionView||g,readOnly=false){
  if(!v)return `<main class="wrap empty-game"><div class="eyebrow">NO ACTIVE LOOP</div><h2>棋盘尚未展开</h2><p class="hint">开始新轮回，或从档案室继续存档。</p><div class="toolbar">${btn('开启新轮回','new','primary')}${btn('返回档案室','nav-home')}</div></main>`;
  const view=v.mode==='mastermind'?'剧作家视角':v.seat==='public'?'公开观战':'主人公视角';
@@ -221,7 +234,7 @@ function game(v=transitionView||g,readOnly=false){
   </div>
   ${phaseStepper(v)}
   <main class="gamegrid ${selected&&!readOnly?'choosing-target':''}">
-   <section class="play-area">${coreTurn(v,readOnly)}${v.winner&&!readOnly?outcomeStrip(v):''}${board(v,readOnly)}${readOnly?'':hand(v)}</section>
+   <section class="play-area">${coreTurn(v,readOnly)}${v.winner&&!readOnly?outcomeStrip(v):''}${resolutionSummary(v)}${board(v,readOnly)}${readOnly?'':hand(v)}</section>
    <aside class="rightpanel">${intelPanel(v,readOnly)}${logPanel(v,readOnly)}${!readOnly&&v.aiConfigured?`<div class="budget"><div class="row"><span>本局 API 估算</span><b>${v.spent===null?'赛后显示':'$'+v.spent.toFixed(4)} / $${v.budget.toFixed(2)}</b></div><div class="meter"><span style="width:${Math.min(100,(v.spent||0)/v.budget*100)}%"></span></div></div>`:''}</aside>
   </main>`;
 }

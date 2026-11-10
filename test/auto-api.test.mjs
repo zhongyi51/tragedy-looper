@@ -82,3 +82,19 @@ test('a failed automatic-chain transaction cannot partially persist frames or re
  assert.deepEqual(JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(id).state),state);
  assert.equal(sql.prepare('SELECT count(*) AS n FROM frames WHERE game=?').get(id).n,1);assert.equal(sql.prepare('SELECT count(*) AS n FROM receipts WHERE game=?').get(id).n,0);assert.equal((await request('/api/games/'+id)).data.busy,false);
 });
+
+test('hosted goodwill choice settles once and preserves the next human ability',async t=>{
+ const calls=noProvider(t),{request,store,sql}=fixture();const s=createGame(starter);s.phase='hero_ability';
+ s.board.boy_student.goodwill=2;s.board.girl_student.goodwill=2;s.board.girl_student.paranoia=1;
+ const {id}=await store(s);const first=(await request('/api/games/'+id)).data;
+ const action=first.actions.find(a=>a.command.actor==='boy_student').command;
+ const body={revision:0,commandId:'goodwill-feedback',command:action};
+ const result=await request('/api/games/'+id+'/command',body);assert.equal(result.status,200);
+ assert.equal(result.data.board.girl_student.paranoia,0);assert.equal(result.data.phaseId,'hero_ability');
+ assert.ok(result.data.actions.some(a=>a.command.actor==='girl_student'));
+ assert.ok(result.data.log.some(e=>/友好能力 1 开始结算/.test(e.text)));
+ assert.equal(calls(),0);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls WHERE game=?').get(id).n,0);
+ const retry=await request('/api/games/'+id+'/command',body);assert.equal(retry.data.revision,result.data.revision);
+ const reloaded=(await request('/api/games/'+id)).data;assert.deepEqual(reloaded.log,result.data.log);
+ for(const frame of result.data.transitionFrames)publicFrame(frame);
+});

@@ -73,3 +73,18 @@ test('final guess choices mark roles the protagonists already confirmed',()=>{
  assert.equal(office.items.filter(it=>it.cls==='known').map(it=>v.actions[it.i].command.role).join(),'killer');
  assert.ok(groups.filter(gr=>gr!==office).every(gr=>gr.items.every(it=>!it.cls)));
 });
+
+test('ability outcome remains visible after automatic advancement and reload',()=>{
+ const c=renderFunctions(),v={log:[
+  {n:1,loop:1,day:1,type:'ability',text:'男学生的友好能力 1 开始结算。'},
+  {n:2,loop:1,day:1,type:'counter',text:'女学生 · 不安 -1'},
+  {n:3,loop:1,day:1,type:'phase',text:'主人公能力阶段结束：当前没有可用的友好能力。'},
+  {n:4,loop:1,day:2,type:'day',text:'第 2 日。'},
+  {n:5,loop:1,day:2,type:'placed',text:'剧作家向医生盖放一张牌。'}]};
+ const html=c.resolutionSummary(v);
+ assert.match(html,/友好能力 1 开始结算/);assert.match(html,/女学生 · 不安 -1/);
+ assert.match(html,/没有可用的友好能力/);assert.doesNotMatch(html,/向医生盖放/);
+ assert.equal(c.resolutionSummary(JSON.parse(JSON.stringify(v))),html);
+ assert.match(c.resolutionSummary({log:[{n:1,loop:1,day:1,type:'phase',text:'当前没有可用的友好能力。'}]}),/没有可用/);
+ assert.doesNotMatch(c.resolutionSummary({log:[{n:1,loop:1,day:1,type:'ability',text:'<script>alert(1)</script>'}]}),/<script>/);
+});
