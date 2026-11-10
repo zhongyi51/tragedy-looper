@@ -1,5 +1,5 @@
 import {catalog,contentHash,generateScript,validateScript} from './content.mjs';
-import {view,legalActions,sameCommand,VISIBILITY_POLICY,automaticCommand,strategicBriefing} from './engine.mjs';
+import {view,legalActions,sameCommand,VISIBILITY_POLICY,automaticCommand,strategicBriefing,applyCommand,turn,botPlan} from './engine.mjs';
 // Credentials stay in process memory (environment or hidden stdin at startup).
 let key=process.env.DEEPSEEK_API_KEY||'';
 export function configureKey(value){if(typeof value!=='string'||value.length<10)throw Error('无效密钥');key=value;}
@@ -14,15 +14,34 @@ const SYSTEM=`你是惨剧轮回的桌游玩家。你只负责当前席位的一
 【出牌】剧作家每次选择一张牌，合计盖三张；三位主人公依领导者顺序各盖一张。同阵营当日不能把两张牌放在同一目标。一次性牌每轮回只能使用一次，即便没有效果也会消耗。只能选当前提供的候选，不能跳过必需的盖牌。
 【目标与效果】所有行动牌都可以盖在存活且在场的人物或地点上。地点只接受暗跃计数/暗跃禁止；横移、纵移、斜移、移动禁止、友好牌和不安牌盖在地点上是合法佯动，没有对应移动或计数效果。地点本身永远不移动。若希望移动某个人物，应选择以该人物为 target 的移动牌。不要因误解而反复选择无效果动作；只有需要隐藏意图、避免有害效果等明确策略时才选择佯动。
 【结算】全部六张盖完才统一揭示，先移动再处理计数，不要假设盖牌后立即移动。横移与纵移组合为斜移；斜移与横移组合为纵移，斜移与纵移组合为横移；移动禁止阻止人物移动。人物不能进入其禁入地点。暗跃禁止同日达到两张及以上时全部失效。友好能力的门槛不消耗友好；必须按当前阶段和候选请求能力。隐藏的拒绝原因不能当作已公开信息。事件由引擎按日程、犯人状态及门槛检查；不能自行触发或修改事件。
-【输出】只能返回一个 JSON 对象：{"choice":0,"reason":"简短行动理由","note":"此席位简短证据笔记"}。choice 必须是本次 observation.actions 中存在的整数编号（从 0 开始），不能返回 command、自造卡牌、目标或额外字段。reason 不超过 240 字，note 不超过 2400 字；区分已知事实与推测，不输出思维链。若上次输出错误，只修正格式或重新选择给定候选，不重写局面。
+【主人公默契】三位主人公看不到彼此的牌面，必须靠约定配合：只有当日领导者（observation.leader，当日第一位出牌者）可以打出暗跃禁止，其余两位当日不要打暗跃禁止，否则两张以上会全部失效；不安−1、友好+2、移动禁止每轮回各只有一次，留给已经确认的威胁。
+【引擎建议】observation.suggestion 是规则引擎仅凭本席位可见信息、用启发式算出的参考走法（候选编号）。它通常稳妥但不懂心理战；有明确理由（识破对手意图、需要佯动、与已有证据矛盾）时可以偏离。
+【输出】只能返回一个 JSON 对象：{"choice":0,"reason":"简短行动理由","note":"此席位简短证据笔记"}。choice 必须是本次 observation.actions 中存在的整数编号（从 0 开始），不能返回 command、自造卡牌、目标或额外字段。当 observation.batch 存在时（剧作家当日首次盖牌），改用 "choices":[a,b,c] 一次选定当日全部三张牌：三个编号的牌与目标必须两两不同，并围绕同一计划配合。reason 不超过 240 字，note 不超过 2400 字；区分已知事实与推测，不输出思维链。若上次输出错误，只修正格式或重新选择给定候选，不重写局面。
 固定规则：${RULES}`;
-// The model selects an index, never a command. Schema errors are recoverable once.
-function validAnswer(answer,actions){
- return !!answer&&typeof answer==='object'&&!Array.isArray(answer)
-  &&Object.keys(answer).every(k=>['choice','reason','note'].includes(k))
-  &&Number.isInteger(answer.choice)&&answer.choice>=0&&answer.choice<actions.length
-  &&(answer.reason===undefined||typeof answer.reason==='string'&&answer.reason.length<=240)
-  &&(answer.note===undefined||typeof answer.note==='string'&&answer.note.length<=2400);
+// The model selects indexes, never commands. Schema errors are recoverable once.
+const textFields=answer=>(answer.reason===undefined||typeof answer.reason==='string'&&answer.reason.length<=240)
+ &&(answer.note===undefined||typeof answer.note==='string'&&answer.note.length<=2400);
+const validIndex=(i,actions)=>Number.isInteger(i)&&i>=0&&i<actions.length;
+// One index normally; a mastermind opening its day may give up to `batch` indexes.
+function chosenIndexes(answer,actions,batch){
+ if(!answer||typeof answer!=='object'||Array.isArray(answer)||!textFields(answer))return null;
+ const keys=Object.keys(answer);
+ if(!keys.every(k=>['choice','choices','reason','note'].includes(k)))return null;
+ if(batch&&Array.isArray(answer.choices)&&answer.choice===undefined){
+  const list=answer.choices;
+  return list.length>=1&&list.length<=batch&&list.every(i=>validIndex(i,actions))&&new Set(list).size===list.length?list:null;
+ }
+ return answer.choices===undefined&&validIndex(answer.choice,actions)?[answer.choice]:null;
+}
+// Keep the longest prefix that stays legal as the earlier picks are applied.
+function sequentialCommands(s,seat,actions,indexes){
+ const out=[];let current=s;
+ for(const i of indexes){
+  const command=actions[i].command;
+  if(turn(current)!==seat||current.phase!==s.phase||!legalActions(current,seat).some(a=>sameCommand(a.command,command)))break;
+  out.push(structuredClone(command));current=applyCommand(current,seat,command);
+ }
+ return out;
 }
 function decisionOption(a,choice){
  if(a.command.type!=='place')return {choice,...a};
@@ -77,13 +96,19 @@ export async function decide(s,seat,options={}){
   return structuredClone(chosen.command);
  }
  const forced=automaticCommand(s,seat);
- if(forced)return {command:currentCommand({command:forced}),reason:'确定性规则结算，由引擎处理。',note:privateNote,automatic:true};
+ if(forced){const command=currentCommand({command:forced});return {command,commands:[command],reason:'确定性规则结算，由引擎处理。',note:privateNote,automatic:true};}
+ const batch=seat==='M'&&s.phase==='mm_cards'&&s.placements.length===0?3:0;
  const observation=view(s,seat),visibleHistory=observation.log;delete observation.log;observation.actions=actions.map(decisionOption);observation.briefing=strategicBriefing(s,seat);
+ const plan=botPlan(s,seat,batch||1).map(command=>actions.findIndex(a=>sameCommand(a.command,command))).filter(i=>i>=0);
+ if(plan.length)observation.suggestion=batch?{choices:plan}:{choice:plan[0]};
+ if(batch)observation.batch=batch;
  const messages=[{role:'system',content:SYSTEM},{role:'user',content:JSON.stringify({seat,script:observation.script,...(seat==='M'?{secret:observation.secret}:{})})},{role:'user',content:JSON.stringify({observation,visibleHistory,privateNote})}];
+ const format=batch?`{"choices":[整数,整数,整数],"reason":"简短理由","note":"简短笔记"}，choices 是 1–${batch} 个互不相同、位于 0 至 ${actions.length-1} 的候选编号`:`{"choice":整数,"reason":"简短理由","note":"简短笔记"}，choice 必须为 0 至 ${actions.length-1}`;
  for(let attempt=0;attempt<2;attempt++){
-  let answer;try{answer=await requestJson(messages,{...options,userId:(options.userId||'local')+'_'+seat});}catch(e){if(attempt===0&&['BAD_JSON','TRUNCATED'].includes(e.code)){messages.push({role:'user',content:`上一次输出不可解析或被截断。只输出短 JSON 对象，choice 是 0 至 ${actions.length-1} 的整数候选编号，reason 和 note 各少于 100 字，不得输出 command。`});continue;}throw e;}
-  if(validAnswer(answer,actions))return {command:currentCommand(actions[answer.choice]),reason:answer.reason||'',note:answer.note||'',repairAttempts:attempt};
-  if(attempt===0)messages.push({role:'assistant',content:JSON.stringify(answer).slice(0,5000)},{role:'user',content:`输出结构或候选无效。仅返回 JSON 对象 {"choice":整数,"reason":"简短理由","note":"简短笔记"}，choice 必须为 0 至 ${actions.length-1}。不要输出 command 或额外字段，reason 不超过 240 字，note 不超过 2400 字。局面未改变，请从原候选重新选择。`});
+  let answer;try{answer=await requestJson(messages,{...options,userId:(options.userId||'local')+'_'+seat});}catch(e){if(attempt===0&&['BAD_JSON','TRUNCATED'].includes(e.code)){messages.push({role:'user',content:`上一次输出不可解析或被截断。只输出短 JSON 对象 ${format}；reason 和 note 各少于 100 字，不得输出 command。`});continue;}throw e;}
+  const indexes=chosenIndexes(answer,actions,batch);
+  if(indexes){const command=currentCommand(actions[indexes[0]]);return {command,commands:sequentialCommands(s,seat,actions,indexes),reason:answer.reason||'',note:answer.note||'',repairAttempts:attempt};}
+  if(attempt===0)messages.push({role:'assistant',content:JSON.stringify(answer).slice(0,5000)},{role:'user',content:`输出结构或候选无效。仅返回 JSON 对象 ${format}。不要输出 command 或额外字段，reason 不超过 240 字，note 不超过 2400 字。局面未改变，请从原候选重新选择。`});
  }
  throw new AiError('ILLEGAL_MODEL_ACTION','模型两次未选择合法候选；未改变局面，请重试或人工接管。');
 }

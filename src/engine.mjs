@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.2.2';
+export const VERSION='0.3.0';
 export const VISIBILITY_POLICY='hidden_incident_names_v1';
 export const phases={setup:'轮回准备',mm_cards:'剧作家行动',hero_cards:'主人公行动',cultist:'行动结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;
@@ -46,7 +46,7 @@ function kill(s,ids){
 function killHeroes(s){if(s.heroImmortal){log(s,'主人公的死亡被阻止。');return;}log(s,'主人公死亡。','death');finishLoop(s,true);}
 function canMove(s,id,loc){return locs.includes(loc)&&(id==='patient'&&s.patientFree||!chars[id].forbiddenLocations.includes(loc));}
 function move(s,id,loc){let c=person(s,id);if(canMove(s,id,loc)&&c.location!==loc){c.location=loc;log(s,`${name(id)}移动至${name(loc)}。`,'move');}}
-function enterGuess(s){s.phase='guess';s.pending=null;s.guessed={};s.locations=Object.fromEntries(locs.map(l=>[l,0]));for(const c of Object.values(s.board))Object.assign(c,{goodwill:0,paranoia:0,intrigue:0,guard:0,alive:true,present:true,location:c.initial});log(s,'进入最后的战斗：逐人指认，首次错误即失败。','loop');}
+function enterGuess(s){s.phase='guess';s.pending=null;s.guessed={};s.placements=[];s.dayRevealed=[];s.locations=Object.fromEntries(locs.map(l=>[l,0]));for(const c of Object.values(s.board))Object.assign(c,{goodwill:0,paranoia:0,intrigue:0,guard:0,alive:true,present:true,location:c.initial});log(s,'进入最后的战斗：逐人指认，首次错误即失败。','loop');}
 function startLoop(s){
  const old=s.board||{},fate=Object.values(old).filter(c=>c.goodwill>0).map(c=>c.id);
  s.day=1;s.phase='mm_cards';s.placements=[];s.usedCards={M:[],A:[],B:[],C:[]};s.locations=Object.fromEntries(locs.map(l=>[l,0]));s.heroImmortal=false;s.patientFree=false;s.suppressed=[];s.occurred=[];s.loopFailed=false;s.pending=null;s.board={};
@@ -193,6 +193,7 @@ function beginIncident(s,type,culprit,chooser='M',simulated=false){
  else if(type==='evil')counter(s,'shrine','intrigue',2);
  else if(type==='hospital_incident'){const n=s.locations.hospital;if(n>=1)kill(s,living(s).filter(c=>c.location==='hospital').map(c=>c.id));if(n>=2&&!stopped(s))killHeroes(s);}
  else if(incidentOptions(s).length)return;
+ else log(s,'事件没有可以结算的对象，未产生效果。','incident');
  afterIncident(s,simulated);
 }
 function checkIncident(s){const e=s.script.incidents.find(e=>e.day===s.day);if(!e){startEnd(s);return;}const c=s.board[e.culprit];const n=e.culprit==='ai_character'?c.goodwill+c.paranoia+c.intrigue+c.guard:c.paranoia;
@@ -271,8 +272,12 @@ export function advanceAutomatic(initial,{maxSteps=64,stopBefore,includeBetween=
   steps.push({seat,command,state});
  }
 }
-export function view(s,seat='public'){
- const isM=seat==='M',v={version:s.version,revision:s.revision,script:publicScript(s.script,{includeIncidentTypes:isM}),loop:s.loop,day:s.day,leader:['A','B','C'][s.leader],phase:phases[s.phase],phaseId:s.phase,turn:turn(s),winner:s.winner,board:cp(s.board),locations:cp(s.locations),knownRoles:cp(s.knownRoles),knownCulprits:cp(s.knownCulprits),knownPlots:cp(s.knownPlots),guessed:s.guessed||{},log:visibleLog(s,isM),placements:s.placements.map(p=>({seat:p.seat,target:p.target,...(p.seat===seat?{card:p.card}:{})})),revealedCards:cp(s.dayRevealed||[]),hand:['M','A','B','C'].includes(seat)?deck(s,seat):[],actions:legalActions(s,seat),seat};
+// `team` is for one human holding all three protagonist hands: every protagonist
+// card face and hand is theirs to see. AI protagonists keep per-seat views.
+export function view(s,seat='public',{team=false}={}){
+ const isM=seat==='M',hero=['A','B','C'].includes(seat),own=p=>p.seat===seat||team&&hero&&p.seat!=='M';
+ const v={version:s.version,revision:s.revision,script:publicScript(s.script,{includeIncidentTypes:isM}),loop:s.loop,day:s.day,leader:['A','B','C'][s.leader],phase:phases[s.phase],phaseId:s.phase,turn:turn(s),winner:s.winner,board:cp(s.board),locations:cp(s.locations),knownRoles:cp(s.knownRoles),knownCulprits:cp(s.knownCulprits),knownPlots:cp(s.knownPlots),guessed:s.guessed||{},occurred:cp(s.occurred||[]),flags:{heroImmortal:!!s.heroImmortal,patientFree:!!s.patientFree,suppressed:cp(s.suppressed||[])},log:visibleLog(s,isM),placements:s.placements.map(p=>({seat:p.seat,target:p.target,...(own(p)?{card:p.card}:{})})),revealedCards:cp(s.dayRevealed||[]),hand:isM||hero?deck(s,seat):[],actions:legalActions(s,seat),seat};
+ if(team&&hero&&s.usedCards)v.hands=Object.fromEntries(['A','B','C'].map(x=>[x,deck(s,x)]));
  if(isM){v.secret={roles:cp(s.script.roles),mainPlot:s.script.mainPlot,subPlots:cp(s.script.subPlots),incidents:cp(s.script.incidents)};if(s.pending)v.pending=cp(s.pending);}
  // A controller sees requests but never hidden refusal causes or pending culprit ids.
  if(seat===turn(s)&&s.phase==='incident')v.choiceTitle='选择事件效果';
@@ -288,7 +293,7 @@ export function transitionFrames(project,initial,states){
  const signature=v=>JSON.stringify([v.board,v.locations,v.log,v.placements,v.revealedCards,v.loop,v.day,v.winner]);
  let last=signature(project(initial));const frames=[];
  for(const state of states){
-  const {actions,hand,secret,pending,choiceTitle,...frame}=project(state),key=signature(frame);
+  const {actions,hand,hands,secret,pending,choiceTitle,...frame}=project(state),key=signature(frame);
   if(key!==last){frame.busy=false;frames.push(frame);last=key;}
  }
  return frames;
@@ -440,18 +445,55 @@ function heroScore(v,a,history){
  if(a.type==='guess')return v.knownRoles[a.character]===a.role?10:a.role==='person'?1:0;
  return 1;
 }
+// The next `count` commands the practice bot would give this seat in a row.
+export function botPlan(s,seat=turn(s),count=1){
+ const out=[];let current=s;
+ while(out.length<count&&turn(current)===seat&&current.phase===s.phase){const command=botCommand(current,seat);out.push(command);current=applyCommand(current,seat,command);}
+ return out;
+}
+// Deterministic per-day variety: the same state always gives the same choice,
+// but equal-looking days in different loops do not replay move for move.
+function dayNoise(s,i){let h=(Math.imul(s.loop,0x9E3779B1)^Math.imul(s.day,0x85EBCA6B)^Math.imul(i+1,0xC2B2AE35)^(Number(s.script.seed)|0))>>>0;h^=h>>>15;h=Math.imul(h,0x2C1B3C6D);h^=h>>>12;return (h>>>0)/4294967296;}
+const mastermindWon=s=>s.winner==='mastermind'||s.phase==='between'||s.phase==='guess';
+function bestByValue(s,options){let best=options[0],score=-Infinity;for(const [i,o] of options.entries()){const n=mastermindValue(applyCommand(s,'M',o.command))+(i%7)*.001;if(n>score){score=n;best=o;}}return best;}
+// Plays today out with the given mastermind cards, assuming the protagonists
+// do nothing useful, to see whether the loop already fails tonight.
+function winsToday(s,cards){
+ let sim=cp({...s,log:[]});
+ sim.placements=[...cards.map(c=>({seat:'M',card:c.card,target:c.target})),...['A','B','C'].map((seat,i)=>({seat,card:'goodwill_1#0',target:locs[i]}))];
+ resolveMovement(sim);
+ for(let n=0;n<40&&!stopped(sim)&&sim.loop===s.loop&&sim.day===s.day;n++){
+  const seat=turn(sim),options=legalActions(sim,seat);
+  sim=applyCommand(sim,seat,(seat==='M'?bestByValue(sim,options):options.find(o=>o.command.type==='pass')||options[0]).command);
+ }
+ return mastermindWon(sim);
+}
+const outcomeMemo=new Map();
+const daySignature=s=>hash([s.script,s.loop,s.day,s.board,s.locations,s.usedCards,s.usage,s.suppressed,s.heroImmortal,s.patientFree]);
+function winsTodayMemo(s,signature,cards){
+ const key=signature+cards.map(c=>c.card+'>'+c.target).sort().join();
+ if(!outcomeMemo.has(key)){if(outcomeMemo.size>4000)outcomeMemo.clear();outcomeMemo.set(key,winsToday(s,cards));}
+ return outcomeMemo.get(key);
+}
+// Heuristic priority picks the cards; a short search over the best few
+// combinations catches plans that end the loop today if left unanswered.
+function mastermindCard(s,options){
+ const mine=s.placements.filter(p=>p.seat==='M').map(p=>({card:p.card,target:p.target})),need=3-mine.length;
+ const scored=options.map((o,i)=>({o,score:mastermindPlacement(s,o.command)*(1+.15*dayNoise(s,i))})).sort((a,b)=>b.score-a.score);
+ const top=scored.slice(0,6),signature=need>0?daySignature(s):'';let best=null;
+ const search=(start,picked)=>{
+  if(picked.length===need){const sum=picked.reduce((n,x)=>n+x.score,0);if((!best||sum>best.sum)&&winsTodayMemo(s,signature,[...mine,...picked.map(x=>x.o.command)]))best={sum,first:picked[0]};return;}
+  for(let i=start;i<top.length;i++){const c=top[i].o.command;if(picked.some(x=>x.o.command.card===c.card||x.o.command.target===c.target))continue;search(i+1,[...picked,top[i]]);}
+ };
+ if(need>0)search(0,[]);
+ return (best?best.first:scored[0]).o;
+}
 export function botCommand(s,seat=turn(s)){
  const options=legalActions(s,seat);if(!options.length)throw Error('NO_ACTION');
  if(options.length===1)return options[0].command;
+ if(seat==='M')return (options[0].command.type==='place'?mastermindCard(s,options):bestByValue(s,options)).command;
  let best=options[0],score=-Infinity;
- if(seat==='M'){
-  // Placements resolve later, so use the threat heuristic; every other mastermind
-  // decision resolves now and can be judged by one-step lookahead.
-  const placing=options[0].command.type==='place';
-  for(const [i,o] of options.entries()){const n=(placing?mastermindPlacement(s,o.command):mastermindValue(applyCommand(s,seat,o.command)))+(i%7)*.001;if(n>score){score=n;best=o;}}
-  return best.command;
- }
  const v=view(s,seat),history=revealedHistory(v);
- for(const [i,o] of options.entries()){const n=heroScore(v,o.command,history)+(i%7)*.001;if(n>score){score=n;best=o;}}
+ for(const [i,o] of options.entries()){const n=heroScore(v,o.command,history)*(o.command.type==='place'?1+.1*dayNoise(s,i):1)+(i%7)*.001;if(n>score){score=n;best=o;}}
  return best.command;
 }
