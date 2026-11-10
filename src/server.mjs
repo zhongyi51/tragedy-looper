@@ -1,12 +1,13 @@
 import http from 'node:http';
-import {readFileSync,existsSync,mkdirSync,createReadStream,statSync} from 'node:fs';
+import {existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from './content.mjs';
-import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic,transitionFrames} from './engine.mjs';
-import {configureKey,configured,decide,generateWithAi,model,rates,decisionSummary} from './ai.mjs';
+import {createGame,view,hash,VERSION} from './engine.mjs';
+import {configureKey,configured,generateWithAi,model,rates} from './ai.mjs';
+import {MODES,project,playStep,stepReport,saveSummary} from './play.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
 const busy=new Set();
@@ -17,8 +18,8 @@ const json=(res,status,data)=>{
 const body=async req=>{let b='';for await(const chunk of req){b+=chunk;if(Buffer.byteLength(b)>1024*1024)throw Error('请求超过1MB');}let parsed;try{parsed=b?JSON.parse(b):{};}catch{throw Object.assign(Error('请求不是有效 JSON，未执行操作。'),{code:'INVALID_JSON'});}if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw Object.assign(Error('需要 JSON 对象'),{code:'INVALID_BODY'});return parsed;};
 const session=(req,res)=>{let id=req.headers.cookie?.match(/(?:^|; )tl_session=([a-f0-9]{64})(?:;|$)/)?.[1];if(!id||!db.prepare('SELECT id FROM sessions WHERE id=?').get(id)){id=randomBytes(32).toString('hex');db.prepare('INSERT INTO sessions VALUES(?)').run(id);res.setHeader('Set-Cookie',`tl_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`);}return id;};
 function getGame(id,owner){const row=db.prepare('SELECT * FROM games WHERE id=? AND owner=?').get(id,owner);if(!row)throw Error('对局不存在');return {...row,state:JSON.parse(row.state)};}
-function seatFor(g){return g.mode==='mastermind'?'M':g.mode==='observe'?'public':turn(g.state)!=='M'&&turn(g.state)?turn(g.state):'A';}
-function response(g){return {...view(g.state,seatFor(g)),id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:configured(),model,busy:busy.has(g.id)};}
+const decorate=(g,v)=>({...v,id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:configured(),model,busy:busy.has(g.id)});
+const response=g=>decorate(g,project(g.mode,g.state));
 function persist(g,frames,commandId){
  const next=frames.at(-1)?.state||g.state;
  db.exec('BEGIN IMMEDIATE');try{
@@ -33,9 +34,9 @@ function replay(g,full=false){const seat=full?'M':'public';return {format:'trage
 async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/info')return json(res,200,{version:VERSION,configured:configured(),model,rates,contentHash});
  if(p==='/api/catalog')return json(res,200,catalog);
- if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(g=>({id:g.id,mode:g.mode,created:g.created,title:JSON.parse(g.state).script.title,phase:JSON.parse(g.state).phase,spent:JSON.parse(g.state).phase==='over'?g.spent:null})));
+ if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
-  const b=await body(req),script=b.script||starter,mode=['heroes','mastermind','observe'].includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('预算范围 $0.01–$10');
+  const b=await body(req),script=b.script||starter,mode=MODES.includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('预算范围 $0.01–$10');
   const state=createGame(script),id=randomUUID();db.exec('BEGIN');try{db.prepare('INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)').run(id,owner,mode,JSON.stringify(state),budget,new Date().toISOString());db.prepare('INSERT INTO frames VALUES(?,?,?,?,?)').run(id,0,'null',JSON.stringify(state),hash(state));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}return json(res,201,response(getGame(id,owner)));
  }
  if(p==='/api/scripts/starter')return json(res,200,starter);
@@ -60,36 +61,29 @@ async function api(req,res,u,owner){const p=u.pathname;
  }
  if(b.commandId&&db.prepare('SELECT revision FROM receipts WHERE game=? AND commandId=?').get(id,b.commandId))return json(res,200,response(g));
  if(b.revision!==g.state.revision)return json(res,409,{error:'局面已变化，请刷新',code:'STATE_CONFLICT'});
- const seat=turn(g.state);if(!seat)throw Error('本局已结束');
- const human=g.mode==='heroes'?seat!=='M':g.mode==='mastermind'?seat==='M':false;
- if(route==='command'&&!human)return json(res,403,{error:'当前由对手控制'});
- if(route==='ai-step'&&human)return json(res,403,{error:'当前为你的行动，可使用明确标识的练习机器人托管'});
  busy.add(id);
  try{
-  let command=b.command,answer,frames=[];
-  if(route==='advance')frames=advanceAutomatic(g.state,{includeBetween:g.mode!=='heroes'}).steps;
-  else{
-   if(route==='ai-step')answer=await decide(g.state,seat,{...usageHooks(g),userId:'g_'+id.replaceAll('-','')}),command=answer.command;
-   if(route==='bot-step')command=botCommand(g.state,seat);
-   const first=applyCommand(g.state,seat,command);if(answer)first.notes[seat]=answer.note||first.notes[seat];
-   frames=[{seat,command,state:first},...advanceAutomatic(first,{includeBetween:g.mode!=='heroes'}).steps];
-  }
+  const {seat,frames,answer}=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...usageHooks(g),userId:'g_'+id.replaceAll('-','')}});
   persist(g,frames,b.commandId);
-  return json(res,200,{...response(getGame(id,owner)),busy:false,transitionFrames:transitionFrames(state=>response({...g,state}),g.state,frames.map(f=>f.state)),decision:decisionSummary(route,seat,answer)});
+  return json(res,200,{...response(getGame(id,owner)),busy:false,...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,v)})});
  }finally{busy.delete(id);}
 }
 const assetsRoot=path.resolve(root,'assets');
 const allowAssets=new Set(catalog.characters.flatMap(c=>[c.portrait,c.card]).map(p=>'/'+p));for(const n of ['click_001','drop_001','confirmation_001','error_001','glitch_001','bong_001','open_001'])allowAssets.add('/assets/audio/Audio/'+n+'.ogg');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.svg':'image/svg+xml'};
+// The client is whatever ships in public/, listed once at startup; nothing outside it is reachable.
+const publicRoot=path.join(root,'public');
+const publicFiles=new Map(readdirSync(publicRoot,{recursive:true,withFileTypes:true}).filter(d=>d.isFile()&&mime[path.extname(d.name)]).map(d=>{const file=path.join(d.parentPath,d.name);return ['/'+path.relative(publicRoot,file).split(path.sep).join('/'),file];}));
+publicFiles.set('/',publicFiles.get('/index.html'));
 const server=http.createServer(async(req,res)=>{res.setHeader('X-Request-Id',randomUUID());try{
  const u=new URL(req.url,'http://localhost');const host=req.headers.host||'';
  if(!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host))return json(res,403,{error:'仅允许本机访问'});
  if(req.headers.origin&&new URL(req.headers.origin).host!==host)return json(res,403,{error:'拒绝跨站请求'});
  res.setHeader('Content-Security-Policy',"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
  if(u.pathname.startsWith('/api/'))return await api(req,res,u,session(req,res));
- let f;if(allowAssets.has(u.pathname))f=path.join(assetsRoot,u.pathname.slice('/assets/'.length));else{const allowed={'/':'index.html','/app.js':'app.js','/style.css':'style.css','/replay-validation.mjs':'replay-validation.mjs'};if(!allowed[u.pathname])return json(res,404,{error:'文件不存在'});f=path.join(root,'public',allowed[u.pathname]);}
+ let f;if(allowAssets.has(u.pathname))f=path.join(assetsRoot,u.pathname.slice('/assets/'.length));else{f=publicFiles.get(u.pathname);if(!f)return json(res,404,{error:'文件不存在'});}
  if(!existsSync(f))return json(res,404,{error:'素材不存在，请检查 assets 目录是否完整'});res.writeHead(200,{'Content-Type':mime[path.extname(f)]||'application/octet-stream','Content-Length':statSync(f).size,'Cache-Control':u.pathname.startsWith('/assets/')?'public,max-age=86400':'no-cache'});createReadStream(f).pipe(res);
- }catch(e){json(res,400,e.message==='ILLEGAL_ACTION'?{error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'}:{error:String(e.message).slice(0,400),code:e.code});}});
+ }catch(e){json(res,e.status||400,e.message==='ILLEGAL_ACTION'?{error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'}:{error:String(e.message).slice(0,400),code:e.code});}});
 if(process.argv.includes('--stdin-key')){
  // Raw TTY mode prevents credential echo; no credential value is written to disk or logs.
  if(process.stdin.isTTY)process.stdin.setRawMode(true);

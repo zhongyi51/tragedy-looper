@@ -56,7 +56,8 @@ export function validateScript(s){
  return {errors,warnings};
 }
 export function generateScript({ruleset='FS',seed=Date.now(),title='未命名的轮回',mainPlot,subPlots}={}){
- let x=Number(seed)>>>0;const rand=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+ // mulberry32: neighbouring seeds must not share their first draws.
+ let x=Number(seed)>>>0;const rand=()=>{x=(x+0x6D2B79F5)>>>0;let t=Math.imul(x^x>>>15,x|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(rand()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
  mainPlot=mainPlot||shuffle(catalog.plots.filter(p=>p.kind==='Y'&&p.sets.includes(ruleset)))[0].id;subPlots=subPlots||shuffle(catalog.plots.filter(p=>p.kind==='X'&&p.sets.includes(ruleset))).slice(0,ruleset==='FS'?1:2).map(p=>p.id);
  if(!plots[mainPlot]||subPlots.some(p=>!plots[p]))throw Error('未知规则');
  const rs=[];for(const p of [mainPlot,...subPlots])for(const [r,n]of Object.entries(plots[p].addedRoles)){const count=typeof n==='number'?n:Math.floor(rand()*(n.max-n.min+1))+n.min;for(let i=0;i<count;i++)if(rs.filter(z=>z===r).length<(roles[r].maxCount??99))rs.push(r);}

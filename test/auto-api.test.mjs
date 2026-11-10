@@ -47,7 +47,7 @@ test('observe-mode automatic snapshots never project through the acting mastermi
 });
 
 for(const phase of ['cultist','refusal','incident'])test(`advance preserves substantive ${phase} choices without calling the provider`,async t=>{
- const calls=noProvider(t),{sql,request,store}=fixture();let s=createGame(phase==='cultist'?generateScript({ruleset:'BTX',seed:5}):starter);s.phase=phase;
+ const calls=noProvider(t),{sql,request,store}=fixture();let s=createGame(phase==='cultist'?generateScript({ruleset:'BTX',seed:21}):starter);s.phase=phase;
  if(phase==='cultist'){
   s.cultists=['idol'];s.ignoredAreas=[];s.board.idol.location='city';
   s.placements=[{seat:'M',card:'intrigue_1#0',target:'city'},{seat:'M',card:'move_h#0',target:'school'},{seat:'M',card:'paranoia_1#0',target:'teacher'},{seat:'A',card:'forbid_intrigue#0',target:'city'},{seat:'B',card:'goodwill_1#0',target:'doctor'},{seat:'C',card:'goodwill_1#0',target:'nurse'}];

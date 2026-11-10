@@ -1,11 +1,11 @@
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
-import {createGame,applyCommand,view,turn,botCommand,hash,VERSION,advanceAutomatic,transitionFrames} from '../src/engine.mjs';
-import {decide,generateWithAi,model,rates,decisionSummary} from '../src/ai.mjs';
+import {createGame,view,hash,VERSION} from '../src/engine.mjs';
+import {generateWithAi,model,rates} from '../src/ai.mjs';
+import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
-class HttpError extends Error{constructor(status,message,code='HTTP_'+status){super(message);this.status=status;this.code=code;}}
-const fail=(status,text,code)=>{throw new HttpError(status,text,code);};
+const fail=(status,text,code)=>{throw new PlayError(status,text,code);};
 const statement=(db,sql,...args)=>db.prepare(sql).bind(...args);
 const one=(db,sql,...args)=>statement(db,sql,...args).first();
 const run=(db,sql,...args)=>statement(db,sql,...args).run();
@@ -18,7 +18,8 @@ async function readBody(req){
  let parsed;try{parsed=JSON.parse(new TextDecoder().decode(b)||'{}');}catch{fail(400,'请求不是有效 JSON，未执行操作。','INVALID_JSON');}if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))fail(400,'需要 JSON 对象');return parsed;
 }
 async function getGame(db,id,owner){const g=await one(db,'SELECT * FROM games WHERE id=? AND owner=?',id,owner);if(!g)fail(404,'对局不存在');return {...g,state:JSON.parse(g.state)};}
-function projection(g,env){const seat=g.mode==='mastermind'?'M':g.mode==='observe'?'public':turn(g.state)!=='M'&&turn(g.state)?turn(g.state):'A';return {...view(g.state,seat),id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:!!env.DEEPSEEK_API_KEY,model,busy:g.locked_until>Date.now()};}
+const decorate=(g,env,v)=>({...v,id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:!!env.DEEPSEEK_API_KEY,model,busy:g.locked_until>Date.now()});
+const projection=(g,env)=>decorate(g,env,project(g.mode,g.state));
 async function createStored(db,owner,mode,state,budget){const id=crypto.randomUUID();await db.batch([
  statement(db,'INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)',id,owner,mode,JSON.stringify(state),budget,new Date().toISOString()),
  statement(db,'INSERT INTO frames(game,revision,command,state,hash) VALUES(?,?,?,?,?)',id,0,'null',JSON.stringify(state),hash(state))
@@ -40,10 +41,10 @@ export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储尚未就绪');const u=new URL(req.url),p=u.pathname;
  if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true});
  if(p==='/api/catalog')return reply(catalog);
- if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(g=>({id:g.id,mode:g.mode,created:g.created,title:JSON.parse(g.state).script.title,phase:JSON.parse(g.state).phase,spent:JSON.parse(g.state).phase==='over'?g.spent:null})));
+ if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await readBody(req),budget=Number(b.budget??.5);if(!Number.isFinite(budget)||budget<.01||budget>10)fail(400,'预算范围 $0.01–$10');
-  const g=await createStored(db,owner,['heroes','mastermind','observe'].includes(b.mode)?b.mode:'heroes',createGame(b.script||starter),budget);return reply(projection(g,env),201);
+  const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(b.script||starter),budget);return reply(projection(g,env),201);
  }
  if(p==='/api/scripts/starter')return reply(starter);
  if(p.startsWith('/api/scripts/')&&req.method==='POST'){
@@ -61,28 +62,20 @@ export async function handleApi(req,env,owner){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')fail(403,'终局后可以创建分支');
   const f=await one(db,'SELECT state FROM frames WHERE game=? AND revision=?',id,b.revision);if(!f)fail(400,'回放位置不存在');const state=JSON.parse(f.state);state.revision=0;return reply(projection(await createStored(db,owner,g.mode,state,g.budget),env),201);
  }
- if(!['command','ai-step','bot-step','advance'].includes(route))fail(404,'接口不存在');
+ if(!STEP_ROUTES.includes(route))fail(404,'接口不存在');
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))fail(400,'无效提交标识');
  if(b.commandId&&await one(db,'SELECT revision FROM receipts WHERE game=? AND command_id=?',id,b.commandId))return reply(projection(await getGame(db,id,owner),env));
  if(!Number.isInteger(b.revision))fail(400,'需要局面版本');const token=crypto.randomUUID();
  const locked=await one(db,"UPDATE games SET lock_token=?,locked_until=? WHERE id=? AND owner=? AND locked_until<? AND json_extract(state,'$.revision')=? RETURNING id",token,Date.now()+300000,id,owner,Date.now(),b.revision);
  if(!locked)fail(409,'局面已变化或正在处理，请刷新','STATE_CONFLICT');
  try{
-  g=await getGame(db,id,owner);const seat=turn(g.state);if(!seat)fail(400,'本局已结束');const human=g.mode==='heroes'?seat!=='M':g.mode==='mastermind'?seat==='M':false;
-  if(route==='command'&&!human)fail(403,'当前由对手控制');if(route==='ai-step'&&human)fail(403,'当前是你的行动');
-  let command=b.command,answer,frames=[];
-  if(route==='advance')frames=advanceAutomatic(g.state,{includeBetween:g.mode!=='heroes'}).steps;
-  else{
-   if(route==='ai-step'){answer=await decide(g.state,seat,{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')});command=answer.command;}
-   if(route==='bot-step')command=botCommand(g.state,seat);
-   const first=applyCommand(g.state,seat,command);if(answer)first.notes[seat]=answer.note||first.notes[seat];
-   frames=[{seat,command,state:first},...advanceAutomatic(first,{includeBetween:g.mode!=='heroes'}).steps];
-  }
+  g=await getGame(db,id,owner);
+  const {seat,frames,answer}=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')}});
   const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
   const results=await db.batch(queries);if(results.at(-1).meta.changes!==1)fail(409,'操作已过期，局面未改变');
-  return reply({...projection(await getGame(db,id,owner),env),transitionFrames:transitionFrames(state=>projection({...g,state},env),g.state,frames.map(f=>f.state)),decision:decisionSummary(route,seat,answer)});
+  return reply({...projection(await getGame(db,id,owner),env),...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,env,v)})});
  }finally{await run(db,'UPDATE games SET lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',id,token);}
 }
 // Temporarily enabled owner-private Sites API verification. Sites consumes the
@@ -113,7 +106,7 @@ export function createWorker(assets){return {async fetch(req,env){
  if(!['GET','HEAD'].includes(req.method))return reply({error:'方法不允许'},405);
  const asset=assets[u.pathname];if(!asset)return reply({error:'文件不存在'},404);
  return new Response(req.method==='HEAD'?null:Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0)),{headers:{...security,'Content-Type':asset.type,'Cache-Control':u.pathname.startsWith('/assets/')?'private,max-age=86400':'no-cache'}});
- })();}catch(e){result=e.message==='ILLEGAL_ACTION'?reply({error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'},400):reply({error:e instanceof HttpError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',code:e.code||'REQUEST_FAILED'},e.status||400);}
+ })();}catch(e){result=e.message==='ILLEGAL_ACTION'?reply({error:'该操作不适用于当前局面，未执行。请刷新后重新选择合法行动。',code:'ILLEGAL_ACTION'},400):reply({error:e instanceof PlayError?e.message:e.code?String(e.message):'请求未完成，请刷新后重试。',code:e.code||'REQUEST_FAILED'},e.status||400);}
  const headers=new Headers(result.headers);headers.set('X-Request-Id',requestId);
  if(result.status>=400&&result.headers.get('content-type')?.includes('application/json')){
   const data=await result.json(),code=data.code||'HTTP_'+result.status;
