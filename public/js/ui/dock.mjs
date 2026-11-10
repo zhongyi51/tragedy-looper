@@ -1,0 +1,84 @@
+import {esc,icon,btn} from '../html.mjs';
+import {char,name,seatName,seatMark,cardLabel,cardMeta,PLACING,SEATS} from '../lookup.mjs';
+import {humanTurn,turnGuidance,turnControl,choiceGroups} from '../guidance.mjs';
+import {cardFace} from './board.mjs';
+
+export const reconnectControl=ctx=>ctx.actionErrorCode==='AUTH'
+ ?'<a class="btn" data-reauth href="/signin-with-chatgpt" target="_top">重新登录并恢复对局</a>'
+ :btn('重新连接','reconnect');
+
+function prompt(v,ctx){
+ const guide=turnGuidance(v,ctx),control=turnControl(v,ctx),human=humanTurn(v),selected=ctx.selected&&cardMeta(ctx.selected);
+ const detail=selected&&guide.kind==='human'?`${cardLabel(ctx.selected)}：${selected.info}${selected.location?'':' 放在地点上只是无效果的佯动。'} 再点一次手牌可取消。`:guide.detail;
+ const alert=['reconnect','paused'].includes(guide.kind),mark=alert?'!':human?seatMark(v.turn):seatMark(v.turn||'终');
+ const kicker=ctx.working&&['rules','animation'].includes(ctx.requestKind)?'规则引擎 · 自动结算':`${v.phase} · ${human?'由你控制':'对手行动'}`;
+ const thinking=ctx.working&&ctx.requestKind==='ai';
+ const recovery=(ctx.actionError&&control?.action!=='sync-state'?btn(icon('sync')+'同步局面','sync-state','',ctx.working?'disabled':''):'')+(ctx.actionErrorCode==='AUTH'||ctx.syncRequired?reconnectControl(ctx):'');
+ const assist=human&&!alert?btn('代走一步','bot','ghost small',`title="让练习机器人替你走这一步"${ctx.working?' disabled':''}`):'';
+ return `<div class="prompt ${guide.kind}${ctx.working?' is-working':''}">
+  <span class="emblem ${alert?'alert':v.turn==='M'?'mm':'hero'}${human?' you':''}" aria-hidden="true">${esc(mark)}</span>
+  <div class="prompt-copy" aria-live="polite"><small class="kicker">${esc(kicker)}</small><b>${esc(guide.title)}${thinking?'<span class="dots"><i></i><i></i><i></i></span>':''}</b><p>${esc(detail)}</p></div>
+  <div class="prompt-actions">${control?btn((control.icon?icon(control.icon):'')+esc(control.label),control.action,control.quiet?'':'primary',control.disabled?'disabled':''):''}${recovery}${assist}</div>
+ </div>`;
+}
+
+// Six slots: who has put a card where today. Protagonist slots follow the leader's order.
+function tracker(v,ctx){
+ if(![...PLACING,'cultist'].includes(v.phaseId))return '';
+ const mine=v.mode==='heroes',lead=SEATS.indexOf(v.leader),order=[...SEATS.slice(lead),...SEATS.slice(0,lead)],mm=v.placements.filter(p=>p.seat==='M');
+ const slot=(seat,p,current,extra='')=>{
+  const label=p?`${p.card?cardLabel(p.card)+' → ':''}${name(p.target)}`:current?'出牌中':'';
+  const peek=mine&&seat!=='M'&&v.hands&&PLACING.includes(v.phaseId)&&humanTurn(v);
+  const cls=`slot ${seat==='M'?'mm':'hero'}${p?' filled':''}${current?' current':''}${peek&&(ctx.peekSeat||v.turn)===seat?' viewing':''}`;
+  const inner=`<b>${esc(seatMark(seat))}</b>${extra}${label?`<span>${esc(label)}</span>`:''}`;
+  return peek?`<button type="button" class="${cls}" data-do="peek" data-seat="${seat}" title="查看${esc(seatName(seat))}的手牌">${inner}</button>`:`<span class="${cls}" title="${esc(seatName(seat)+'：'+(label||'待出'))}">${inner}</span>`;
+ };
+ return `<div class="tracker" aria-label="今日盖牌进度"><span class="tracker-label">今日盖牌 <b>${v.placements.length}</b>/6</span>
+  ${[0,1,2].map(i=>slot('M',mm[i],v.phaseId==='mm_cards'&&i===mm.length)).join('')}<i class="tracker-gap"></i>
+  ${order.map(seat=>slot(seat,v.placements.find(p=>p.seat===seat),v.phaseId==='hero_cards'&&v.turn===seat,seat===v.leader?`<em title="领导者">${icon('crown')}</em>`:'')).join('')}</div>`;
+}
+
+function hand(v,ctx,blocked){
+ const peeking=ctx.peekSeat&&ctx.peekSeat!==v.turn&&v.hands?.[ctx.peekSeat],cards=peeking||v.hand;
+ const card=(c,i)=>{
+  const meta=cardMeta(c.id),chosen=ctx.selected===c.id,usable=c.available&&!peeking;
+  const note=!c.available?'本轮已用':c.once?'每轮回一次':'';
+  return `<button type="button" class="hcard fam-${meta.family}${meta.forbid?' forbid':''}${chosen?' chosen':''}${c.available?'':' spent'}" data-card="${c.id}" ${!usable||blocked?'disabled':''} aria-pressed="${chosen}" title="${esc(c.label+'：'+meta.info)}">
+   ${i<9&&usable?`<span class="hcard-key">${i+1}</span>`:''}${c.once?'<span class="hcard-once" title="每轮回只能使用一次">Ⅰ</span>':''}
+   ${cardFace(c.id)}<span class="hcard-name">${esc(c.label)}</span>${note?`<span class="hcard-note">${note}</span>`:''}
+  </button>`;
+ };
+ return `<div class="hand${peeking?' peeking':''}" role="group" aria-label="${esc(seatName(peeking?ctx.peekSeat:v.turn))}的手牌">${peeking?`<span class="hand-peek">预览 ${esc(seatName(ctx.peekSeat))} 的手牌 · 现在轮到 ${esc(seatName(v.turn))}</span>`:''}${cards.map(card).join('')}</div>`;
+}
+
+function choices(v,blocked){
+ const pass=v.actions.findIndex(o=>o.command.type==='pass'),groups=choiceGroups(v),off=blocked?' disabled':'';
+ if(v.phaseId==='between'){
+  const next=v.actions.findIndex(o=>o.command.type==='next_loop'),final=v.actions.findIndex(o=>o.command.type==='final_battle');
+  return `<div class="between"><div><small class="kicker">TIME REWINDS</small><b>第 ${v.loop+1} 轮回即将开始</b><p>计数器与人物位置将复原，已确认的角色、推理表和笔记都会保留。</p></div>
+   <div class="row">${next>=0?btn(icon('loop')+`开始第 ${v.loop+1} 轮回`,'choose','primary big',`data-index="${next}"${off}`):''}${final>=0?btn('放弃剩余轮回，进入最后的战斗','choose','',`data-index="${final}"${off}`):''}</div></div>`;
+ }
+ const group=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head">${gr.actor?`<img src="/${char(gr.actor).portrait}" alt="">`:''}<div><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div></div>`:''}
+  <div class="choice-items">${gr.items.map(it=>`<button type="button" class="choice ${it.cls||''}" data-do="choose" data-index="${it.i}"${it.hl?` data-hl="${esc(it.hl)}"`:''}${off}>${esc(it.text)}</button>`).join('')}</div></div>`;
+ return `<div class="choices${v.phaseId==='guess'?' guess':''}">${groups.map(group).join('')}
+  ${pass>=0?`<div class="choice-pass">${btn(esc(v.actions[pass].label),'choose',groups.length?'':'primary',`data-index="${pass}"${off}`)}${groups.length?'<span class="hint">不使用能力也可以直接结束此阶段。</span>':''}</div>`:''}</div>`;
+}
+
+function outcome(v){
+ const win=v.winner==='heroes',yours=v.mode==='observe'?'':(v.mode!=='mastermind')===win?' · 你赢了':' · 你输了';
+ return `<div class="outcome ${win?'heroes':'mastermind'}"><div><small class="kicker">THE TIMELINE HAS ENDED</small><b>${win?'明天，终于到来。':'惨剧，再度重演。'}</b><p>${win?'主人公':'剧作家'}获胜${yours} · 共 ${v.loop} 个轮回</p></div>
+  <div class="row">${btn('揭晓真相','truth','primary')}${btn('查看回放','open-replay')}${btn('导出全解答回放','full-replay','ghost')}${btn(icon('plus')+'再开一局','new')}</div></div>`;
+}
+
+function waiting(v,ctx){
+ const last=ctx.aiFeed?.filter(f=>f.gameId===v.id).at(-1);
+ return last?`<div class="waiting"><span class="bubble"><b>${esc(seatName(last.seat))}</b>「${esc(last.text)}」</span></div>`:'';
+}
+
+// ctx is the client state (working, selected, peekSeat, errors, aiFeed…).
+export function dockHtml(v,ctx){
+ if(v.winner&&!ctx.working)return `<div class="dock over">${outcome(v)}</div>`;
+ const human=humanTurn(v),placing=PLACING.includes(v.phaseId),blocked=Boolean(ctx.working||ctx.syncRequired||v.busy);
+ const body=human&&placing?hand(v,ctx,blocked):human&&v.actions?.length&&!(v.actions.length===1&&!['between','guess'].includes(v.phaseId))?choices(v,blocked):!human?waiting(v,ctx):'';
+ return `<div class="dock${human?' human':''}${placing&&human?' placing':''}" id="dock" aria-busy="${Boolean(ctx.working)}"><div class="dock-top">${prompt(v,ctx)}${tracker(v,ctx)}</div>${body}</div>`;
+}
