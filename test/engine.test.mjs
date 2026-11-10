@@ -27,3 +27,20 @@ test('placed secret faces do not enter opponent or public views',()=>{let s=plac
 test('replaying commands reproduces exact state hash without model calls',()=>{let s=fresh(),commands=[];while(s.phase!=='over'&&commands.length<250){const seat=turn(s),a=botCommand(s);commands.push({seat,a});s=applyCommand(s,seat,a);}let t=fresh();for(const {seat,a}of commands)t=applyCommand(t,seat,a);assert.equal(hash(s),hash(t));});
 test('script validator rejects illegal cast and hidden custom rules',()=>{const s=clone(starter);s.roles.girl_student='person';assert.ok(validateScript(s).errors.length);const t=clone(starter);t.specialRules=['eval()'];assert.ok(validateScript(t).errors.length);});
 test('all 24 characters expose only implemented ability candidates',()=>{let s=fresh();s.script.characters=catalog.characters.map(c=>c.id);s.script.roles=Object.fromEntries(s.script.characters.map(id=>[id,'person']));s.script.settings={godlyLoop:1,transferDay:1,bossTerritory:'school'};s.board=Object.fromEntries(s.script.characters.map(id=>[id,{id,initial:'school',location:'school',present:true,alive:true,goodwill:7,paranoia:5,intrigue:1,guard:1}]));s.phase='hero_ability';s.loop=2;s.usedCards.A=['goodwill_2#0'];s.occurred=[3];const options=legalActions(s);for(const o of options){const next=act(s,o.command);assert.equal(next.revision,1);}assert.ok(options.length>100);});
+test('every resolved or cancelled card effect is logged with its subject and source, and traced as a beat',()=>{
+ let s=fresh();const cards=[['forbid_goodwill','girl_student'],['move_h','office_worker'],['paranoia_1','doctor'],['goodwill_2','girl_student'],['goodwill_1','idol'],['goodwill_1','hospital']];
+ for(const [c,t] of cards.slice(0,5))s=place(s,c,t);
+ const before=s.log.length,beats=[];s=applyCommand(s,turn(s),{type:'place',card:'goodwill_1#0',target:'hospital'},beats);if(s.phase==='cultist')s=applyCommand(s,turn(s),{type:'cultist',mask:0},beats);
+ const added=s.log.slice(before),of=type=>added.filter(e=>e.type===type).map(e=>[e.who,e.by].filter(Boolean).join('<'));
+ assert.deepEqual(added.map(e=>e.type).slice(0,2),['placed','cards']);
+ assert.deepEqual(of('blocked').sort(),['girl_student','office_worker']);assert.deepEqual(of('counter').sort(),['doctor<M','idol<B']);assert.deepEqual(of('card_effect'),['hospital<C']);
+ assert.equal(beats.length,added.length);assert.deepEqual(beats.map(b=>b.log),added.map(e=>e.n));
+ const flip=beats[1],tick=beats[added.findIndex(e=>e.type==='counter'&&e.who==='doctor')];
+ assert.equal(flip.phase,'cultist');assert.equal(flip.dayRevealed.length,6);assert.equal(flip.board.doctor.paranoia,0);assert.equal(tick.board.doctor.paranoia,1);
+});
+test('a day ends with its own log entry and a failed loop is marked as such',()=>{
+ let s=fresh();s.phase='end';s=act(s,{type:'pass'});
+ assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.day]),[['dayend',1],['day',2]]);
+ s.day=s.script.days;s.phase='end';s.loopFailed=true;s=act(s,{type:'pass'});
+ assert.deepEqual(s.log.slice(-2).map(e=>e.type),['dayend','failed']);assert.equal(s.phase,'between');
+});
