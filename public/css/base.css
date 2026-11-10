@@ -179,4 +179,10 @@ input[type=range]{accent-color:var(--gold);width:100%}
  .modal{padding:18px 16px}
  .fields .wide{grid-column:auto}
 }
+@media (max-width:520px){
+ .nav-links{justify-content:space-between}
+ .nav-links button{padding:0 10px}
+ .nav-links button .ic{display:block;width:18px;height:18px}
+ .nav-links button:not(.active) span{display:none}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

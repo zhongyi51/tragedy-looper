@@ -52,7 +52,7 @@ function patch(el,html){
 function navHtml(){
  const {info,page,sound}=state;
  return `<button type="button" class="brand" data-do="nav-home" aria-label="返回档案室"><span class="brand-mark">${icon('loop')}</span><span class="brand-text">时隙<small>TRAGEDY LOOPER</small></span></button>
-  <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
+  <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
   <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'未配置 DEEPSEEK_API_KEY，对手使用离线机器人'}"><i></i><span>${info.configured?'DeepSeek 已连接':'离线练习模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
 const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
@@ -114,7 +114,7 @@ function selectCard(id){
 
 /* ---------- script workshop ---------- */
 const editor=state.editor;
-function setDraft(draft){editor.text=JSON.stringify(draft,null,2);editor.report=null;}
+function setDraft(draft){editor.text=JSON.stringify(draft,null,2);editor.report=null;validateSoon();}
 function readDraft(){const draft=parseDraft(editor.text);if(!draft)throw Error('剧本 JSON 无法解析，请先修正。');return draft;}
 async function validate(){
  const draft=parseDraft(editor.text);
@@ -132,7 +132,7 @@ function validateSoon(){
 }
 function applyEdit(edit){
  const draft=parseDraft(editor.text);if(!draft)return;
- setDraft(editDraft(draft,edit));render();validateSoon();
+ setDraft(editDraft(draft,edit));render();
 }
 
 /* ---------- replay ---------- */
@@ -266,7 +266,7 @@ document.addEventListener('input',e=>{
  if(t.id==='gen-seed')editor.generator.seed=+t.value;
  else if(t.id==='gen-theme')editor.generator.theme=t.value;
  else if(t.id==='notes')localStorage.setItem('note-'+t.dataset.note,t.value);
- else if(t.id==='script-editor'){editor.text=t.value;editor.report=null;}
+ else if(t.id==='script-editor'){editor.text=t.value;editor.report=null;validateSoon();}
  else if(t.id==='replay-range'){stopReplay();seekReplay(+t.value,{fromSlider:true});}
 });
 
@@ -327,7 +327,7 @@ try{
  [state.catalog,state.info,state.saves]=await Promise.all([api('/catalog'),api('/info'),api('/games')]);
  setCatalog(state.catalog);
  const id=localStorage.getItem('tl-game'),resume=localStorage.getItem('tl-resume'),wanted=location.hash.replace(/^#\//,'');
- if(id)try{state.g=await api('/games/'+id);if(resume===id){state.page='game';localStorage.removeItem('tl-resume');}}catch(error){if(resume)throw error;}
+ if(id)try{state.g=await api('/games/'+id);if(resume===id){state.page='game';localStorage.removeItem('tl-resume');}}catch(error){if(resume)throw error;if(error.status===404)localStorage.removeItem('tl-game');}
  if(PAGES.some(([page])=>page===wanted)&&!(wanted==='game'&&!state.g))state.page=wanted;
  $('#app').innerHTML='<div id="shell"><header class="nav" id="nav"></header><div id="page"></div></div><div id="layer"></div>';
  render();
