@@ -31,13 +31,13 @@ export async function playStep({state,mode,route,command,ai={}}){
  const human=humanControls(mode,seat);
  if(route==='command'&&!human)throw new PlayError(403,'当前由对手控制','NOT_YOUR_TURN');
  if(route==='ai-step'&&human)throw new PlayError(403,'当前为你的行动，可使用明确标识的练习机器人托管','HUMAN_TURN');
- const automatic={includeBetween:mode!=='heroes'};
+ const automatic={includeBetween:mode!=='heroes',trace:true};
  if(route==='advance')return {seat,frames:advanceAutomatic(state,automatic).steps,answer:null};
  let answer=null,commands;
  if(route==='ai-step'){answer=await decide(state,seat,ai);commands=answer.commands;}
  else commands=[route==='bot-step'?botCommand(state,seat):command];
  const frames=[];let current=state;
- for(const next of commands){current=applyCommand(current,seat,next);frames.push({seat,command:next,state:current});}
+ for(const next of commands){const beats=[];current=applyCommand(current,seat,next,beats);frames.push({seat,command:next,state:current,beats});}
  if(answer)current.notes[seat]=answer.note||current.notes[seat];
  frames.push(...advanceAutomatic(current,automatic).steps);
  return {seat,frames,answer};
@@ -46,6 +46,6 @@ export async function playStep({state,mode,route,command,ai={}}){
 // What the acting client receives besides the new projection: the visible
 // intermediate frames and who decided.
 export const stepReport=({mode,route,seat,answer,initial,frames,decorate=v=>v})=>({
- transitionFrames:transitionFrames(state=>decorate(project(mode,state)),initial,frames.map(f=>f.state)),
+ transitionFrames:transitionFrames(state=>decorate(project(mode,state)),initial,frames),
  decision:decisionSummary(route,seat,answer)
 });

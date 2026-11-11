@@ -42,11 +42,11 @@ test('failed status recovery never claims success or unlocks uncertain mutations
 });
 test('a newer read snapshot is described without claiming this specific submission succeeded',async()=>{
  const c=stepContext({id:'game',revision:7,log:[],busy:false});await assert.rejects(c.step(undefined,'ai-step'));
- assert.equal(c.state.syncRequired,false);assert.equal(c.state.g.revision,7);assert.match(c.state.actionError,/已获取更新后的局面/);assert.doesNotMatch(c.state.actionError,/这一步已保存|提交成功/);assert.equal(c.state.auto,false);
+ assert.equal(c.state.syncRequired,false);assert.equal(c.state.g.revision,7);assert.match(c.state.actionError,/局面已更新/);assert.doesNotMatch(c.state.actionError,/这一步已保存|提交成功/);assert.equal(c.state.auto,false);
 });
 test('manual sync only reads and clears the lock once the server is idle',async()=>{
  const c=stepContext({id:'game',revision:6,log:[],busy:true});await assert.rejects(c.step(undefined,'command'));
- await c.syncState();assert.equal(c.state.syncRequired,true);assert.match(c.state.actionError,/仍在处理/);
+ await c.syncState();assert.equal(c.state.syncRequired,true);assert.match(c.state.actionError,/还在处理/);
  c.calls.length=0;const idle=stepContext({id:'game',revision:9,log:[],busy:false});idle.state.syncRequired=true;idle.state.actionError='x';
  await idle.syncState();assert.deepEqual(idle.calls,[{url:'/games/game',data:undefined}]);assert.equal(idle.state.syncRequired,false);assert.equal(idle.state.actionError,'');assert.equal(idle.state.g.revision,9);
 });
