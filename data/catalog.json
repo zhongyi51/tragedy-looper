@@ -74,7 +74,7 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "other_student_same_location",
-          "effect_zh": "同区另一学生不安减1；可选择不安为0者。"
+          "effect_zh": "同一地点的另一名学生不安 −1。"
         }
       ],
       "traits_zh": [],
@@ -104,7 +104,7 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "other_student_same_location",
-          "effect_zh": "同区另一学生不安减1；可选择不安为0者。"
+          "effect_zh": "同一地点的另一名学生不安 −1。"
         }
       ],
       "traits_zh": [],
@@ -134,7 +134,7 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "自身位于学校或都市时，同区一个人物友好加1；可以选择自身。"
+          "effect_zh": "大小姐在学校或都市时，同一地点的一个人物（可以是她自己）友好 +1。"
         }
       ],
       "traits_zh": [],
@@ -166,14 +166,14 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "自身位于神社时，神社暗跃减1。"
+          "effect_zh": "巫女在神社时，神社暗跃 −1。"
         },
         {
           "minGoodwill": 5,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "得知同区一个人物的角色；可以选择自身。"
+          "effect_zh": "得知同一地点一个人物（可以是巫女自己）的角色。"
         }
       ],
       "traits_zh": [],
@@ -203,14 +203,14 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "选择本轮回确实发生过的一项公开日程事件，得知其犯人。"
+          "effect_zh": "得知本轮回已发生的一个事件的犯人。"
         },
         {
           "minGoodwill": 5,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一个人物放1护卫计数器；将来该人物将死时移除1护卫替代死亡；不死本就阻止死亡则不耗护卫。"
+          "effect_zh": "给同一地点的一个人物 1 点护卫；护卫可以抵消一次死亡。"
         }
       ],
       "traits_zh": [],
@@ -242,7 +242,7 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "得知自身角色。"
+          "effect_zh": "得知上班族的角色。"
         }
       ],
       "traits_zh": [],
@@ -272,7 +272,7 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "领导者先说本集合一项X的名字；剧作家公开剧本实际采用且不是该名称的一个X。若有两个可选，剧作家选。"
+          "effect_zh": "领导者说出一条副规则的名字，剧作家公开一条本剧本采用的、名字与之不同的副规则。"
         }
       ],
       "traits_zh": [],
@@ -302,14 +302,14 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个人物不安加1或减1；医生有友好无视且友好至少2时，剧作家也可在剧作家能力阶段使用此能力。"
+          "effect_zh": "同一地点的另一个人物不安 +1 或 −1。如果医生的角色会拒绝能力，且他的友好达到 2，剧作家也能在剧作家能力阶段使用。"
         },
         {
           "minGoodwill": 3,
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "本轮回住院患者失去所有禁止地点。"
+          "effect_zh": "本轮回住院患者可以进入任何地点。"
         }
       ],
       "traits_zh": [],
@@ -363,7 +363,7 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "收回领导者自己一张本轮回已用的一次性行动牌。"
+          "effect_zh": "领导者收回自己一张本轮回用过的“每轮回一次”的牌。"
         }
       ],
       "traits_zh": [],
@@ -393,13 +393,13 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "第2轮回起，得知自身角色；此能力不可被任何友好无视拒绝。",
+          "effect_zh": "第 2 轮回起可用：得知异常少年的角色。此能力不会被拒绝。",
           "cannotRefuse": true,
           "minLoop": 2
         }
       ],
       "traits_zh": [
-        "不能分配所选规则加入的角色；原本成为普通人的位置改为集合中未被所选规则加入的其他非普通角色。"
+        "异常少年不会是所选规则带来的角色，而是本规则集里未被采用的某个角色（不是普通人）。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -428,14 +428,14 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个人物死亡。"
+          "effect_zh": "同一地点的另一个人物死亡。"
         },
         {
           "minGoodwill": 5,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一具尸体复活。"
+          "effect_zh": "同一地点的一名死者复活。"
         }
       ],
       "traits_zh": [],
@@ -465,18 +465,18 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "选择公开日程的一项事件，得知犯人；不要求已经发生。"
+          "effect_zh": "得知一个事件的犯人，事件不必已经发生。"
         },
         {
           "minGoodwill": 5,
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一个人物或所在地点暗跃减1。"
+          "effect_zh": "同一地点的一个人物或所在地点暗跃 −1。"
         }
       ],
       "traits_zh": [
-        "剧本预设到场轮回；此前轮回准备时不放上棋盘。"
+        "从剧本指定的轮回开始才登场。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -504,14 +504,14 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个人物不安减1。"
+          "effect_zh": "同一地点的另一个人物不安 −1。"
         },
         {
           "minGoodwill": 4,
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个人物友好加1。"
+          "effect_zh": "同一地点的另一个人物友好 +1。"
         }
       ],
       "traits_zh": [],
@@ -541,14 +541,14 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "任意地点的另一个人物不安加1。"
+          "effect_zh": "任意地点的另一个人物不安 +1。"
         },
         {
           "minGoodwill": 2,
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一个人物或所在地点暗跃加1。"
+          "effect_zh": "同一地点的一个人物或所在地点暗跃 +1。"
         }
       ],
       "traits_zh": [],
@@ -582,7 +582,7 @@
         }
       ],
       "traits_zh": [
-        "剧本指定领地地点；剧作家使用此人物的能力时可视作其位于领地。真实位置不因此改变。"
+        "剧本为他指定一处领地。剧作家使用他的角色能力时，可以当作他在领地内；他的实际位置不变。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -610,7 +610,7 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个不安达到自身临界的人物不安减1；能力不能拒绝。",
+          "effect_zh": "同一地点另一个不安已达上限的人物不安 −1。此能力不会被拒绝。",
           "cannotRefuse": true
         }
       ],
@@ -641,11 +641,11 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "本轮回自身担任犯人的事件不发生。"
+          "effect_zh": "本轮回由手下当犯人的事件不会发生。"
         }
       ],
       "traits_zh": [
-        "每轮回准备时由剧作家选择初始地点。"
+        "每个轮回开始时，由剧作家决定他的初始地点。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -673,14 +673,14 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "选同区两个其他人物，把其中一人上的任意一种计数器1枚移给另一人；两人必须存在，双方均无计数器时仍可声明。"
+          "effect_zh": "选同一地点的另外两个人物，把其中一人的 1 点友好、不安、暗跃或护卫移给另一人。"
         },
         {
           "minGoodwill": 5,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "得知任意地点一具尸体的角色。"
+          "effect_zh": "得知任意一名死者的角色。"
         }
       ],
       "traits_zh": [],
@@ -713,11 +713,11 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "选择公开日程一种事件并结算其效果；需要犯人时视自身为犯人，所有选择由领导者做；不视为实际发生事件。"
+          "effect_zh": "选日程上的一个事件，立即结算它的效果：需要犯人时由人工智能充当，其中的选择都由领导者决定。这不算事件发生。"
         }
       ],
       "traits_zh": [
-        "不得配为普通人；判定自身事件触发时，所有种类计数器合计作为不安数量。"
+        "不会是普通人。判断由它当犯人的事件是否发生时，把它身上所有计数的总和当作不安。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -745,14 +745,14 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一名学生不安加1或减1。"
+          "effect_zh": "同一地点的一名学生不安 +1 或 −1。"
         },
         {
           "minGoodwill": 3,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "得知同区一名学生的角色。"
+          "effect_zh": "得知同一地点一名学生的角色。"
         }
       ],
       "traits_zh": [],
@@ -782,11 +782,11 @@
           "limit": "day",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区另一个人物暗跃减1，然后友好加1；无暗跃时仍可选并获得友好。"
+          "effect_zh": "同一地点的另一个人物暗跃 −1，然后友好 +1；对方没有暗跃也可以用。"
         }
       ],
       "traits_zh": [
-        "剧本预设到场日；轮回准备时不入场，该日的日开始阶段放入学校。"
+        "从剧本指定的那一天开始才登场，登场地点是学校。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -814,14 +814,14 @@
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "同区一个人物不安加2，可以选择自身。"
+          "effect_zh": "同一地点的一个人物（可以是军人自己）不安 +2。"
         },
         {
           "minGoodwill": 4,
           "limit": "loop",
           "timing": "protagonist_ability",
           "target": "按效果",
-          "effect_zh": "本轮回主人公不再死亡；不能阻止非死亡的失败条件。"
+          "effect_zh": "本轮回主人公不会死亡。其他失败条件不受影响。"
         }
       ],
       "traits_zh": [],
@@ -846,8 +846,8 @@
       ],
       "abilities": [],
       "traits_zh": [
-        "每轮回开始时神社暗跃加1。",
-        "自身为犯人的事件，事件效果替换为无事发生；与事件根本未发生要区分。"
+        "每个轮回开始时，神社暗跃 +1。",
+        "由黑猫当犯人的事件，即使发生也没有效果。"
       ],
       "scope": "base5",
       "sourceRefs": [
@@ -882,7 +882,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制：此人物死亡时主人公失败，并立即结束轮回。"
+        "此人死亡时，主人公失败，轮回立即结束。"
       ],
       "sourceRef": "JP5:p34"
     },
@@ -897,8 +897,8 @@
         "BTX"
       ],
       "effects_zh": [
-        "可选，日结束：同区关键人物暗跃>=2，则杀死该关键人物。",
-        "可选，日结束：自身暗跃>=4，则主人公死亡。"
+        "日结束时，可以杀死同一地点暗跃达到 2 的关键人物。",
+        "日结束时，如果杀手自己的暗跃达到 4，可以杀死主人公。"
       ],
       "sourceRef": "JP5:p34"
     },
@@ -913,7 +913,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "可选，剧作家能力：同区一个人物（含自身）或所在地点暗跃+1。"
+        "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）或所在地点暗跃 +1。"
       ],
       "sourceRef": "JP5:p34"
     },
@@ -928,7 +928,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "可选，行动结算：无视同区人物及所在地点上的暗跃禁止；使用移动后的地点。"
+        "翻牌结算时，可以让同一地点的人物和所在地点无视暗跃禁止。位置按移动之后算。"
       ],
       "sourceRef": "JP5:p34"
     },
@@ -943,8 +943,8 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制，轮回结束：若已死，公开角色且主人公失败。",
-        "强制，轮回开始：若曾公开该角色，自身友好+1。"
+        "轮回结束时如果已经死亡，公开此角色，主人公失败。",
+        "此角色公开之后，每个轮回开始时自己友好 +1。"
       ],
       "sourceRef": "JP5:p35"
     },
@@ -959,7 +959,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "可选，剧作家能力：同区一个人物（含自身）不安+1。"
+        "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）不安 +1。"
       ],
       "sourceRef": "JP5:p35"
     },
@@ -974,7 +974,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制，日结束：同区恰有另一个存活人物时，该人物死亡。"
+        "日结束时，如果同一地点恰好只有另一个活着的人物，那个人物死亡。"
       ],
       "sourceRef": "JP5:p35"
     },
@@ -1000,9 +1000,9 @@
         "BTX"
       ],
       "effects_zh": [
-        "不死。",
-        "强制：无视对自身使用的友好禁止行动牌。",
-        "可选，最后一天日结束：自身友好<=2时令主人公失败并立即结束轮回。"
+        "不会死亡。",
+        "对他出的友好禁止无效。",
+        "最后一天结束时，如果自己的友好不超过 2，可以让主人公失败。"
       ],
       "sourceRef": "JP5:p34"
     },
@@ -1028,7 +1028,7 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制：主恋人死亡时，自身不安+6。"
+        "主恋人死亡时，自己不安 +6。"
       ],
       "sourceRef": "JP5:p35"
     },
@@ -1042,8 +1042,8 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制：恋人死亡时，自身不安+6。",
-        "可选，日结束：自身不安>=3且暗跃>=1时主人公死亡。"
+        "恋人死亡时，自己不安 +6。",
+        "日结束时，如果自己的不安达到 3 且暗跃达到 1，可以杀死主人公。"
       ],
       "sourceRef": "JP5:p35"
     },
@@ -1057,8 +1057,8 @@
         "BTX"
       ],
       "effects_zh": [
-        "强制：学校暗跃>=2时获得误导者能力（不改变角色）。",
-        "强制：都市暗跃>=2时获得关键人物能力（不改变角色）。"
+        "学校暗跃达到 2 时，拥有误导者的能力（角色不变）。",
+        "都市暗跃达到 2 时，拥有关键人物的能力（角色不变）。"
       ],
       "sourceRef": "JP5:p35"
     }
@@ -1092,7 +1092,7 @@
       "addedRoles": {
         "brain": 1
       },
-      "effect_zh": "轮回结束，幕后黑手初始地点暗跃>=2则主人公失败。",
+      "effect_zh": "轮回结束时，如果幕后黑手初始地点的暗跃达到 2，主人公失败。",
       "sourceRef": "JP5:p29"
     },
     {
@@ -1107,7 +1107,7 @@
         "key_person": 1,
         "cultist": 1
       },
-      "effect_zh": "轮回结束，学校暗跃>=2则主人公失败。",
+      "effect_zh": "轮回结束时，如果学校的暗跃达到 2，主人公失败。",
       "sourceRef": "JP5:p29"
     },
     {
@@ -1122,7 +1122,7 @@
         "brain": 1,
         "cultist": 1
       },
-      "effect_zh": "轮回结束，神社暗跃>=2则主人公失败。",
+      "effect_zh": "轮回结束时，如果神社的暗跃达到 2，主人公失败。",
       "sourceRef": "JP5:p32"
     },
     {
@@ -1136,7 +1136,7 @@
       "addedRoles": {
         "key_person": 1
       },
-      "effect_zh": "关键人物必须有girl属性；轮回结束该关键人物暗跃>=2则主人公失败。",
+      "effect_zh": "关键人物必须是少女。轮回结束时，如果她的暗跃达到 2，主人公失败。",
       "sourceRef": "JP5:p32",
       "castingConstraints": [
         "key_person.tag=girl"
@@ -1154,7 +1154,7 @@
         "cultist": 1,
         "time_traveler": 1
       },
-      "effect_zh": "本轮回实际发生过蝴蝶振翅，则轮回结束主人公失败；仅模拟事件效果不算发生。",
+      "effect_zh": "如果本轮回发生过「蝴蝶振翅」，轮回结束时主人公失败。人工智能模拟的事件不算。",
       "sourceRef": "JP5:p32"
     },
     {
@@ -1168,7 +1168,7 @@
       "addedRoles": {
         "witch": 1
       },
-      "effect_zh": "轮回结束，魔女初始地点暗跃>=2则主人公失败。",
+      "effect_zh": "轮回结束时，如果魔女初始地点的暗跃达到 2，主人公失败。",
       "sourceRef": "JP5:p32"
     },
     {
@@ -1198,7 +1198,7 @@
       "addedRoles": {
         "misleader": 1
       },
-      "effect_zh": "可选，剧作家能力：任意地点暗跃+1；每轮回仅一次。",
+      "effect_zh": "剧作家能力阶段，可以让任意一个地点暗跃 +1。每轮回一次。",
       "sourceRef": "JP5:p33"
     },
     {
@@ -1276,7 +1276,7 @@
       "addedRoles": {
         "misleader": 1
       },
-      "effect_zh": "原始角色为普通人的人物只要不安>=3，当前角色变为连环杀手；低于3则恢复。",
+      "effect_zh": "原本是普通人的人物，不安达到 3 时变成连环杀手，低于 3 时变回普通人。",
       "sourceRef": "JP5:p33"
     },
     {
@@ -1288,7 +1288,7 @@
         "BTX"
       ],
       "addedRoles": {},
-      "effect_zh": "每轮回开始，上轮结束时带有友好的所有人物卡获得不安2；清空前先记录，尸体也包括。",
+      "effect_zh": "每个轮回开始时，上个轮回结束时有友好的人物（包括死者）不安 +2。",
       "sourceRef": "JP5:p33"
     },
     {
@@ -1315,7 +1315,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "如果有可选对象，选择犯人同区的另一个人物令其死亡；不代表剧作家可以任意跳过事件。",
+      "effect_zh": "与犯人同一地点的另一个人物死亡，由剧作家选择。没有其他人时无事发生。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1327,7 +1327,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "任意一个人物不安+2，然后另一个人物暗跃+1。",
+      "effect_zh": "任意一个人物不安 +2，再让另一个人物暗跃 +1。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1351,7 +1351,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "医院暗跃>=1时，医院所有人物同时死亡；医院暗跃>=2时主人公也死亡。",
+      "effect_zh": "医院暗跃达到 1 时，医院里的所有人物死亡；达到 2 时，主人公也死亡。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1363,7 +1363,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "任意一个暗跃>=2的人物死亡，无同区限制。",
+      "effect_zh": "任意一个暗跃达到 2 的人物死亡，不限地点。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1375,7 +1375,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "将犯人移动到任意合法地点，再在其实际所在地放1暗跃；地点限制仍适用。",
+      "effect_zh": "把犯人移到任意一个他能进入的地点，然后那个地点暗跃 +1。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1387,7 +1387,7 @@
         "FS",
         "BTX"
       ],
-      "effect_zh": "从任意一个人物移除2友好（不足2则全部移除），另一个人物增加2友好；前者减少不足2不减少后者的增加值。",
+      "effect_zh": "任意一个人物友好 −2（不足 2 则减到 0），另一个人物友好 +2。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1398,7 +1398,7 @@
       "sets": [
         "BTX"
       ],
-      "effect_zh": "神社暗跃+2。",
+      "effect_zh": "神社暗跃 +2。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     },
@@ -1409,7 +1409,7 @@
       "sets": [
         "BTX"
       ],
-      "effect_zh": "选择友好/不安/暗跃一种，在犯人同区一个人物（可含犯人）放1枚。",
+      "effect_zh": "与犯人同一地点的一个人物（可以是犯人）友好、不安或暗跃 +1。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
     }
