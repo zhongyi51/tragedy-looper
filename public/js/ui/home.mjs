@@ -19,19 +19,19 @@ export function homeHtml(state){
   <section class="home-hero">
    <div class="hero-copy">
     <h1>这一次，<br>改写惨剧的结局。</h1>
-    <p class="lead">在有限的轮回里找出真相，阻止惨剧。</p>
+    <p class="lead">同样的几天一再重来。记住每一条线索，在轮回用完之前阻止惨剧。</p>
     <div class="row">${btn(icon('loop')+'开始游戏','new','primary big')}${g&&!g.winner?btn('继续对局'+icon('next'),'nav-game','big'):btn(icon('help')+'怎么玩','guide','big')}</div>
-    <div class="pills"><span class="pill${info.configured?' on':''}">${icon('bot')}${info.configured?'AI 对手已就绪':'离线机器人对手'}</span></div>
+    <div class="pills"><span class="pill${info.configured?' on':''}">${icon('bot')}${info.configured?'对手：DeepSeek AI':'对手：离线机器人'}</span></div>
    </div>
    <div class="hero-art" aria-hidden="true"><div class="hero-ring"><i></i><i></i><i></i></div>${cast.map((id,i)=>`<img class="p${i}" src="/${char(id).portrait}" alt="">`).join('')}</div>
   </section>
   <div class="section-line"><h2>选择身份</h2></div>
   <div class="stances">
-   ${side('heroes','01','主人公','在轮回中找出真相，阻止惨剧。','开始','hero-side')}
-   ${side('mastermind','02','剧作家','你知道一切。让惨剧发生。','开始','mm-side')}
-   ${side('observe','03','观战','看 AI 之间对局。','开始','')}
+   ${side('heroes','01','主人公','找出藏在人群里的角色，平安度过一个轮回。','扮演主人公','hero-side')}
+   ${side('mastermind','02','剧作家','你知道全部真相。让惨剧发生，别被看穿。','扮演剧作家','mm-side')}
+   ${side('observe','03','观战','看双方自动对完一整局。','开始观战','')}
   </div>
   <div class="section-line"><h2>存档</h2>${btn(icon('sync')+'刷新','refresh','small ghost')}</div>
-  <div class="saves">${saves.length?saves.slice(0,9).map(saveCard).join(''):'<p class="hint empty-saves">还没有存档。对局会自动保存。</p>'}</div>
+  <div class="saves">${saves.length?saves.slice(0,9).map(saveCard).join(''):'<p class="hint empty-saves">还没有存档。开始对局后会自动保存。</p>'}</div>
  </main>`;
 }

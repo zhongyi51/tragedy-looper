@@ -13,7 +13,7 @@ export const recapHtml=entries=>`<ul class="recap">${entries.map(e=>`<li class="
 
 function prompt(v,ctx){
  const guide=turnGuidance(v,ctx),control=turnControl(v,ctx),human=humanTurn(v),selected=ctx.selected&&cardMeta(ctx.selected);
- const detail=selected&&guide.kind==='human'?selected.info+(selected.location?'':' 放在地点上无效。'):guide.detail;
+ const detail=selected&&guide.kind==='human'?selected.info+(selected.location?'':' 对地点无效。'):guide.detail;
  const alert=['reconnect','paused'].includes(guide.kind),mark=alert?'!':human?seatMark(v.turn):seatMark(v.turn||'终');
  const thinking=ctx.working&&ctx.requestKind==='ai';
  const recovery=(ctx.actionError&&control?.action!=='sync-state'?btn(icon('sync')+'同步','sync-state','',ctx.working?'disabled':''):'')+(ctx.actionErrorCode==='AUTH'||ctx.syncRequired?reconnectControl(ctx):'');
@@ -51,7 +51,7 @@ function hand(v,ctx,blocked){
    ${cardFace(c.id)}<span class="hcard-name">${esc(c.label)}</span>${note?`<span class="hcard-note">${note}</span>`:''}
   </button>`;
  };
- return `<div class="hand${peeking?' peeking':''}" role="group" aria-label="${esc(seatName(peeking?ctx.peekSeat:v.turn))}的手牌">${peeking?`<span class="hand-peek">${esc(seatName(ctx.peekSeat))}的手牌（预览）</span>`:''}${cards.map(card).join('')}</div>`;
+ return `<div class="hand${peeking?' peeking':''}" role="group" aria-label="${esc(seatName(peeking?ctx.peekSeat:v.turn))}的手牌">${peeking?`<span class="hand-peek">${esc(seatName(ctx.peekSeat))}的手牌（只能看）</span>`:''}${cards.map(card).join('')}</div>`;
 }
 
 function choices(v,blocked,sheet){
@@ -59,8 +59,8 @@ function choices(v,blocked,sheet){
  if(v.phaseId==='between'){
   const next=v.actions.findIndex(o=>o.command.type==='next_loop'),final=v.actions.findIndex(o=>o.command.type==='final_battle');
   const why=failure(v);
-  return `<div class="between">${why?`<div class="why"><b><i>${esc(why.stamp)}</i>${esc(why.cause)}</b>${why.detail?`<small>${esc(why.detail)}</small>`:''}</div>`:''}<p>人物和计数会复原，已知的角色和你的推理会保留。</p>
-   <div class="row">${next>=0?btn(icon('loop')+`开始第 ${v.loop+1} 轮回`,'choose','primary big',`data-index="${next}"${off}`):''}${final>=0?btn('直接进入最后的战斗','choose','',`data-index="${final}"${off}`):''}</div></div>`;
+  return `<div class="between">${why?`<div class="why"><b><i>${esc(why.stamp)}</i>${esc(why.cause)}</b>${why.detail?`<small>${esc(why.detail)}</small>`:''}</div>`:''}<p>人物和计数会复原，查出的角色和你的推理都会保留。</p>
+   <div class="row">${next>=0?btn(icon('loop')+`开始第 ${v.loop+1} 轮回`,'choose','primary big',`data-index="${next}"${off}`):''}${final>=0?btn('放弃剩下的轮回，进入最后的战斗','choose','',`data-index="${final}"${off}`):''}</div></div>`;
  }
  const group=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head">${gr.actor?`<img src="/${char(gr.actor).portrait}" alt="">`:''}<div><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div></div>`:''}
   <div class="choice-items">${gr.items.map(it=>`<button type="button" class="choice ${it.cls||''}" data-do="choose" data-index="${it.i}"${it.hl?` data-hl="${esc(it.hl)}"`:''}${off}>${esc(it.text)}</button>`).join('')}</div></div>`;
@@ -85,7 +85,7 @@ function playback(v,ctx){
  const top=gate
   ?`<div class="prompt gate"><span class="emblem you" aria-hidden="true">${icon('clock')}</span>
     <div class="prompt-copy" aria-live="polite"><small class="kicker">第 ${v.loop} 轮回</small><b>第 ${gate.day} 日结束</b>${gate.recap.length?recapHtml(gate.recap):'<p>今天平安无事。</p>'}</div>
-    <div class="prompt-actions">${btn(esc(gate.last?'查看结果':`进入第 ${gate.day+1} 日`)+icon('next'),'gate-continue','primary big',gate.auto?'title="稍后自动继续"':'')}</div></div>`
+    <div class="prompt-actions">${btn(esc(gate.last?'查看结果':`进入第 ${gate.day+1} 日`)+icon('next'),'gate-continue','primary big',gate.auto?'title="稍后会自动继续"':'')}</div></div>`
   :`<div class="prompt playing"><span class="emblem" aria-hidden="true">${icon('play')}</span>
     <div class="prompt-copy" aria-live="polite"><small class="kicker">${esc(v.phase)}${total>1?` · ${at}/${total}`:''}</small><b class="beat ${esc(entry?.type||'')}">${esc(entry?.text||'结算中')}</b></div>
     <div class="prompt-actions">${btn(ctx.speed+'×','speed','small ghost','title="播放速度"')}${total>1?btn('跳过','skip','small','title="直接看结果"'):''}</div></div>`;

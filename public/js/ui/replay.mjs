@@ -2,7 +2,7 @@ import {icon,btn,iconBtn} from '../html.mjs';
 
 export function replayIntroHtml(state){
  return `<main class="wrap replay-intro">
-  <div class="page-intro"><div><h1>回放</h1></div><p class="lead">逐步重看一局。公开回放不含秘密信息。</p></div>
+  <div class="page-intro"><div><h1>回放</h1></div><p class="lead">一步一步重看整局。公开视角不含任何秘密。</p></div>
   <div class="toolbar">${state.g?btn(icon('film')+'回放当前对局','open-replay','primary big'):''}<label class="btn big file">导入回放<input id="replay-file" type="file" accept=".json,application/json"></label></div>
  </main>`;
 }

@@ -55,7 +55,7 @@ export function failure(v,loop=v.loop){
  if(!e?.when)return null;
  const tally=Object.entries(e.intrigue||{}).map(([id,n])=>`${name(id)} ${n}`).join('、');
  return {stamp:`第 ${e.day} 日 · ${phaseLabel(e.phase)}`,
-  cause:e.when==='death'?`${e.dead.map(name).join('、')}死亡，轮回立即结束`:e.when==='heroes'?'主人公死亡':'最后一天结束时判定失败',
+  cause:e.when==='death'?`${e.dead.map(name).join('、')}死亡，轮回立即结束`:e.when==='heroes'?'主人公死亡':'最后一天结束时，失败条件成立',
   detail:e.when==='end'?(tally?'当时的暗跃：'+tally:'当时场上没有暗跃'):''};
 }
 
@@ -108,35 +108,35 @@ export function analyze(v,marks){
  // 3. Cells the rules settle: roles no remaining combination has, and roles already fully cast.
  for(const c of cast)for(const {id:r} of roles){
   if(cells[c][r].mark||r==='person')continue;
-  if(!range[r][1])cells[c][r]={mark:'no',auto:'规则里没有'};
+  if(!range[r][1])cells[c][r]={mark:'no',auto:'这一局没有这个角色'};
   else if(yes[r]>=range[r][1])cells[c][r]={mark:'no',auto:'人数已满'};
  }
 
  // 4. What follows: a role with exactly enough candidates left, a character with one role left.
- const hints=[],warns=conflict?['标记互相矛盾：没有规则组合能同时满足。']:[];
+ const hints=[],warns=conflict?['这些标记互相矛盾，没有哪种规则组合能同时满足。']:[];
  const lead=(c,r,text)=>{if(cells[c][r].lead)return;cells[c][r].lead=true;hints.push({character:c,role:r,text});};
  for(const {id:r} of roles){
   if(r==='person'||range[r][0]<1)continue;
   const need=range[r][0]-yes[r],left=cast.filter(c=>['','maybe'].includes(cells[c][r].mark));
   if(need>0&&left.length===need)for(const c of left)lead(c,r,`只剩${name(c)}能当${name(r)}`);
-  else if(need>0&&left.length<need)warns.push(`${name(r)}的人选不够。`);
+  else if(need>0&&left.length<need)warns.push(`能当${name(r)}的人不够了。`);
  }
  for(const c of cast){
   if(known[c]||picked(c))continue;
   const left=roles.filter(r=>cells[c][r.id].mark!=='no');
   if(left.length===1)lead(c,left[0].id,`${name(c)}只能是${name(left[0].id)}`);
-  else if(!left.length)warns.push(`${name(c)}没有可选的角色。`);
+  else if(!left.length)warns.push(`${name(c)}的角色全被排除了。`);
  }
  // Public events that point at a role: a loop that ends the moment one person dies, a ban that fails on someone.
  const points=(c,r,text)=>{if(def.has(r)&&range[r][1]&&!known[c]&&!picked(c)&&['','maybe'].includes(cells[c][r].mark))lead(c,r,text);};
  for(const e of v.log){
-  if(e.type==='failed'&&e.when==='death'&&e.dead.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死轮回就结束，多半是${name('key_person')}`);
-  if(e.type==='ignored'&&e.what==='goodwill')points(e.who,'time_traveler',`${name(e.who)}无视了友好禁止，多半是${name('time_traveler')}`);
+  if(e.type==='failed'&&e.when==='death'&&e.dead.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死，轮回就结束了，多半是${name('key_person')}`);
+  if(e.type==='ignored'&&e.what==='goodwill')points(e.who,'time_traveler',`${name(e.who)}不受友好禁止影响，多半是${name('time_traveler')}`);
  }
 
  const plot=p=>{
   const inAll=combos.every(c=>c.ids.includes(p.id)),inSome=combos.some(c=>c.ids.includes(p.id)),own=marks.plots[p.id];
-  const state=knownPlots.includes(p.id)?{mark:'yes',locked:true}:own?{mark:own}:!inSome?{mark:'no',auto:'与线索不符'}:inAll?{mark:'yes',auto:'只剩这一种可能'}:{mark:''};
+  const state=knownPlots.includes(p.id)?{mark:'yes',locked:true}:own?{mark:own}:!inSome?{mark:'no',auto:'和线索对不上'}:inAll?{mark:'yes',auto:'只剩这一种可能'}:{mark:''};
   return {id:p.id,name:p.name_zh_working,roles:plotRoles(p),effect:p.effect_zh||'',...state};
  };
  return {

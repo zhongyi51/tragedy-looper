@@ -54,7 +54,7 @@ function navHtml(){
  const {info,page,sound}=state;
  return `<button type="button" class="brand" data-do="nav-home" aria-label="返回首页"><span class="brand-mark">${icon('loop')}</span><span class="brand-text">时隙<small>TRAGEDY LOOPER</small></span></button>
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
-  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'未配置 DEEPSEEK_API_KEY，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
+  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'没有配置 DeepSeek 密钥，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
 const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
@@ -105,7 +105,7 @@ const rememberGame=()=>{const id=state.g?.id||localStorage.getItem('tl-game');if
 
 async function placeOn(target){
  const g=state.g,action=g.actions.find(o=>o.command.type==='place'&&o.command.card===state.selected&&o.command.target===target);
- if(!action){toast(g.board[target]?.alive===false?'不能对死者出牌':'这里今天已经出过牌了');return;}
+ if(!action){toast(g.board[target]?.alive===false?'不能对死者出牌':'今天已经对这里出过牌了');return;}
  await step(action.command);
 }
 function selectCard(id){
@@ -295,7 +295,7 @@ document.addEventListener('change',async e=>{
   }
   if(t.id==='script-file'||t.id==='replay-file'){
    const file=t.files[0];if(!file)return;
-   if(file.size>20*1024*1024)throw Error('文件太大（上限 20MB）');
+   if(file.size>20*1024*1024)throw Error('文件太大，最多 20MB');
    const data=JSON.parse(await file.text());
    if(t.id==='script-file')setDraft(data);
    else{validateReplay(data,state.catalog);stopReplay();Object.assign(replay,{data:sanitizePublicReplay(data),at:0,gameId:null,full:false});}

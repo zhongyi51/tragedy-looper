@@ -9,7 +9,7 @@ export const humanTurn=v=>v.mode==='heroes'?v.turn!==null&&v.turn!=='M':v.mode==
 export function afterPlacing(v,{card,target}){
  const seat=v.turn,placements=[...v.placements,{seat,card,target}],hand=v.hand.map(c=>c.id===card?{...c,available:false}:c);
  const next={...v,revision:v.revision+1,placements,hand,actions:[],
-  log:[...v.log,{n:v.log.length+1,loop:v.loop,day:v.day,phase:v.phaseId,type:'placed',who:target,by:seat,text:`${seatName(seat)}出牌：${name(target)}`}]};
+  log:[...v.log,{n:v.log.length+1,loop:v.loop,day:v.day,phase:v.phaseId,type:'placed',who:target,by:seat,text:`${seat==='M'?'剧作家':seatName(seat)+' '}出牌：${name(target)}`}]};
  const open=o=>o.command.target!==target;
  if(seat==='M'){if(placements.length<3)next.actions=v.actions.filter(o=>open(o)&&o.command.card!==card);return next;}
  next.hands={...v.hands,[seat]:hand};
@@ -20,32 +20,36 @@ export function afterPlacing(v,{card,target}){
  return next;
 }
 
+// Seat names read as a sentence subject: 「主人公 A 思考中」.
+const actor=seat=>seat==='M'?'剧作家':seatName(seat)+' ';
+const PROMPTS={setup:'选择手下从哪里登场。',cultist:'选择邪教徒是否无视暗跃禁止。',mm_ability:'可以使用角色能力，也可以直接结束。',hero_ability:'友好够了的人物可以使用能力，也可以直接结束。',reveal_plot:'选择公开哪一条副规则。',incident:'事件发生了，选择它的结果。',end_area:'选择大人物按哪个地点结算。',end:'可以使用日结束能力，也可以直接结束这一天。'};
 const WORKING={sync:'同步中',animation:'结算中',rules:'结算中',human:'提交中'};
 
 // ctx: {working, requestKind, syncRequired, actionError, auto, selected}
 export function turnGuidance(v,ctx={},readOnly=false){
- if(v.winner&&!ctx.working)return {title:'对局结束',detail:'可以查看真相或回放。',kind:'finished'};
+ if(v.winner&&!ctx.working)return {title:'对局结束',detail:'可以查看真相，或回放整局。',kind:'finished'};
  if(readOnly)return {title:v.phase,detail:'',kind:'replay'};
  if(ctx.working){
-  if(ctx.requestKind==='ai')return {title:seatName(v.turn)+'思考中',detail:'',kind:'ai'};
+  if(ctx.requestKind==='ai')return {title:actor(v.turn)+'思考中',detail:'',kind:'ai'};
   return {title:WORKING[ctx.requestKind]||WORKING.human,detail:'',kind:ctx.requestKind||'busy'};
  }
- if(ctx.syncRequired||v.busy)return {title:v.busy?'还在处理中':'需要同步',detail:ctx.actionError||'请先同步局面。',kind:'reconnect'};
+ if(ctx.syncRequired||v.busy)return {title:v.busy?'还在处理中':'需要同步',detail:ctx.actionError||'点“同步”取回最新局面。',kind:'reconnect'};
  if(ctx.actionError)return {title:'已暂停',detail:ctx.actionError,kind:'paused'};
  if(humanTurn(v)){
-  if(v.phaseId==='between')return {title:'轮回失败',detail:'整理线索，再开始下一轮回。',kind:'human'};
-  if(v.phaseId==='guess')return {title:'最后的战斗',detail:'指认每个人的角色，错一个就输。',kind:'human'};
+  if(v.phaseId==='between')return {title:'轮回失败',detail:'先整理线索，再开始下一个轮回。',kind:'human'};
+  if(v.phaseId==='guess')return {title:'最后的战斗',detail:'说出每个人物的角色，错一个就输。',kind:'human'};
   if(PLACING.includes(v.phaseId))return ctx.selected
-   ?{title:'选择目标',detail:cardLabel(ctx.selected)+'：点击高亮的人物或地点。',kind:'human'}
-   :{title:'轮到你出牌',detail:seatName(v.turn)+'：选一张牌，再点目标。',kind:'human'};
+   ?{title:'选择目标',detail:cardLabel(ctx.selected)+'：点亮起的人物或地点。',kind:'human'}
+   :{title:'轮到你出牌',detail:seatName(v.turn)+'：先选一张牌，再点目标。',kind:'human'};
   if(v.phaseId==='refusal'){
    const request=v.pending?.action,ability=request&&char(request.actor)?.abilities[request.index];
-   return {title:'是否拒绝？',detail:ability?`${name(request.actor)}：${ability.effect_zh}${request.target?'（'+name(request.target)+'）':''}`:'',kind:'human'};
+   return {title:'同意还是拒绝？',detail:ability?`${name(request.actor)}：${ability.effect_zh}${request.target?'目标：'+name(request.target)+'。':''}`:'',kind:'human'};
   }
-  return {title:'轮到你',detail:v.phaseId==='cultist'?'选择结算方式。':seatName(v.turn)+' · '+v.phase,kind:'human'};
+  const idle=v.actions?.length===1&&v.actions[0].command.type==='pass';
+  return {title:'轮到你',detail:idle?'现在没有能用的能力，点“结束阶段”继续。':PROMPTS[v.phaseId]||seatName(v.turn)+' · '+v.phase,kind:'human'};
  }
- if(ctx.auto)return {title:seatName(v.turn)+'行动中',detail:'',kind:'ai'};
- return {title:'对手回合',detail:'点“继续”让'+seatName(v.turn)+'行动。',kind:'ai-ready'};
+ if(ctx.auto)return {title:actor(v.turn)+'行动中',detail:'',kind:'ai'};
+ return {title:'对手回合',detail:'点“继续”，让'+actor(v.turn)+'行动。',kind:'ai-ready'};
 }
 
 // The single primary control beside the prompt, or null when the board/hand is the control.
@@ -63,7 +67,7 @@ export function optionText(o){
  if(a.target)parts.push(name(a.target));
  if(a.to)parts.push('→ '+name(a.to));
  if(a.counter)parts.push(COUNTERS[a.counter]?.label||a.counter);
- if(a.amount)parts.push('不安'+(a.amount>0?'+1':'−1'));
+ if(a.amount)parts.push('不安 '+(a.amount>0?'+1':'−1'));
  if(a.day)parts.push('第 '+a.day+' 日');
  if(a.card)parts.push('收回 '+cardLabel(a.card));
  return parts.join(' ')||o.label;
@@ -79,7 +83,7 @@ export function choiceGroups(v,sheet){
   if(a.type==='pass')return;
   if(a.type==='goodwill'){
    const ability=char(a.actor).abilities[a.index];
-   add(a.actor+a.index,`${name(a.actor)} · 能力 ${a.index+1}`,`友好≥${ability.minGoodwill} · ${ability.limit==='loop'?'每轮回一次':'每天一次'} · ${ability.effect_zh}`,{...item,text:optionText(o)||'使用',hl:a.target||a.actor},a.actor);
+   add(a.actor+a.index,`${name(a.actor)} · 能力 ${a.index+1}`,`需要友好 ${ability.minGoodwill} · ${ability.limit==='loop'?'每轮回一次':'每天一次'} · ${ability.effect_zh}`,{...item,text:optionText(o)||'使用',hl:a.target||a.actor},a.actor);
   }else if(a.type==='mm')add(a.actor+a.ability,o.label.split(' → ')[0],'',{...item,text:optionText(o),hl:a.target},char(a.actor)?a.actor:'');
   else if(a.type==='guess'){
    const known=v.knownRoles[a.character],mine=sheet?.rows.find(r=>r.id===a.character),mark=mine?.cells[a.role]?.mark,picked=mine?.pick;
@@ -87,8 +91,8 @@ export function choiceGroups(v,sheet){
     {...item,text:name(a.role)+(known===a.role?' ✓':''),hl:a.character,cls:known===a.role?'known':known?'':mark==='yes'?'picked':mark==='no'?'ruled':''},a.character);
   }else if(a.type==='refusal'){
    const actor=v.pending?.action?.actor||'';
-   add('refusal',actor?name(actor)+'的能力请求':'能力请求','',{...item,text:o.label,hl:actor},actor);
-  }else if(a.type==='incident')add('incident',v.choiceTitle||'选择事件效果','',{...item,text:o.label,hl:a.target});
+   add('refusal',actor?'主人公想用'+name(actor)+'的能力':'主人公想用能力','',{...item,text:o.label,hl:actor},actor);
+  }else if(a.type==='incident')add('incident',v.choiceTitle||'选择事件的结果','',{...item,text:o.label,hl:a.target});
   else add(a.type,'','',{...item,text:o.label,hl:a.target||a.actor});
  });
  return [...groups.values()];

@@ -38,8 +38,8 @@ export function createSession({state,api,render,animate=async()=>{},land=()=>{},
   epoch++;state.auto=false;let recovered=false;
   if(state.g?.id===sent.id)try{state.g=await api('/games/'+sent.id);state.selected=null;recovered=true;}catch{}
   state.syncRequired=!recovered||Boolean(state.g?.busy);state.actionErrorCode=error.code;
-  const status=!recovered?'无法核对局面，请同步或重新连接。':state.g.busy?'还在处理中，请稍后同步。':state.g.revision>sent.revision?'局面已更新，请确认后继续。':'局面未变，可以重试。';
-  state.actionError=error.message+' '+status+(error.uncertain&&route==='ai-step'?' 未自动重发，避免重复计费。':'');
+  const status=!recovered?'没能取回最新局面，请同步或重新连接。':state.g.busy?'这一步还在处理，请稍后同步。':state.g.revision>sent.revision?'局面已经更新，请看清后再继续。':'局面没有变化，可以重试。';
+  state.actionError=error.message.replace(/[。.！!]?$/,'。')+status+(error.uncertain&&route==='ai-step'?'为免重复计费，没有自动重试。':'');
   error.message=state.actionError;return error;
  }
 
@@ -65,7 +65,7 @@ export function createSession({state,api,render,animate=async()=>{},land=()=>{},
    await confirming;
    const latest=await api('/games/'+id);if(state.g?.id!==id)return;
    state.g=latest;state.selected=null;state.syncRequired=Boolean(latest.busy);
-   state.actionError=latest.busy?'还在处理中，请稍后再同步。':'';state.actionErrorCode='';
+   state.actionError=latest.busy?'这一步还在处理，请稍后再同步。':'';state.actionErrorCode='';
    toast(latest.busy?'还在处理中':'已同步');
   }catch(error){state.syncRequired=true;state.actionError=error.message;state.actionErrorCode=error.code;toast(error.message,'error');}
   finally{state.working=false;state.requestKind='';render();}

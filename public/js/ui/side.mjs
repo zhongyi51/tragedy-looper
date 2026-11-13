@@ -2,7 +2,7 @@ import {esc,icon,btn} from '../html.mjs';
 import {char,name,seatName,seatMark,cardLabel,phaseLabel,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
 import {MARKS,clues,failure} from '../deduce.mjs';
 
-const REFUSAL={optional:'可拒绝能力',mandatory:'必定拒绝能力'};
+const REFUSAL={optional:'可以拒绝能力',mandatory:'一定拒绝能力'};
 
 export function incidentSchedule(v){
  const named=v.seat==='M'||Boolean(v.secret);
@@ -16,15 +16,15 @@ export function incidentSchedule(v){
 function intel(v,ctx){
  const known=Object.entries(v.knownRoles),flags=[];
  if(v.flags?.heroImmortal)flags.push('主人公不会死亡');
- if(v.flags?.patientFree)flags.push('住院患者可以自由移动');
+ if(v.flags?.patientFree)flags.push('住院患者可以进入任何地点');
  for(const id of v.flags?.suppressed||[])flags.push(name(id)+'不会引发事件');
- const curtain=v.secret?`<section class="block curtain"><h4>${icon('mask')}真相 · 仅你可见</h4>
+ const curtain=v.secret?`<section class="block curtain"><h4>${icon('mask')}真相 · 只有你知道</h4>
    <p class="plots"><b>${esc(name(v.secret.mainPlot))}</b>${v.secret.subPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p>
    <table class="roles">${Object.entries(v.secret.roles).filter(([,r])=>r!=='person').map(([c,r])=>`<tr><td>${esc(name(c))}</td><td>${esc(name(r))}</td><td>${v.knownRoles[c]?'已暴露':''}</td></tr>`).join('')}</table>
    ${v.secret.incidents.map(e=>`<p class="secret-incident">第 ${e.day} 日 · ${esc(name(e.type))} · 犯人 ${esc(name(e.culprit))}</p>`).join('')}</section>`:'';
- const budget=!ctx.readOnly&&v.aiConfigured?`<section class="block budget"><h4>API 花费</h4><div class="budget-row"><span>${v.spent===null?'终局后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}</section>`:'';
+ const budget=!ctx.readOnly&&v.aiConfigured?`<section class="block budget"><h4>AI 花费</h4><div class="budget-row"><span>${v.spent===null?'对局结束后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}</section>`:'';
  return `<section class="block"><h4>${icon('clock')}事件日程</h4>${incidentSchedule(v)}</section>
-  ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的友好能力揭开身份。</p>'}</section>`}
+  ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的能力可以查出角色。</p>'}</section>`}
   ${v.knownPlots?.length?`<section class="block"><h4>已公开的副规则</h4><p class="plots">${v.knownPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p></section>`:''}
   ${flags.length?`<section class="block"><h4>本轮回</h4>${flags.map(f=>`<p class="flag">${esc(f)}</p>`).join('')}</section>`:''}
   ${curtain}${budget}
@@ -72,12 +72,12 @@ function sheet(v,ctx){
   <section class="block"><h4>角色</h4>
    <div class="sheet-scroll"><table class="sheet"><thead><tr><th></th>${cols.map(r=>`<th class="${r.id!=='person'&&r.max&&r.yes>=r.max?'full':''}" title="${esc(r.name)}${r.id==='person'?'':` · ${quota(r)} 人，已认定 ${r.yes}`}"><span>${esc(r.name)}</span><small>${quota(r)}</small></th>`).join('')}</tr></thead>
    <tbody>${a.rows.map(row=>`<tr class="${row.confirmed?'confirmed':''}"><th><button type="button" class="sheet-who" data-character="${row.id}" title="${esc(row.note)}"><img src="/${char(row.id).portrait}" alt="" loading="lazy">${esc(name(row.id))}${row.note?'<i></i>':''}</button></th>${cols.map(r=>cell(row,r)).join('')}</tr>`).join('')}</tbody></table></div>
-   ${gone.length?`<p class="hint">规则里没有：${gone.map(r=>esc(r.name)).join('、')}</p>`:''}</section>
+   ${gone.length?`<p class="hint">这一局不会有：${gone.map(r=>esc(r.name)).join('、')}</p>`:''}</section>
   ${a.hints.length||a.warns.length?`<section class="block leads"><h4>推论${a.hints.length>1?btn('全部采纳','sheet-adopt-all','small ghost'):''}</h4>
    ${a.warns.map(w=>`<p class="lead-row warn">${icon('alert')}<span>${esc(w)}</span></p>`).join('')}
    ${a.hints.map(h=>`<p class="lead-row"><span>${esc(h.text)}</span>${btn('采纳','sheet-adopt','small',`data-c="${h.character}" data-r="${h.role}"`)}</p>`).join('')}</section>`:''}
-  ${a.culprits.length?`<section class="block"><h4>事件犯人</h4>${a.culprits.map(culprit).join('')}</section>`:''}
-  <section class="block"><h4>线索</h4>${history.length?history.map(g=>`<h5 class="clue-loop">第 ${g.loop} 轮回</h5>${g.items.map(e=>`<p class="clue ${esc(e.type)}"><b>D${e.day}${e.phase?`<i>${esc(phaseLabel(e.phase))}</i>`:''}</b><span>${esc(e.text)}${e.type==='failed'&&failure(v,e.loop)?.detail?`<small>${esc(failure(v,e.loop).detail)}</small>`:''}</span></p>`).join('')}`).join(''):'<p class="hint">死亡、事件、身份等会按发生的阶段记在这里。</p>'}</section>
+  ${a.culprits.length?`<section class="block"><h4>事件的犯人</h4>${a.culprits.map(culprit).join('')}</section>`:''}
+  <section class="block"><h4>线索</h4>${history.length?history.map(g=>`<h5 class="clue-loop">第 ${g.loop} 轮回</h5>${g.items.map(e=>`<p class="clue ${esc(e.type)}"><b>第${e.day}日${e.phase?`<i>${esc(phaseLabel(e.phase))}</i>`:''}</b><span>${esc(e.text)}${e.type==='failed'&&failure(v,e.loop)?.detail?`<small>${esc(failure(v,e.loop).detail)}</small>`:''}</span></p>`).join('')}`).join(''):'<p class="hint">死亡、事件、查出的角色都会记在这里，并标明发生在哪个阶段。</p>'}</section>
   <label class="notes"><span>笔记</span><textarea id="notes" data-note="${esc(v.id)}" placeholder="随手记下你的猜测"></textarea></label>
   ${btn('清空全部标记','sheet-reset','small ghost')}`;
 }
@@ -85,12 +85,12 @@ function sheet(v,ctx){
 function reference(v){
  const set=v.script.ruleset,inPlay=new Set([...(v.knownPlots||[]),...(v.secret?[v.secret.mainPlot,...v.secret.subPlots]:[])]);
  const plot=p=>`<div class="ref${inPlay.has(p.id)?' in-play':''}"><b>${esc(p.name_zh_working)}${inPlay.has(p.id)?'<i>本剧本</i>':''}</b>${plotRoles(p)?`<span class="ref-roles">${esc(plotRoles(p))}</span>`:''}${p.effect_zh?`<p>${esc(p.effect_zh)}</p>`:''}</div>`;
- const role=r=>`<div class="ref"><b>${esc(r.name_zh_working)}${r.maxCount?`<i>至多 ${r.maxCount} 人</i>`:''}${REFUSAL[r.goodwillRefusal]?`<i>${REFUSAL[r.goodwillRefusal]}</i>`:''}</b>${r.effects_zh.length?r.effects_zh.map(t=>`<p>${esc(t)}</p>`).join(''):'<p class="none">无能力</p>'}</div>`;
+ const role=r=>`<div class="ref"><b>${esc(r.name_zh_working)}${r.maxCount?`<i>至多 ${r.maxCount} 人</i>`:''}${REFUSAL[r.goodwillRefusal]?`<i>${REFUSAL[r.goodwillRefusal]}</i>`:''}</b>${r.effects_zh.length?r.effects_zh.map(t=>`<p>${esc(t)}</p>`).join(''):'<p class="none">没有能力</p>'}</div>`;
  const incident=e=>`<div class="ref"><b>${esc(e.name_zh_working)}</b><p>${esc(e.effect_zh)}</p></div>`;
  const fold=(title,body,open=false)=>`<details class="fold"${open?' open':''}><summary>${title}</summary>${body}</details>`;
  return `<p class="hint">本剧本：1 条主规则 + ${set==='FS'?1:2} 条副规则。</p>
-  ${fold('主规则 Y',plotsFor(set,'Y').map(plot).join(''),true)}
-  ${fold('副规则 X',plotsFor(set,'X').map(plot).join(''))}
+  ${fold('主规则',plotsFor(set,'Y').map(plot).join(''),true)}
+  ${fold('副规则',plotsFor(set,'X').map(plot).join(''))}
   ${fold('角色',rolesFor(set).map(role).join(''))}
   ${fold('事件',incidentsFor(set).map(incident).join(''))}`;
 }

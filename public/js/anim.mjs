@@ -25,7 +25,7 @@ export const dayRecap=v=>v.log.filter(e=>e.loop===v.loop&&e.day===v.day&&NOTABLE
 
 function loopBanner(v){
  const left=v.script.loops-v.loop;
- return {kind:'loop',title:`第 ${v.loop} 轮回失败`,...failure(v),recap:dayRecap(v).slice(-4),lines:[...(v.secret?[]:['原因不会公布，要靠线索推理。']),left>0?`还能重来 ${left} 次`:'进入最后的战斗']};
+ return {kind:'loop',title:`第 ${v.loop} 轮回失败`,...failure(v),recap:dayRecap(v).slice(-4),lines:[...(v.secret?[]:['失败的原因不会公布，要靠线索推理。']),left>0?`还可以重来 ${left} 次`:'进入最后的战斗']};
 }
 
 export function createAnimator({state,render,fx,sound=()=>{},reduced=()=>false,wait=ms=>new Promise(r=>setTimeout(r,ms))}){
