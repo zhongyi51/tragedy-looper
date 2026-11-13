@@ -10,11 +10,12 @@ export function cardFace(card){
 }
 
 // faceUp: publicly revealed. own: only this viewer knows the face. resolved: already applied today.
-// spot: the card whose effect is being played right now.
-export function miniCard(p,{faceUp=false,own=false,resolved=false,spot=false}={}){
- const meta=p.card?cardMeta(p.card):null,label=p.card?cardLabel(p.card):'',who=seatName(p.seat);
- const text=faceUp?label+(resolved?'（已结算）':''):own?label+'（对手看不到）':'未翻开';
- const cls=['mini',p.seat==='M'?'mm':'hero',faceUp&&'face-up',own&&'own',resolved&&'resolved',spot&&'spot',meta&&'fam-'+meta.family,meta?.forbid&&'forbid'].filter(Boolean).join(' ');
+// spot: the card whose effect is being played right now. struck: the card that effect is cancelling.
+// A card marked `void` did nothing today (forbidden, cancelled or wasted) and stays crossed out.
+export function miniCard(p,{faceUp=false,own=false,resolved=false,spot=false,struck=false}={}){
+ const meta=p.card?cardMeta(p.card):null,label=p.card?cardLabel(p.card):'',who=seatName(p.seat),dud=faceUp&&p.void;
+ const text=faceUp?label+(dud?'（无效）':resolved?'（已结算）':''):own?label+'（对手看不到）':'未翻开';
+ const cls=['mini',p.seat==='M'?'mm':'hero',faceUp&&'face-up',own&&'own',resolved&&'resolved',spot&&'spot',struck&&'struck',dud&&'void',meta&&'fam-'+meta.family,meta?.forbid&&'forbid'].filter(Boolean).join(' ');
  return `<span class="${cls}" data-placement="${esc(placementKey(p))}" role="img" aria-label="${esc(who+'：'+text)}" title="${esc(who+' · '+text)}"><span class="mini-inner"><span class="mini-back"><b>${esc(seatMark(p.seat))}</b></span><span class="mini-front">${p.card?cardFace(p.card):''}<b class="mini-seat">${esc(seatMark(p.seat))}</b></span></span></span>`;
 }
 
@@ -24,7 +25,7 @@ export function cardsOn(v,target,spot){
   const open=!PLACING.includes(v.phaseId);
   return v.placements.filter(p=>p.target===target).map(p=>{
    const shown=open?v.revealedCards?.find(q=>q.seat===p.seat&&q.target===p.target):null;
-   return miniCard({...p,card:shown?.card||p.card},{faceUp:Boolean(shown?.card),own:!shown?.card&&Boolean(p.card),spot:spot?.who===target&&spot.by===p.seat});
+   return miniCard({...p,card:shown?.card||p.card,void:shown?.void},{faceUp:Boolean(shown?.card),own:!shown?.card&&Boolean(p.card),spot:spot?.who===target&&spot.by===p.seat,struck:spot?.who===target&&Boolean(spot.hit?.includes(p.seat))});
   }).join('');
  }
  return (v.revealedCards||[]).filter(p=>p.target===target&&p.card).map(p=>miniCard(p,{faceUp:true,resolved:true})).join('');
@@ -71,11 +72,11 @@ function zone(v,loc,ctx){
  </section>`;
 }
 
-// ctx: {selected, targets:Set<string>} while the viewer chooses where to put a card; {spot:{who,by}} while a
+// ctx: {selected, targets:Set<string>} while the viewer chooses where to put a card; {spot:{who,by,hit}} while a
 // result plays; {sheet} to pin the viewer's own guesses on the people they are about.
 export function boardHtml(v,ctx={}){
- const absent=Object.values(v.board).filter(c=>!c.present);
- return `<div class="board${ctx.selected?' choosing':''}${ctx.spot?' spotting':''}">${cat().locations.map(loc=>zone(v,loc,ctx)).join('')}
+ const absent=Object.values(v.board).filter(c=>!c.present),mood=v.winner==='heroes'?' won':v.winner?' lost':v.phaseId==='between'?' failed':'';
+ return `<div class="board${ctx.selected?' choosing':''}${ctx.spot?' spotting':''}${mood}">${cat().locations.map(loc=>zone(v,loc,ctx)).join('')}
   ${absent.length?`<div class="board-absent" title="还没登场的人物">未登场：${absent.map(c=>esc(name(c.id))).join('、')}</div>`:''}
  </div>`;
 }

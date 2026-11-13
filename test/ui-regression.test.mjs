@@ -11,10 +11,11 @@ import {hudHtml} from '../public/js/ui/hud.mjs';
 import {turnGuidance,turnControl,choiceGroups} from '../public/js/guidance.mjs';
 import {publicDraft,printableHtml} from '../public/js/exporters.mjs';
 import {createAnimator} from '../public/js/anim.mjs';
-import {analyze,emptyMarks,markRole,markPlot,markCulprit,clues} from '../public/js/deduce.mjs';
+import {analyze,emptyMarks,markRole,markPlot,markCulprit,clues,failure} from '../public/js/deduce.mjs';
 import {tableRegions} from '../public/js/ui/game.mjs';
 import {playStep,stepReport} from '../src/play.mjs';
 import {createSession,outcomeBanner} from '../public/js/session.mjs';
+import {bannerHtml} from '../public/js/ui/modals.mjs';
 import {parseDraft,blankDraft,roleNeeds,editDraft} from '../public/js/script-draft.mjs';
 
 setCatalog(catalog);
@@ -85,7 +86,7 @@ test('legacy public replay names are stripped at import/export without changing 
 
 function animator(stages,{reduced=()=>false,cards,changes,wait=async()=>{}}={}){
  const state={page:'game',transitionView:null,playback:null,banner:null,g:null,requestKind:'',speed:1};
- const fx={supported:()=>true,positions:()=>({}),freeze(){},thaw(){},finish(){},announce:async lines=>{stages.push('announce:'+lines.join('|'));},
+ const fx={supported:()=>true,positions:()=>({}),freeze(){},thaw(){},finish(){},announce:async lines=>{stages.push('announce:'+lines.join('|'));},stamp:async(who,text,kind)=>{stages.push(`stamp:${who}:${text}:${kind}`);},shock:async kind=>{stages.push('shock:'+kind);},
   cards:cards||(async(_prev,next)=>{stages.push('cards:'+next.revision);}),changes:changes||(async(_prev,next)=>{stages.push('changes:'+next.revision);})};
  return {state,fx,...createAnimator({state,fx,reduced,wait,render:()=>stages.push(state.playback?.gate?'gate:'+state.playback.gate.day:state.banner?'banner:'+state.banner.title:state.transitionView?'render:'+(state.transitionView.board===state.old?'old-board':'new-board'):'render:live')})};
 }
@@ -111,7 +112,7 @@ test('public transition frames play one result after another and reduced motion 
 function dayEnding(mode='heroes'){
  const base={id:'game',mode,loop:1,day:1,script:{loops:3,days:3},board:{},revealedCards:[],placements:[]};
  const entry=(n,type,text,extra={})=>({n,loop:1,day:n>3?2:1,type,text,...extra});
- const log=[entry(1,'counter','医生 · 不安 +1',{who:'doctor',by:'M'}),entry(2,'death','医生死亡。',{who:'doctor'}),entry(3,'dayend','第 1 日结束。'),entry(4,'day','第 2 日。')];
+ const log=[entry(1,'counter','医生 · 不安 +1',{who:'doctor',by:'M'}),entry(2,'death','医生死亡。',{who:'doctor',phase:'end'}),entry(3,'dayend','第 1 日结束。'),entry(4,'day','第 2 日。')];
  const frames=log.map((e,i)=>({...base,revision:6+i,day:e.day,log:log.slice(0,i+1)}));
  return {prev:{...base,revision:5,log:[]},next:{...frames.at(-1),actions:[]},frames};
 }
@@ -120,9 +121,9 @@ test('each result is shown on its own and the day ends only when the player says
  let done=false;const playing=a.animateTransition(prev,next,{},frames).then(()=>{done=true;});
  await settle();
  assert.deepEqual(stages.filter(x=>/^(changes|announce|gate)/.test(x)),['changes:6','changes:7','announce:医生死亡','changes:8','gate:1']);
- assert.equal(done,false);assert.deepEqual(a.state.playback.gate,{day:1,last:false,lines:['医生死亡。'],auto:false});
+ assert.equal(done,false);const {recap,...gate}=a.state.playback.gate;assert.deepEqual(gate,{day:1,last:false,auto:false});assert.deepEqual(recap.map(e=>[e.phase,e.text]),[['end','医生死亡。']]);
  assert.equal(a.state.transitionView.day,1);assert.deepEqual(a.state.playback.trail.map(e=>e.type),['counter','death','dayend']);
- assert.match(dockHtml(a.state.transitionView,a.state),/第 1 日结束[\s\S]*医生死亡。[\s\S]*data-do="gate-continue"[^>]*>进入第 2 日/);
+ assert.match(dockHtml(a.state.transitionView,a.state),/第 1 日结束[\s\S]*<li class="death"><i>日结束<\/i><span>医生死亡。<\/span>[\s\S]*data-do="gate-continue"[^>]*>进入第 2 日/);
  a.release();await playing;
  assert.deepEqual(stages.filter(x=>/^(changes|announce)/.test(x)).slice(-2),['changes:9','announce:第 2 日']);assert.equal(a.state.playback,null);
 });
@@ -146,11 +147,14 @@ test('spectators are moved past the day gate, and leaving the table cancels play
 });
 test('a failed loop holds on its banner before the next loop is shown',async()=>{
  const base={id:'game',mode:'mastermind',loop:1,day:3,script:{loops:3,days:3},board:{},revealedCards:[],placements:[]};
- const log=[{n:1,loop:1,day:3,type:'death',text:'巫女死亡。',who:'shrine_maiden'},{n:2,loop:1,day:3,type:'failed',text:'第 1 轮回失败。'},{n:3,loop:2,day:1,type:'loop',text:'第 2 轮回开始。'}];
+ const log=[{n:1,loop:1,day:3,type:'death',phase:'incident',text:'巫女死亡。',who:'shrine_maiden'},{n:2,loop:1,day:3,type:'failed',phase:'incident',when:'death',dead:['shrine_maiden'],text:'第 1 轮回失败：巫女死亡，轮回立即结束。'},{n:3,loop:2,day:1,type:'loop',text:'第 2 轮回开始。'}];
  const frames=log.map((e,i)=>({...base,revision:6+i,loop:e.loop,day:e.day,log:log.slice(0,i+1)})),next={...frames.at(-1),actions:[]};
  const stages=[],a=animator(stages);a.state.g=next;
  const playing=a.animateTransition({...base,revision:5,log:[]},next,{},frames);await settle();
- assert.equal(stages.at(-1),'banner:第 1 轮回失败');assert.deepEqual(a.state.banner.lines,['巫女死亡。','还能重来 2 次']);assert.ok(!stages.includes('changes:8'));
+ assert.equal(stages.at(-1),'banner:第 1 轮回失败');assert.ok(stages.includes('shock:fail'));assert.ok(!stages.includes('changes:8'));
+ const banner=a.state.banner;assert.deepEqual([banner.stamp,banner.cause,banner.detail],['第 3 日 · 事件','巫女死亡，轮回立即结束','']);
+ assert.deepEqual(banner.recap.map(e=>e.text),['巫女死亡。']);assert.deepEqual(banner.lines,['原因不会公布，要靠线索推理。','还能重来 2 次']);
+ assert.match(bannerHtml(banner),/class="banner loop"[\s\S]*第 3 日 · 事件[\s\S]*巫女死亡，轮回立即结束[\s\S]*<li class="death"><i>事件<\/i><span>巫女死亡。/);
  a.state.banner=null;a.release();await playing;assert.ok(stages.includes('changes:8'));
  // The last loop of a lost game goes straight to the closing banner instead.
  stages.length=0;const lost={...next,loop:3,winner:'mastermind'},final=frames.slice(0,2).map(f=>({...f,loop:3}));
@@ -200,7 +204,7 @@ test('AI remarks are kept with the moment they were made and the outcome is anno
  const sounds=[],c=session({inject:{sound:cue=>sounds.push(cue)},api:(url,data,state)=>({...state.g,revision:7,phaseId:'over',winner:'mastermind',log:[{n:1,type:'death',text:'女学生死亡。'}],decision:{controller:'AI',seat:'M',reason:'先压不安。'}})});
  await c.step(undefined,'ai-step');
  assert.deepEqual(c.state.aiFeed,[{gameId:'game',seat:'M',text:'先压不安。',loop:1,day:1,at:0}]);
- assert.equal(c.state.banner.kind,'defeat');assert.deepEqual(c.state.banner.lines,['剧作家获胜 · 你输了','女学生死亡。']);assert.equal(c.state.pendingOutcome,null);assert.deepEqual(sounds,['bong_001']);
+ assert.equal(c.state.banner.kind,'defeat');assert.deepEqual(c.state.banner.lines,['剧作家获胜 · 你输了']);assert.deepEqual(c.state.banner.recap.map(e=>e.text),['女学生死亡。']);assert.equal(c.state.banner.cause,undefined);assert.equal(c.state.pendingOutcome,null);assert.deepEqual(sounds,['bong_001']);
  const base={mode:'heroes',winner:null,loop:3,log:[],script:{loops:3}};
  assert.match(outcomeBanner(base,{...base,winner:'heroes'}).lines[0],/你赢了/);assert.match(outcomeBanner(base,{...base,winner:'mastermind'}).lines[0],/你输了/);
  assert.doesNotMatch(outcomeBanner({...base,mode:'observe'},{...base,mode:'observe',winner:'heroes'}).lines[0],/你/);
@@ -213,6 +217,49 @@ test('final guess choices mark confirmed roles and the player\'s own deductions'
  assert.match(of('office_worker').detail,/已确认/);assert.equal(roles(of('office_worker'),'known'),'killer');assert.equal(roles(of('office_worker'),'ruled'),'');
  assert.match(of('doctor').detail,/你的推理：/);assert.equal(roles(of('doctor'),'picked'),'brain');assert.ok(roles(of('doctor'),'ruled').split(',').includes('cultist'));
  assert.ok(choiceGroups(v).filter(gr=>gr.title!==name('office_worker')).every(gr=>gr.items.every(it=>!it.cls)));
+});
+
+test('a forbidden, cancelled or ignored effect is stamped on its target and its card stays crossed out',async()=>{
+ const base={id:'game',mode:'heroes',loop:1,day:1,script:{loops:3,days:3},board:{},revealedCards:[],placements:[]};
+ const log=[{n:1,loop:1,day:1,phase:'cultist',type:'blocked',text:'医生的暗跃被禁止。',who:'doctor',what:'intrigue',by:'A',hit:['M']},
+  {n:2,loop:1,day:1,phase:'cultist',type:'voided',text:'医院的暗跃禁止无效：同一天出了 2 张。',who:'hospital',what:'intrigue',hit:['B']},
+  {n:3,loop:1,day:1,phase:'cultist',type:'ignored',text:'巫女的暗跃禁止被无视。',who:'shrine_maiden',what:'intrigue',hit:['C']},
+  {n:4,loop:1,day:1,phase:'hero_ability',type:'refused',text:'偶像拒绝了请求。',who:'idol'}];
+ const frames=log.map((e,i)=>({...base,revision:6+i,log:log.slice(0,i+1)})),next={...frames.at(-1),actions:[]},stages=[];let hold;
+ const a=animator(stages,{wait:()=>new Promise(resolve=>{hold=resolve;})});a.state.g=next;
+ const playing=a.animateTransition({...base,revision:5,log:[]},next,{},frames);await settle();
+ assert.deepEqual(a.state.playback.spot,{who:'doctor',by:'A',hit:['M']});
+ const v={...table('heroes','A'),phaseId:'cultist',placements:[{seat:'M',target:'doctor'},{seat:'A',target:'doctor'}],revealedCards:[{seat:'M',target:'doctor',card:'intrigue_1#0',void:true},{seat:'A',target:'doctor',card:'forbid_intrigue#0'}]};
+ const cards=cardsOn(v,'doctor',a.state.playback.spot);
+ assert.match(cards,/class="mini mm face-up struck void[^"]*"[^>]*aria-label="剧作家：暗跃\+1（无效）"/);assert.match(cards,/class="mini hero face-up spot /);assert.doesNotMatch(cards,/hero[^"]*void/);
+ v.placements=[];assert.match(cardsOn(v,'doctor'),/class="mini mm face-up resolved void/);
+ hold();await settle();a.skip();await playing;
+ // Played to the end, every one of them lands.
+ stages.length=0;const b=animator(stages);b.state.g=next;await b.animateTransition({...base,revision:5,log:[]},next,{},frames);
+ assert.deepEqual(stages.filter(x=>/^(stamp|announce)/.test(x)),['stamp:doctor:暗跃禁止:ban','stamp:hospital:禁止失效:void','announce:巫女的暗跃禁止被无视','stamp:shrine_maiden:禁止被无视:void','stamp:idol:拒绝:refuse']);
+});
+test('the record and the clues say which phase each thing happened in, and a lost loop explains its timing',()=>{
+ const s=createGame(starter);
+ const at=(n,day,phase,type,text,extra={})=>({n,loop:1,day,phase,type,text,...extra});
+ s.log=[at(1,1,'setup','loop','第 1 轮回开始。'),at(2,1,'mm_cards','day','第 1 日。'),at(3,1,'mm_cards','placed','剧作家出牌：医生',{who:'doctor',by:'M'}),at(4,1,'cultist','counter','医生 · 暗跃 +1',{who:'doctor',by:'M'}),
+  at(5,1,'mm_ability','counter','医生 · 暗跃 +1',{who:'doctor'}),at(6,1,'end','death','偶像死亡。',{who:'idol'}),at(7,1,'end','dayend','第 1 日结束。'),
+  at(8,3,'incident','incident','「自杀」发生。'),at(9,3,'incident','death','女学生死亡。',{who:'girl_student'}),at(10,3,'incident','failed','第 1 轮回失败：女学生死亡，轮回立即结束。',{when:'death',dead:['girl_student']})];
+ s.phase='between';s.day=3;
+ const v={...view(s,'A'),id:'game',mode:'heroes'},record=sideBodyHtml(v,{tab:'log',aiFeed:[]});
+ const heads=[...record.matchAll(/<h5>([^<]+)<\/h5>|<h6 class="log-phase">([^<]+)<\/h6>/g)].map(m=>m[1]||'· '+m[2]);
+ assert.deepEqual(heads,['第 1 轮回 · 第 3 日','· 事件','第 1 轮回 · 第 1 日','· 日结束','· 剧作家能力','· 翻牌结算','· 剧作家出牌']);
+ assert.deepEqual(clues(v)[0].items.map(e=>[e.day,e.phase,e.type]),[[1,'end','death'],[3,'incident','incident'],[3,'incident','death'],[3,'incident','failed']]);
+ const a=analyze(v,emptyMarks()),sheet=sideBodyHtml(v,{tab:'sheet',analysis:a,tool:'no',aiFeed:[]});
+ assert.match(sheet,/<p class="clue death"><b>D1<i>日结束<\/i><\/b><span>偶像死亡。/);assert.match(sheet,/<p class="clue failed"><b>D3<i>事件<\/i><\/b>/);
+ // Only a key person's death ends a loop on the spot, so the sheet offers that as a lead.
+ assert.deepEqual(a.hints.filter(h=>h.role==='key_person'),[{character:'girl_student',role:'key_person',text:'女学生一死轮回就结束，多半是关键人物'}]);
+ assert.deepEqual(analyze(v,markRole(emptyMarks(),'girl_student','key_person','no')).hints.filter(h=>h.role==='key_person'),[]);
+ assert.deepEqual(failure(v),{stamp:'第 3 日 · 事件',cause:'女学生死亡，轮回立即结束',detail:''});
+ assert.match(dockHtml(v,{aiFeed:[]},a),/class="why"><b><i>第 3 日 · 事件<\/i>女学生死亡，轮回立即结束<\/b>/);assert.match(boardHtml(v),/class="board failed"/);
+ // A loop lost at the end of its last day keeps the public counters that were on the table.
+ s.log.push(at(11,3,'end','failed','第 1 轮回失败：最后一天结束时判定。',{when:'end',intrigue:{school:2,doctor:1}}));
+ assert.deepEqual(failure(view(s,'A')),{stamp:'第 3 日 · 日结束',cause:'最后一天结束时判定失败',detail:'当时的暗跃：学校 2、医生 1'});
+ assert.equal(failure({log:[{type:'failed',loop:1,text:'第 1 轮回失败。'}],loop:1}),null);
 });
 
 /* ---------- deduction sheet ---------- */

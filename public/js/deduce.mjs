@@ -1,9 +1,11 @@
 // The deduction sheet's logic: what the player's marks and the public record still leave possible.
-import {char,name,rolesFor,plotsFor,plotRoles} from './lookup.mjs';
+import {char,name,phaseLabel,rolesFor,plotsFor,plotRoles} from './lookup.mjs';
 
 const SUB_PLOTS={FS:1,BTX:2};
 export const MARKS={no:'✗',yes:'✓',maybe:'?'};
-const CLUES=['death','incident','reveal','refused','failed','victory'];
+// Results worth reading back: at the end of a day, and loop by loop on the sheet.
+export const NOTABLE=['death','incident','reveal','refused','ignored'];
+const CLUES=[...NOTABLE,'failed','victory'];
 
 export const emptyMarks=()=>({roles:{},plots:{},culprits:{}});
 const copy=marks=>JSON.parse(JSON.stringify({...emptyMarks(),...marks}));
@@ -45,6 +47,16 @@ export function clues(v){
  const loops=new Map();
  for(const e of v.log)if(CLUES.includes(e.type)){if(!loops.has(e.loop))loops.set(e.loop,[]);loops.get(e.loop).push(e);}
  return [...loops].map(([loop,items])=>({loop,items})).reverse();
+}
+
+// What the table saw of a failed loop: when it ended and what had just happened. The rule behind it stays hidden.
+export function failure(v,loop=v.loop){
+ const e=v.log.findLast(e=>e.type==='failed'&&e.loop===loop);
+ if(!e?.when)return null;
+ const tally=Object.entries(e.intrigue||{}).map(([id,n])=>`${name(id)} ${n}`).join('、');
+ return {stamp:`第 ${e.day} 日 · ${phaseLabel(e.phase)}`,
+  cause:e.when==='death'?`${e.dead.map(name).join('、')}死亡，轮回立即结束`:e.when==='heroes'?'主人公死亡':'最后一天结束时判定失败',
+  detail:e.when==='end'?(tally?'当时的暗跃：'+tally:'当时场上没有暗跃'):''};
 }
 
 export function analyze(v,marks){
@@ -114,6 +126,12 @@ export function analyze(v,marks){
   const left=roles.filter(r=>cells[c][r.id].mark!=='no');
   if(left.length===1)lead(c,left[0].id,`${name(c)}只能是${name(left[0].id)}`);
   else if(!left.length)warns.push(`${name(c)}没有可选的角色。`);
+ }
+ // Public events that point at a role: a loop that ends the moment one person dies, a ban that fails on someone.
+ const points=(c,r,text)=>{if(def.has(r)&&range[r][1]&&!known[c]&&!picked(c)&&['','maybe'].includes(cells[c][r].mark))lead(c,r,text);};
+ for(const e of v.log){
+  if(e.type==='failed'&&e.when==='death'&&e.dead.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死轮回就结束，多半是${name('key_person')}`);
+  if(e.type==='ignored'&&e.what==='goodwill')points(e.who,'time_traveler',`${name(e.who)}无视了友好禁止，多半是${name('time_traveler')}`);
  }
 
  const plot=p=>{

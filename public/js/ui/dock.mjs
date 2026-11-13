@@ -1,11 +1,15 @@
 import {esc,icon,btn} from '../html.mjs';
-import {char,name,seatName,seatMark,cardLabel,cardMeta,PLACING,SEATS} from '../lookup.mjs';
+import {char,name,seatName,seatMark,cardLabel,cardMeta,phaseLabel,PLACING,SEATS} from '../lookup.mjs';
 import {humanTurn,turnGuidance,turnControl,choiceGroups} from '../guidance.mjs';
 import {cardFace} from './board.mjs';
+import {failure} from '../deduce.mjs';
 
 export const reconnectControl=ctx=>ctx.actionErrorCode==='AUTH'
  ?'<a class="btn" data-reauth href="/signin-with-chatgpt" target="_top">重新登录</a>'
  :btn('重新连接','reconnect');
+
+// Notable results with the phase each happened in: the day-end gate and the loop banner both list them.
+export const recapHtml=entries=>`<ul class="recap">${entries.map(e=>`<li class="${esc(e.type)}">${e.phase?`<i>${esc(phaseLabel(e.phase))}</i>`:''}<span>${esc(e.text)}</span></li>`).join('')}</ul>`;
 
 function prompt(v,ctx){
  const guide=turnGuidance(v,ctx),control=turnControl(v,ctx),human=humanTurn(v),selected=ctx.selected&&cardMeta(ctx.selected);
@@ -54,7 +58,8 @@ function choices(v,blocked,sheet){
  const pass=v.actions.findIndex(o=>o.command.type==='pass'),groups=choiceGroups(v,sheet),off=blocked?' disabled':'';
  if(v.phaseId==='between'){
   const next=v.actions.findIndex(o=>o.command.type==='next_loop'),final=v.actions.findIndex(o=>o.command.type==='final_battle');
-  return `<div class="between"><p>人物和计数会复原，已知的角色和你的推理会保留。</p>
+  const why=failure(v);
+  return `<div class="between">${why?`<div class="why"><b><i>${esc(why.stamp)}</i>${esc(why.cause)}</b>${why.detail?`<small>${esc(why.detail)}</small>`:''}</div>`:''}<p>人物和计数会复原，已知的角色和你的推理会保留。</p>
    <div class="row">${next>=0?btn(icon('loop')+`开始第 ${v.loop+1} 轮回`,'choose','primary big',`data-index="${next}"${off}`):''}${final>=0?btn('直接进入最后的战斗','choose','',`data-index="${final}"${off}`):''}</div></div>`;
  }
  const group=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head">${gr.actor?`<img src="/${char(gr.actor).portrait}" alt="">`:''}<div><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div></div>`:''}
@@ -65,7 +70,7 @@ function choices(v,blocked,sheet){
 
 function outcome(v){
  const win=v.winner==='heroes',yours=v.mode==='observe'?'':(v.mode!=='mastermind')===win?' · 你赢了':' · 你输了';
- return `<div class="outcome ${win?'heroes':'mastermind'}"><div><b>${win?'明天，终于到来。':'惨剧，再度重演。'}</b><p>${win?'主人公':'剧作家'}获胜${yours} · 共 ${v.loop} 个轮回</p></div>
+ return `<div class="outcome ${win?'heroes':'mastermind'}"><span class="outcome-mark" aria-hidden="true">${icon(win?'sun':'skull')}</span><div><b>${win?'明天，终于到来。':'惨剧，再度重演。'}</b><p>${win?'主人公':'剧作家'}获胜${yours} · 共 ${v.loop} 个轮回</p></div>
   <div class="row">${btn('查看真相','truth','primary')}${btn('回放','open-replay')}${btn('导出回放','full-replay','ghost')}${btn(icon('plus')+'再来一局','new')}</div></div>`;
 }
 
@@ -79,7 +84,7 @@ function playback(v,ctx){
  const {entry,gate,trail,at,total}=ctx.playback;
  const top=gate
   ?`<div class="prompt gate"><span class="emblem you" aria-hidden="true">${icon('clock')}</span>
-    <div class="prompt-copy" aria-live="polite"><small class="kicker">第 ${v.loop} 轮回</small><b>第 ${gate.day} 日结束</b><p>${esc(gate.lines.join(' ')||'今天平安无事。')}</p></div>
+    <div class="prompt-copy" aria-live="polite"><small class="kicker">第 ${v.loop} 轮回</small><b>第 ${gate.day} 日结束</b>${gate.recap.length?recapHtml(gate.recap):'<p>今天平安无事。</p>'}</div>
     <div class="prompt-actions">${btn(esc(gate.last?'查看结果':`进入第 ${gate.day+1} 日`)+icon('next'),'gate-continue','primary big',gate.auto?'title="稍后自动继续"':'')}</div></div>`
   :`<div class="prompt playing"><span class="emblem" aria-hidden="true">${icon('play')}</span>
     <div class="prompt-copy" aria-live="polite"><small class="kicker">${esc(v.phase)}${total>1?` · ${at}/${total}`:''}</small><b class="beat ${esc(entry?.type||'')}">${esc(entry?.text||'结算中')}</b></div>

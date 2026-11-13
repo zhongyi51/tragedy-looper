@@ -1,6 +1,7 @@
 import {esc,icon,btn,iconBtn} from '../html.mjs';
 import {char,name,COUNTERS} from '../lookup.mjs';
 import {cardsOn} from './board.mjs';
+import {recapHtml} from './dock.mjs';
 
 const frame=(label,body,cls='')=>`<div class="overlay"><section class="modal ${cls}" role="dialog" aria-modal="true" aria-label="${esc(label)}">${body}</section></div>`;
 const head=title=>`<header class="modal-head"><h2>${title}</h2>${iconBtn('close','close','关闭')}</header>`;
@@ -59,6 +60,15 @@ export function truthModal(script,g){
   <footer class="modal-foot">${btn('再来一局','new')}${btn(icon('film')+'回放','open-replay','primary')}</footer>`,'wide truth');
 }
 
+const MOTES=Array.from({length:22},(_,i)=>`<i style="--x:${(i*47+9)%100}%;--delay:${(i*37%60)/10}s;--time:${5+(i*29%40)/10}s;--size:${3+i*13%5}px"></i>`).join('');
+const BANNER_MARK={loop:'loop',victory:'sun',defeat:'skull'};
+// banner: {kind, title, lines} plus, for a failed loop, {stamp, cause, detail, recap}.
 export function bannerHtml(banner){
- return banner?`<div class="banner ${banner.kind}" data-do="dismiss-banner" role="status"><div class="banner-inner"><h2>${esc(banner.title)}</h2>${banner.lines.map(l=>`<p>${esc(l)}</p>`).join('')}<small>点击继续</small></div></div>`:'';
+ if(!banner)return '';
+ return `<div class="banner ${banner.kind}" data-do="dismiss-banner" role="status">
+  <div class="banner-fx" aria-hidden="true"><span class="banner-ring"></span><span class="banner-rays"></span><span class="banner-motes">${MOTES}</span></div>
+  <div class="banner-inner"><span class="banner-mark" aria-hidden="true">${icon(BANNER_MARK[banner.kind]||'clock')}</span><h2 data-text="${esc(banner.title)}">${esc(banner.title)}</h2>
+   ${banner.cause?`<div class="banner-why">${banner.stamp?`<i>${esc(banner.stamp)}</i>`:''}<b>${esc(banner.cause)}</b>${banner.detail?`<small>${esc(banner.detail)}</small>`:''}</div>`:''}
+   ${banner.recap?.length?recapHtml(banner.recap):''}
+   ${banner.lines.map(l=>`<p>${esc(l)}</p>`).join('')}<small class="banner-go">点击继续</small></div></div>`;
 }
