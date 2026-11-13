@@ -82,7 +82,7 @@ test('six movement/bluff cards on locations reveal, resolve and return play to a
  const cards=[['move_h','hospital'],['move_v','shrine'],['move_d','city'],['move_h','hospital'],['move_v','shrine'],['forbid_move','city']];
  for(const [card,target]of cards){
   const candidate=legalActions(s).find(o=>o.command.card===card+'#0'&&o.command.target===target);
-  assert.match(candidate.label,/佯动：地点上无效果/);
+  assert.match(candidate.label,/虚招，对地点无效/);
   s=act(s,candidate.command);
  }
  assert.equal(s.phase,'cultist');

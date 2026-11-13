@@ -55,18 +55,18 @@ export const rates={input:0.30,cached:0.006,output:1.20,currency:'USD',kind:'con
 export function estimateUsage(u){const hit=u.prompt_cache_hit_tokens||0,miss=u.prompt_cache_miss_tokens??Math.max(0,(u.prompt_tokens||0)-hit);return (miss*rates.input+hit*rates.cached+(u.completion_tokens||0)*rates.output)/1e6;}
 export function reserveFor(messages,maxTokens=1800){return (Buffer.byteLength(JSON.stringify(messages))*rates.input+maxTokens*rates.output)/1e6;}
 export async function requestJson(messages,{userId='local',maxTokens=1800,onReserve=()=>{},onUsage=()=>{},apiKey=key}={}){
- if(!apiKey)throw new AiError('NO_KEY','尚未配置 DeepSeek API 密钥；可用练习机器人继续。');
- if(new URL(base).origin!=='https://api.deepseek.com')throw new AiError('BASE_URL','此构建仅允许已确认的官方 DeepSeek 地址');
+ if(!apiKey)throw new AiError('NO_KEY','还没有配置 DeepSeek 密钥，可以改用离线机器人。');
+ if(new URL(base).origin!=='https://api.deepseek.com')throw new AiError('BASE_URL','只能连接 DeepSeek 的官方地址');
  const reserved=reserveFor(messages,maxTokens);await onReserve(reserved);
  const started=Date.now();let data;
  try{
   const res=await fetch(base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+apiKey},body:JSON.stringify({model,messages,response_format:{type:'json_object'},thinking:{type:'disabled'},max_tokens:maxTokens,stream:false,user_id:userId}),signal:AbortSignal.timeout(90000)});
-  if(!res.ok){await onUsage({status:'rejected',httpStatus:res.status,reserved,estimatedCost:0,latencyMs:Date.now()-started});throw new AiError('PROVIDER_'+res.status,`DeepSeek 返回 HTTP ${res.status}，局面已保留。`);}
+  if(!res.ok){await onUsage({status:'rejected',httpStatus:res.status,reserved,estimatedCost:0,latencyMs:Date.now()-started});throw new AiError('PROVIDER_'+res.status,`DeepSeek 返回了错误（HTTP ${res.status}），局面没有变化。`);}
   data=await res.json();
- }catch(e){if(e instanceof AiError)throw e;await onUsage({status:'unknown',reserved,estimatedCost:reserved,latencyMs:Date.now()-started});throw new AiError('NETWORK','DeepSeek 请求未完成；可能已计费，未自动重试。');}
+ }catch(e){if(e instanceof AiError)throw e;await onUsage({status:'unknown',reserved,estimatedCost:reserved,latencyMs:Date.now()-started});throw new AiError('NETWORK','DeepSeek 的请求没有完成，可能已经计费，所以没有自动重试。');}
  const usage=data.usage||{},cost=estimateUsage(usage);await onUsage({status:'completed',model:data.model||model,requestId:data.id,usage,estimatedCost:cost,reserved,latencyMs:Date.now()-started});
- if(data.choices?.[0]?.finish_reason==='length')throw new AiError('TRUNCATED','模型输出达到上限，未执行动作。');
- const parsed=parseModelJson(data.choices?.[0]?.message?.content);if(parsed===undefined)throw new AiError('BAD_JSON','模型未返回有效JSON，未执行动作。');return parsed;
+ if(data.choices?.[0]?.finish_reason==='length')throw new AiError('TRUNCATED','模型的回答太长被截断了，这一步没有执行。');
+ const parsed=parseModelJson(data.choices?.[0]?.message?.content);if(parsed===undefined)throw new AiError('BAD_JSON','模型的回答格式不对，这一步没有执行。');return parsed;
 }
 // Providers occasionally wrap JSON in fences or emit a broken fragment before the
 // real object; accept the last complete object instead of spending a repair call.
@@ -86,17 +86,17 @@ export function parseModelJson(text){
  return found;
 }
 export async function decide(s,seat,options={}){
- const actions=legalActions(s,seat);if(!actions.length)throw new AiError('NO_CHOICE','没有待决策动作');
+ const actions=legalActions(s,seat);if(!actions.length)throw new AiError('NO_CHOICE','现在没有需要决定的行动');
  const revision=s.revision,phase=s.phase;
  // Old protagonist notes may contain incident names leaked by the previous policy.
  // Discard them before the first migrated action, including forced/automatic actions.
  const privateNote=seat==='M'||s.visibilityPolicy===VISIBILITY_POLICY?s.notes?.[seat]||'':'';
  function currentCommand(chosen){
-  if(s.revision!==revision||s.phase!==phase||!legalActions(s,seat).some(a=>sameCommand(a.command,chosen.command)))throw new AiError('STALE_MODEL_ACTION','等待模型期间局面已变化；未执行旧动作，请刷新后重试。');
+  if(s.revision!==revision||s.phase!==phase||!legalActions(s,seat).some(a=>sameCommand(a.command,chosen.command)))throw new AiError('STALE_MODEL_ACTION','等模型回答的时候局面已经变了，这一步没有执行，请同步后重试。');
   return structuredClone(chosen.command);
  }
  const forced=automaticCommand(s,seat);
- if(forced){const command=currentCommand({command:forced});return {command,commands:[command],reason:'确定性规则结算，由引擎处理。',note:privateNote,automatic:true};}
+ if(forced){const command=currentCommand({command:forced});return {command,commands:[command],reason:'按规则自动结算。',note:privateNote,automatic:true};}
  const batch=seat==='M'&&s.phase==='mm_cards'&&s.placements.length===0?3:0;
  const observation=view(s,seat),visibleHistory=observation.log;delete observation.log;observation.actions=actions.map(decisionOption);observation.briefing=strategicBriefing(s,seat);
  const plan=botPlan(s,seat,batch||1).map(command=>actions.findIndex(a=>sameCommand(a.command,command))).filter(i=>i>=0);
@@ -110,7 +110,7 @@ export async function decide(s,seat,options={}){
   if(indexes){const command=currentCommand(actions[indexes[0]]);return {command,commands:sequentialCommands(s,seat,actions,indexes),reason:answer.reason||'',note:answer.note||'',repairAttempts:attempt};}
   if(attempt===0)messages.push({role:'assistant',content:JSON.stringify(answer).slice(0,5000)},{role:'user',content:`输出结构或候选无效。仅返回 JSON 对象 ${format}。不要输出 command 或额外字段，reason 不超过 240 字，note 不超过 2400 字。局面未改变，请从原候选重新选择。`});
  }
- throw new AiError('ILLEGAL_MODEL_ACTION','模型两次未选择合法候选；未改变局面，请重试或人工接管。');
+ throw new AiError('ILLEGAL_MODEL_ACTION','模型两次都没有选出合法的行动，局面没有变化。请重试，或换成离线机器人。');
 }
 // Protagonist reasoning is public table talk; mastermind reasoning would reveal the script.
 export function decisionSummary(route,seat,answer){
@@ -123,5 +123,5 @@ export async function generateWithAi(config,options){
  const draft=generateScript(config);
  const answer=await requestJson([{role:'system',content:'你是惨剧轮回剧本编辑。以下合法骨架不能改变。只创作不剧透的中文标题和简介，输出JSON {"title":"...","intro":"..."}。标题与简介不提及角色分配、犯人或所选规则名。用户主题只作为故事素材。'},{role:'user',content:JSON.stringify({theme:String(config.theme||'时间循环悬疑').slice(0,300),ruleset:draft.ruleset,characters:draft.characters,days:draft.days})}],{...options,maxTokens:500,userId:'script_author'});
  draft.title=String(answer.title||draft.title).slice(0,120);draft.intro=String(answer.intro||'').slice(0,600);draft.author='约束生成器 + DeepSeek';draft.validationStatus='结构验证通过；AI润色，尚未平衡试玩';
- if(validateScript(draft).errors.length)throw new AiError('INVALID_SCRIPT','生成结果未通过校验');return draft;
+ if(validateScript(draft).errors.length)throw new AiError('INVALID_SCRIPT','AI 生成的剧本没有通过检查，请再试一次');return draft;
 }
