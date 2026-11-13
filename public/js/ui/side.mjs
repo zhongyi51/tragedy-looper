@@ -1,6 +1,6 @@
 import {esc,icon,btn} from '../html.mjs';
-import {char,name,seatName,seatMark,cardLabel,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
-import {MARKS,clues} from '../deduce.mjs';
+import {char,name,seatName,seatMark,cardLabel,phaseLabel,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
+import {MARKS,clues,failure} from '../deduce.mjs';
 
 const REFUSAL={optional:'可拒绝能力',mandatory:'必定拒绝能力'};
 
@@ -32,13 +32,20 @@ function intel(v,ctx){
   <p class="legend"><span class="g">${icon('heart')}友好</span><span class="p">${icon('unrest')}不安</span><span class="i">${icon('intrigue')}暗跃</span><span class="gd">${icon('shield')}护卫</span></p>`;
 }
 
+// Newest first, under a heading for each day and, within it, each phase things happened in.
+const UNPHASED=['day','loop'];
 function log(v,ctx){
  const feed=ctx.readOnly?[]:(ctx.aiFeed||[]).filter(f=>f.gameId===v.id);
  const items=[...v.log.map(e=>({key:e.n,e})),...feed.map(f=>({key:f.at+.5,f}))].sort((a,b)=>a.key-b.key).slice(-160).reverse();
- let stamp='';const out=[];
+ let stamp='',phase='';const out=[];
  for(const {e,f} of items){
   const x=e||f,here=`第 ${x.loop} 轮回 · 第 ${x.day} 日`;
-  if(here!==stamp){out.push(`<h5>${here}</h5>`);stamp=here;}
+  if(here!==stamp){out.push(`<h5>${here}</h5>`);stamp=here;phase='';}
+  if(e){
+   const label=e.phase&&!UNPHASED.includes(e.type)?phaseLabel(e.phase):'';
+   if(label&&label!==phase)out.push(`<h6 class="log-phase">${esc(label)}</h6>`);
+   phase=label;
+  }
   if(f)out.push(`<p class="entry talk"><b>${esc(seatName(f.seat))}</b>「${esc(f.text)}」</p>`);
   else out.push(`<p class="entry ${esc(e.type)}">${esc(e.text)}${e.cards?`<span class="entry-cards">${e.cards.map(p=>`<i class="${p.seat==='M'?'mm':'hero'}"><b>${esc(seatMark(p.seat))}</b>${esc(name(p.target))} · ${esc(cardLabel(p.card))}</i>`).join('')}</span>`:''}</p>`);
  }
@@ -70,7 +77,7 @@ function sheet(v,ctx){
    ${a.warns.map(w=>`<p class="lead-row warn">${icon('alert')}<span>${esc(w)}</span></p>`).join('')}
    ${a.hints.map(h=>`<p class="lead-row"><span>${esc(h.text)}</span>${btn('采纳','sheet-adopt','small',`data-c="${h.character}" data-r="${h.role}"`)}</p>`).join('')}</section>`:''}
   ${a.culprits.length?`<section class="block"><h4>事件犯人</h4>${a.culprits.map(culprit).join('')}</section>`:''}
-  <section class="block"><h4>线索</h4>${history.length?history.map(g=>`<h5 class="clue-loop">第 ${g.loop} 轮回</h5>${g.items.map(e=>`<p class="clue ${esc(e.type)}"><b>D${e.day}</b>${esc(e.text)}</p>`).join('')}`).join(''):'<p class="hint">死亡、事件、身份等会自动记在这里。</p>'}</section>
+  <section class="block"><h4>线索</h4>${history.length?history.map(g=>`<h5 class="clue-loop">第 ${g.loop} 轮回</h5>${g.items.map(e=>`<p class="clue ${esc(e.type)}"><b>D${e.day}${e.phase?`<i>${esc(phaseLabel(e.phase))}</i>`:''}</b><span>${esc(e.text)}${e.type==='failed'&&failure(v,e.loop)?.detail?`<small>${esc(failure(v,e.loop).detail)}</small>`:''}</span></p>`).join('')}`).join(''):'<p class="hint">死亡、事件、身份等会按发生的阶段记在这里。</p>'}</section>
   <label class="notes"><span>笔记</span><textarea id="notes" data-note="${esc(v.id)}" placeholder="随手记下你的猜测"></textarea></label>
   ${btn('清空全部标记','sheet-reset','small ghost')}`;
 }

@@ -15,7 +15,7 @@ export const SEATS=['A','B','C'];
 export const seatName=seat=>seat==='M'?'剧作家':seat==='public'?'观众':'主人公 '+seat;
 export const seatMark=seat=>seat==='M'?'幕':seat;
 export const modeName=mode=>mode==='heroes'?'主人公':mode==='mastermind'?'剧作家':'观战';
-const PHASES={setup:'轮回准备',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'已结束'};
+const PHASES={setup:'轮回准备',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'已结束'};
 export const phaseLabel=id=>PHASES[id]||id;
 export const COUNTERS={goodwill:{label:'友好',icon:'heart',cls:'g'},paranoia:{label:'不安',icon:'unrest',cls:'p'},intrigue:{label:'暗跃',icon:'intrigue',cls:'i'},guard:{label:'护卫',icon:'shield',cls:'gd'}};
 

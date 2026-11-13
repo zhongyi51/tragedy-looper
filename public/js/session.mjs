@@ -2,16 +2,18 @@
 // keeps the opponent moving. Everything it touches is injected so it runs without a browser.
 import {humanTurn} from './guidance.mjs';
 import {PLACING} from './lookup.mjs';
+import {failure,NOTABLE} from './deduce.mjs';
 
 const mark=g=>g.id+':'+g.revision;
 const fresh=(prev,next)=>next.log.filter(e=>e.n>prev.log.length);
 
-// The closing banner, once a step has decided the game.
+// The closing banner, once a step has decided the game: who won, and what the deciding step showed.
 export function outcomeBanner(prev,next){
  if(!next.winner||prev.winner)return null;
- const heroesWon=next.winner==='heroes',yours=next.mode==='observe'?'':(next.mode!=='mastermind')===heroesWon?' · 你赢了':' · 你输了';
+ const heroesWon=next.winner==='heroes',yours=next.mode==='observe'?'':(next.mode!=='mastermind')===heroesWon?' · 你赢了':' · 你输了',news=fresh(prev,next);
  return {kind:heroesWon?'victory':'defeat',title:heroesWon?'明天，终于到来。':'惨剧，再度重演。',
-  lines:[`${heroesWon?'主人公':'剧作家'}获胜${yours}`,...fresh(prev,next).filter(e=>['death','victory','defeat','guess'].includes(e.type)).slice(-3).map(e=>e.text)]};
+  ...(news.some(e=>e.type==='failed')?failure(next):{}),recap:news.filter(e=>NOTABLE.includes(e.type)).slice(-4),
+  lines:[`${heroesWon?'主人公':'剧作家'}获胜${yours}`,...news.filter(e=>e.type==='guess').slice(-3).map(e=>e.text)]};
 }
 
 export function createSession({state,api,render,animate=async()=>{},capture=()=>({}),cleanup=()=>{},sound=()=>{},toast=()=>{},storage,uuid=()=>crypto.randomUUID(),wait=ms=>new Promise(r=>setTimeout(r,ms))}){
