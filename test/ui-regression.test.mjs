@@ -8,12 +8,12 @@ import {cardsOn,boardHtml} from '../public/js/ui/board.mjs';
 import {incidentSchedule,sideTabsHtml,sideBodyHtml} from '../public/js/ui/side.mjs';
 import {dockHtml} from '../public/js/ui/dock.mjs';
 import {hudHtml} from '../public/js/ui/hud.mjs';
-import {turnGuidance,turnControl,choiceGroups} from '../public/js/guidance.mjs';
+import {turnGuidance,turnControl,choiceGroups,afterPlacing} from '../public/js/guidance.mjs';
 import {publicDraft,printableHtml} from '../public/js/exporters.mjs';
 import {createAnimator} from '../public/js/anim.mjs';
 import {analyze,emptyMarks,markRole,markPlot,markCulprit,clues,failure} from '../public/js/deduce.mjs';
 import {tableRegions} from '../public/js/ui/game.mjs';
-import {playStep,stepReport} from '../src/play.mjs';
+import {playStep,stepReport,project} from '../src/play.mjs';
 import {createSession,outcomeBanner} from '../public/js/session.mjs';
 import {bannerHtml} from '../public/js/ui/modals.mjs';
 import {parseDraft,blankDraft,roleNeeds,editDraft} from '../public/js/script-draft.mjs';
@@ -209,6 +209,59 @@ test('AI remarks are kept with the moment they were made and the outcome is anno
  assert.match(outcomeBanner(base,{...base,winner:'heroes'}).lines[0],/你赢了/);assert.match(outcomeBanner(base,{...base,winner:'mastermind'}).lines[0],/你输了/);
  assert.doesNotMatch(outcomeBanner({...base,mode:'observe'},{...base,mode:'observe',winner:'heroes'}).lines[0],/你/);
  assert.equal(outcomeBanner(base,{...base,phaseId:'between',log:[{n:1,type:'failed',text:'x'}]}),null);
+});
+test('the table predicted for the player\'s own card is the one the server then reports',()=>{
+ const seen=v=>({...v,actions:v.actions.map(o=>o.command)});
+ let s=createGame(starter);
+ for(const mode of ['mastermind','heroes'])for(let i=0;i<3;i++){
+  const v=project(mode,s),command=v.actions[i*5+2].command,guess=afterPlacing(v,command);
+  s=applyCommand(s,v.turn,command);
+  // Up to the last card the whole view is known; after it only that the card is down and the turn has gone.
+  if(i<2)assert.deepEqual(seen(guess),seen(project(mode,s)));
+  else{assert.deepEqual(guess.actions,[]);assert.deepEqual(guess.placements,project(mode,s).placements);assert.equal(guess.hand.find(c=>c.id===command.card).available,false);}
+ }
+ assert.equal(s.placements.length,6);
+});
+// A local server for the session: applies each command to a real game and answers when the test says so.
+function heroTable(){
+ let s=createGame(starter);for(let i=0;i<3;i++)s=applyCommand(s,'M',project('mastermind',s).actions[i*5+2].command);
+ const decorate=v=>({...v,id:'game',mode:'heroes',busy:false}),replies=[];
+ const answer=async data=>{
+  if(!data)return decorate(project('heroes',s));
+  if(data.revision!==s.revision)throw Object.assign(Error('局面已变化，请刷新'),{code:'STATE_CONFLICT'});
+  const {seat,frames}=await playStep({state:s,mode:'heroes',route:'command',command:data.command}),initial=s;s=frames.at(-1).state;
+  return {...decorate(project('heroes',s)),...stepReport({mode:'heroes',route:'command',seat,answer:null,initial,frames,decorate})};
+ };
+ return {start:decorate(project('heroes',s)),replies,api:(url,data)=>new Promise((resolve,reject)=>replies.push(error=>error?reject(error):resolve(answer(data)))),server:()=>s};
+}
+test('the player\'s own cards go down at once, are confirmed in order, and only the last waits for its result',async()=>{
+ const t=heroTable(),landed=[],played=[];
+ const c=session({state:{g:t.start},api:t.api,inject:{land(prev,next){landed.push(next.placements.length);},animate:async(prev,next,before,frames)=>{played.push([prev.log.length,...frames.map(f=>f.log.at(-1).type)]);}}});
+ const pick=()=>c.state.g.actions[4].command,first=pick();
+ c.state.selected=first.card;c.step(first);
+ assert.equal(c.state.working,false);assert.equal(c.state.selected,null);assert.equal(c.state.g.turn,'B');assert.equal(c.state.g.placements.at(-1).card,first.card);
+ assert.match(dockHtml(c.state.g,c.state),/class="hand"[^>]*aria-label="主人公 B的手牌"/);
+ c.step(pick());assert.equal(c.state.g.turn,'C');
+ const last=c.step(pick());assert.equal(c.state.working,true);assert.equal(c.state.g.placements.length,6);assert.deepEqual(landed,[4,5,6]);
+ // One request at a time, each for the revision the one before it produces.
+ await settle();assert.deepEqual(c.calls.map(x=>x.data.revision),[t.start.revision]);
+ t.replies[0]();await settle();assert.equal(c.state.g.placements.length,6);
+ t.replies[1]();await settle();assert.deepEqual(c.calls.map(x=>x.data.revision),[0,1,2].map(i=>t.start.revision+i));assert.deepEqual(played,[]);
+ t.replies[2]();await last;
+ assert.equal(c.state.working,false);assert.equal(c.state.g.revision,t.server().revision);assert.equal(c.state.g.phaseId,'mm_ability');
+ // What plays back starts after the card the player has already watched land.
+ assert.equal(played.length,1);assert.equal(played[0][0],t.start.log.length+3);assert.equal(played[0][1],'cards');assert.ok(!played[0].includes('placed'));
+});
+test('a card the server does not confirm comes back off the table, and nothing queued behind it is sent',async()=>{
+ const t=heroTable(),told=[],c=session({state:{g:t.start},api:t.api,inject:{toast:(text,kind)=>told.push(kind)}});
+ c.step(c.state.g.actions[4].command);c.step(c.state.g.actions[4].command);assert.equal(c.state.g.placements.length,5);
+ await settle();t.replies[0](Object.assign(Error('连接中断，请检查网络并同步局面。'),{code:'NETWORK',uncertain:true}));
+ await settle();assert.equal(c.state.working,true);t.replies[1]();await settle();
+ assert.deepEqual(c.calls.map(x=>x.url),['/games/game/command','/games/game']);
+ assert.equal(c.state.g.placements.length,3);assert.equal(c.state.g.turn,'A');assert.equal(c.state.working,false);assert.equal(c.state.syncRequired,false);
+ assert.match(c.state.actionError,/局面未变，可以重试/);assert.deepEqual(told,['error']);
+ // The table is usable again and the next card is sent for the revision the server really has.
+ c.state.actionError='';c.step(c.state.g.actions[0].command);await settle();assert.equal(c.calls.at(-1).data.revision,t.start.revision);
 });
 test('final guess choices mark confirmed roles and the player\'s own deductions',()=>{
  const s=createGame(starter);s.script.ruleset='BTX';s.phase='guess';s.guessed={};s.knownRoles={office_worker:'killer'};

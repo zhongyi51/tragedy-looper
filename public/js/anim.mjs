@@ -45,6 +45,12 @@ export function createAnimator({state,render,fx,sound=()=>{},reduced=()=>false,w
  function skip(){skipping=true;fx.finish();wake?.();}
  function cancel(){cancelled=true;skip();release();}
 
+ // The player's own card flies to its place while they are already choosing the next one.
+ function land(prev,next,origin){
+  sound(SOUND.placed);
+  return state.page==='game'&&!reduced()&&fx.supported()?fx.cards(prev,next,origin).catch(()=>fx.cleanup()):null;
+ }
+
  function stopAt(entries,snap,final){
   if(entries.some(e=>e.type==='failed'))return final.winner&&snap.loop>=snap.script.loops?null:'loop';
   return entries.some(e=>e.type==='dayend')?'day':null;
@@ -94,7 +100,7 @@ export function createAnimator({state,render,fx,sound=()=>{},reduced=()=>false,w
    }
   }finally{state.playback=null;state.transitionView=null;fx.thaw();}
  }
- return {animateTransition,release,skip,cancel};
+ return {animateTransition,land,release,skip,cancel};
 }
 
 const rectOf=el=>el?.getBoundingClientRect();
@@ -110,7 +116,7 @@ export function domFx(doc=document,speed=()=>1){
  };
  const positions=()=>Object.fromEntries(all('.board [data-character]').map(el=>[el.dataset.character,rectOf(el)]));
  const dock=()=>doc.querySelector('.r-dock');
- const cleanup=()=>all('.fx-flight,.fx-delta,.fx-stamp,.fx-veil,.announce').forEach(el=>el.remove());
+ const cleanup=()=>all('.fx-flight,.fx-hide,.fx-delta,.fx-stamp,.fx-veil,.announce').forEach(el=>el.remove());
  const finish=()=>{for(const animation of [...running])try{animation.finish();}catch{}};
 
  function capture(){
@@ -128,9 +134,11 @@ export function domFx(doc=document,speed=()=>1){
   for(const el of fresh){
    const to=rectOf(el),table=rectOf(doc.querySelector('.board')),from=origin||{x:table.x+table.width/2,y:table.y+table.height,width:40,height:56};
    const fly=el.cloneNode(true);fly.removeAttribute('data-placement');fly.setAttribute('aria-hidden','true');fly.classList.add('fx-flight');fly.classList.remove('face-up');
-   Object.assign(fly.style,{left:to.x+'px',top:to.y+'px',width:to.width+'px',height:to.height+'px'});fly.style.setProperty('--mini-w',to.width+'px');doc.body.append(fly);el.style.opacity='0';
+   Object.assign(fly.style,{left:to.x+'px',top:to.y+'px',width:to.width+'px',height:to.height+'px'});fly.style.setProperty('--mini-w',to.width+'px');doc.body.append(fly);
+   // Hidden by rule rather than by its own style, so a redraw during the flight cannot show the real card early.
+   const hide=doc.createElement('style');hide.className='fx-hide';hide.textContent=`.board [data-placement="${CSS.escape(el.dataset.placement)}"]{opacity:0!important}`;doc.head.append(hide);
    const dx=from.x+from.width/2-to.x-to.width/2,dy=from.y+from.height/2-to.y-to.height/2;
-   jobs.push(run(fly,[{transform:`translate(${dx}px,${dy}px) rotate(-14deg) scale(1.6)`,opacity:.2},{transform:'translate(0,0) rotate(3deg) scale(1.08)',opacity:1,offset:.82},{transform:'none',opacity:1}],{duration:420,easing:'cubic-bezier(.2,.7,.25,1)'}).then(()=>{el.style.opacity='';fly.remove();}));
+   jobs.push(run(fly,[{transform:`translate(${dx}px,${dy}px) rotate(-14deg) scale(1.6)`,opacity:.2},{transform:'translate(0,0) rotate(3deg) scale(1.08)',opacity:1,offset:.82},{transform:'none',opacity:1}],{duration:420,easing:'cubic-bezier(.2,.7,.25,1)'}).then(()=>{hide.remove();fly.remove();}));
   }
   await Promise.all(jobs);
  }

@@ -1,7 +1,24 @@
 // Pure decisions about whose turn it is, what the prompt says and how legal actions are grouped.
-import {char,name,seatName,cardLabel,PLACING,COUNTERS} from './lookup.mjs';
+import {char,name,seatName,cardLabel,PLACING,SEATS,COUNTERS} from './lookup.mjs';
 
 export const humanTurn=v=>v.mode==='heroes'?v.turn!==null&&v.turn!=='M':v.mode==='mastermind'?v.turn==='M':false;
+
+// The table the moment the player puts down one of their own cards, known without asking the server:
+// the card has left the hand for the board and the next card to choose, if any, is on offer.
+// Empty `actions` mean the turn has left the player and the server has to say what follows.
+export function afterPlacing(v,{card,target}){
+ const seat=v.turn,placements=[...v.placements,{seat,card,target}],hand=v.hand.map(c=>c.id===card?{...c,available:false}:c);
+ const next={...v,revision:v.revision+1,placements,hand,actions:[],
+  log:[...v.log,{n:v.log.length+1,loop:v.loop,day:v.day,phase:v.phaseId,type:'placed',who:target,by:seat,text:`${seatName(seat)}出牌：${name(target)}`}]};
+ const open=o=>o.command.target!==target;
+ if(seat==='M'){if(placements.length<3)next.actions=v.actions.filter(o=>open(o)&&o.command.card!==card);return next;}
+ next.hands={...v.hands,[seat]:hand};
+ if(placements.length<6){
+  const to=SEATS[(SEATS.indexOf(seat)+1)%3],targets=[...new Set(v.actions.filter(open).map(o=>o.command.target))];
+  Object.assign(next,{turn:to,seat:to,hand:next.hands[to],actions:next.hands[to].filter(c=>c.available).flatMap(c=>targets.map(t=>({command:{type:'place',card:c.id,target:t}})))});
+ }
+ return next;
+}
 
 const WORKING={sync:'同步中',animation:'结算中',rules:'结算中',human:'提交中'};
 

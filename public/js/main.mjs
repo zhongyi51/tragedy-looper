@@ -83,7 +83,7 @@ function render(){
 
 /* ---------- game session ---------- */
 const animator=createAnimator({state,render,fx,sound:play,reduced});
-const session=createSession({state,api,render,animate:animator.animateTransition,capture:fx.capture,cleanup:fx.cleanup,sound:play,toast,storage:localStorage});
+const session=createSession({state,api,render,animate:animator.animateTransition,land:animator.land,capture:fx.capture,cleanup:fx.cleanup,sound:play,toast,storage:localStorage});
 const {step,kick}=session;
 
 const route=page=>{if(location.hash!=='#/'+page)history.pushState(null,'','#/'+page);};
