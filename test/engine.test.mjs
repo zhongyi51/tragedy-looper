@@ -33,7 +33,7 @@ test('every resolved or cancelled card effect is logged with its subject and sou
  const before=s.log.length,beats=[];s=applyCommand(s,turn(s),{type:'place',card:'goodwill_1#0',target:'hospital'},beats);if(s.phase==='cultist')s=applyCommand(s,turn(s),{type:'cultist',mask:0},beats);
  const added=s.log.slice(before),of=type=>added.filter(e=>e.type===type).map(e=>[e.who,e.by].filter(Boolean).join('<'));
  assert.deepEqual(added.map(e=>e.type).slice(0,2),['placed','cards']);
- assert.deepEqual(of('blocked').sort(),['girl_student','office_worker']);assert.deepEqual(of('counter').sort(),['doctor<M','idol<B']);assert.deepEqual(of('card_effect'),['hospital<C']);
+ assert.deepEqual(of('blocked').sort(),['girl_student<M','office_worker']);assert.deepEqual(of('counter').sort(),['doctor<M','idol<B']);assert.deepEqual(of('card_effect'),['hospital<C']);
  assert.equal(beats.length,added.length);assert.deepEqual(beats.map(b=>b.log),added.map(e=>e.n));
  const flip=beats[1],tick=beats[added.findIndex(e=>e.type==='counter'&&e.who==='doctor')];
  assert.equal(flip.phase,'cultist');assert.equal(flip.dayRevealed.length,6);assert.equal(flip.board.doctor.paranoia,0);assert.equal(tick.board.doctor.paranoia,1);
@@ -43,4 +43,44 @@ test('a day ends with its own log entry and a failed loop is marked as such',()=
  assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.day]),[['dayend',1],['day',2]]);
  s.day=s.script.days;s.phase='end';s.loopFailed=true;s=act(s,{type:'pass'});
  assert.deepEqual(s.log.slice(-2).map(e=>e.type),['dayend','failed']);assert.equal(s.phase,'between');
+});
+test('every entry records the phase it happened in',()=>{
+ let s=round([['intrigue_1','doctor'],['paranoia_1','idol'],['move_h','office_worker'],['goodwill_1','girl_student'],['goodwill_1','idol'],['goodwill_1','boy_student']]);
+ const phaseOf=type=>[...new Set(s.log.filter(e=>e.type===type).map(e=>e.phase))];
+ assert.deepEqual(phaseOf('loop'),['setup']);assert.deepEqual(phaseOf('placed'),['mm_cards','hero_cards']);
+ for(const type of ['cards','blocked','counter'])assert.deepEqual(phaseOf(type),['cultist'],type);
+ s=act(s,{type:'mm',actor:'doctor',ability:'brain',target:'doctor'});assert.equal(s.log.at(-1).phase,'mm_ability');
+ // The incident check and what follows from it belong to the incident phase, not the one that was passed.
+ s.day=3;s.phase='hero_ability';s.board.girl_student.paranoia=3;s=act(s,{type:'pass'});
+ assert.deepEqual(s.log.slice(-3).map(e=>[e.type,e.phase]),[['incident','incident'],['death','incident'],['failed','incident']]);
+});
+test('a failed loop says when it ended and what the table saw, without naming the hidden rule',()=>{
+ let s=fresh();s.day=3;s.phase='hero_ability';s.board.girl_student.paranoia=3;s=act(s,{type:'pass'});
+ let failed=s.log.at(-1);assert.equal(failed.when,'death');assert.deepEqual(failed.dead,['girl_student']);assert.match(failed.text,/^第 1 轮回失败：女学生死亡，轮回立即结束。$/);
+ s=fresh();s.day=3;s.phase='end';s.loopFailed=true;s.locations.school=2;s.board.doctor.intrigue=1;s=act(s,{type:'pass'});
+ failed=s.log.at(-1);assert.equal(failed.when,'end');assert.equal(failed.phase,'end');assert.deepEqual(failed.intrigue,{school:2,doctor:1});assert.match(failed.text,/最后一天结束时判定/);
+ s=fresh();s.phase='end';s.board.office_worker.intrigue=4;s=act(s,{type:'end_ability',actor:'office_worker',ability:'heroes'});
+ assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.when]),[['death',undefined],['failed','heroes']]);
+ // The entry names who died, never the role that made the death matter.
+ s=fresh();s.phase='end_area';for(const id of ['girl_student','boy_student'])s.board[id].location='shrine';s.board.shrine_maiden.location='shrine';s.board.boy_student.location='city';
+ s=act(s,{type:'end_area',territory:false});assert.deepEqual(s.log.at(-1).dead,['girl_student']);
+ for(const e of s.log)assert.doesNotMatch(e.text,/关键人物|连环杀手|杀手/);
+});
+test('cards that end up doing nothing are marked, and a cancelled or ignored Forbid Intrigue is logged',()=>{
+ const voids=s=>view(s,'A').revealedCards.filter(p=>p.void).map(p=>p.seat+'@'+p.target).sort();
+ // One Forbid Intrigue works: the mastermind's Intrigue under it is cancelled.
+ let s=round([['intrigue_1','doctor'],['paranoia_1','idol'],['move_h','office_worker'],['forbid_intrigue','doctor'],['goodwill_1','idol'],['goodwill_1','boy_student']]);
+ let entry=s.log.find(e=>e.type==='blocked'&&e.who==='doctor');
+ assert.deepEqual([entry.what,entry.by,entry.hit],['intrigue','A',['M']]);assert.equal(s.board.doctor.intrigue,0);assert.ok(voids(s).includes('M@doctor'));assert.ok(!voids(s).includes('A@doctor'));
+ // Two on the same day cancel each other, and the Intrigue goes through.
+ s=round([['intrigue_1','doctor'],['paranoia_1','idol'],['move_h','office_worker'],['forbid_intrigue','doctor'],['forbid_intrigue','hospital'],['goodwill_1','idol']]);
+ assert.deepEqual(s.log.filter(e=>e.type==='voided').map(e=>[e.who,e.hit[0]]),[['doctor','A'],['hospital','B']]);assert.match(s.log.find(e=>e.type==='voided').text,/同一天出了 2 张/);
+ assert.equal(s.board.doctor.intrigue,1);assert.ok(['A@doctor','B@hospital'].every(x=>voids(s).includes(x)));assert.ok(!voids(s).includes('M@doctor'));
+ // A hidden ability that ignores the ban is visible on the table as the ban failing.
+ s=fresh();for(const [c,t] of [['intrigue_1','doctor'],['paranoia_1','idol'],['move_h','office_worker'],['forbid_intrigue','doctor'],['goodwill_1','idol'],['goodwill_1','boy_student']])s=place(s,c,t);
+ s.cultists=['doctor'];s=act(s,{type:'cultist',mask:1});entry=s.log.find(e=>e.type==='ignored');
+ assert.deepEqual([entry.who,entry.what,entry.hit],['doctor','intrigue',['A']]);assert.equal(s.board.doctor.intrigue,1);assert.deepEqual(voids(s).filter(x=>x.endsWith('@doctor')),['A@doctor']);
+ // A move that cannot be made and a card wasted on a location are marked too.
+ s=round([['move_h','office_worker'],['paranoia_1','idol'],['intrigue_1','doctor'],['goodwill_1','hospital'],['goodwill_1','idol'],['goodwill_1','boy_student']]);
+ assert.ok(['A@hospital','M@office_worker'].every(x=>voids(s).includes(x)),voids(s).join());
 });
