@@ -1,9 +1,10 @@
 // Shared application services: authoring stays on the server; reviews unlock at game end.
 import {createHash} from 'node:crypto';
 import {scriptForGame,validateScript,name,plots} from './content.mjs';
-import {generateWithAi} from './author.mjs';
+import {generateWithAi,authoredScriptHash} from './author.mjs';
 import {getCuratedScript} from './script-library.mjs';
 import {evaluateScriptQuality} from './script-quality.mjs';
+import {compileDesign,DESIGN_VERSION} from './script-design.mjs';
 
 export const AUTHOR_BUDGET=.12;
 export const FEEDBACK_RATINGS=['interesting','too_easy','too_hard','unclear','repetitive'];
@@ -67,7 +68,14 @@ export function validateFeedback(state,body){
 
 export function gameReview(state,feedback=null){
  if(state.phase!=='over')throw serviceError('对局结束后才能查看复盘','GAME_NOT_OVER',403);
- const script=state.script,design=script.privateDesign||{},ruleIds=[script.mainPlot,...script.subPlots];
+ const script=state.script,ruleIds=[script.mainPlot,...script.subPlots];
+ let design=script.privateDesign||{},designGrounded=false,staleDesign=false;
+ if(script.generation?.designGrounding?.version===DESIGN_VERSION){
+  try{design=compileDesign(script,script.generation.designGrounding.selection).design;designGrounded=true;}
+  catch{design={};staleDesign=true;}
+ }
+ const hasTrial=designGrounded&&script.generation.probe?.version==='engine-probe-1';
+ const currentTrial=hasTrial&&script.generation.scriptHash===authoredScriptHash(script);
  const ruleEffects=ruleIds.filter(id=>plots[id]).map(id=>({id,name:plots[id].name_zh_working,effect:plots[id].effect_zh}));
  const source=[script.source,script.generation?.source].find(value=>['random','curated','ai','imported'].includes(value))||'imported';
  const list=value=>Array.isArray(value)?value.filter(x=>typeof x==='string'):typeof value==='string'&&value?[value]:[];
@@ -75,11 +83,17 @@ export function gameReview(state,feedback=null){
  if(!alternatives.length)alternatives.push('回看第一次失败之前的计数与位置，比较改变一张行动牌能否阻止这条失败路径。');
  if(script.ruleset!=='FS')alternatives.push('轮回中的生存与最后的战斗是两条获胜途径；复盘时也可检查公开线索是否足以区分尚未确认的配役。');
  return {
-  title:script.title,source,ruleEffects,
+  title:script.title,source,ruleEffects,designGrounded,
   summary:`${state.winner==='heroes'?'主人公':'剧作家'}获胜。实际规则：${ruleIds.map(name).join('、')}。`,
   design:Object.keys(design).length?structuredClone(design):{threatPlan:ruleIds.map(id=>`${name(id)}：${plots[id]?.effect_zh||'结合配役与人物能力判断。'}`).join('\n')},
   clues:state.log.filter(e=>['incident','death','reveal','failed','refused','ignored'].includes(e.type)).slice(-30).map(({loop,day,text})=>({loop,day,text})),
   alternatives,quality:evaluateScriptQuality(script,{design}),feedback:feedback?{rating:feedback.rating,updated:feedback.updated}:null,
-  note:source==='ai'?'模型说明可能误述规则，请以本场实际规则与速查为准；有限试跑不等于平衡性证明。':'设计说明与筛查结果用于复盘；有限试跑不等于平衡性证明。'
+  ...(currentTrial?{generationTrial:{
+   status:script.generation.probe.status,
+   traces:script.generation.probe.traces?.length||0,
+   completed:script.generation.probe.observations?.completedTraces||0,
+   commands:script.generation.probe.commands||0
+  }}:{}),
+  note:staleDesign?'剧本编辑后，原设计引用已失效。请以本场实际规则与速查为准。':hasTrial&&!currentTrial?'以下说明已按当前剧本重新核对；原试跑记录与本稿不符，已不再展示。反制资源仍须结合局面验证。':designGrounded?'以下说明由本稿实际规则和能力目录生成；反制资源仍须结合局面验证。有限策略试跑不证明平衡或最优对抗。':source==='ai'?'模型说明可能误述规则，请以本场实际规则与速查为准；有限试跑不等于平衡性证明。':'设计说明与筛查结果用于复盘；有限试跑不等于平衡性证明。'
  };
 }

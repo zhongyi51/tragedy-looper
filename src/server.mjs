@@ -10,6 +10,7 @@ import {configureKey,configured,generateWithAi,polishWithAi,model,rates} from '.
 import {MODES,project,playStep,stepReport,saveSummary} from './play.mjs';
 import {AUTHOR_BUDGET,prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from './game-services.mjs';
 import {listCuratedScripts} from './script-library.mjs';
+import {AUTHOR_VERSION} from './author.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
 const busy=new Set();
@@ -36,7 +37,7 @@ function persist(g,frames,commandId){
 function usageHooks(g){let callId;return {onReserve:async amount=>{const current=getGame(g.id,g.owner);if(current.spent+amount>current.budget)throw Error('这一局的 AI 花费已到上限，没有发送请求。');callId=randomUUID();db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(amount,g.id);db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}},onUsage:async data=>{db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(data.estimatedCost-data.reserved,g.id);db.prepare('UPDATE calls SET status=?,data=? WHERE id=?').run(data.status,JSON.stringify(data),callId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}};}
 function replay(g,full=false){const seat=full?'M':'public';return {format:'tragedy-replay-1',engineVersion:VERSION,contentHash,perspective:seat,script:full?g.state.script:publicScript(g.state.script),frames:db.prepare('SELECT state,hash FROM frames WHERE game=? ORDER BY revision').all(g.id).map((r,i)=>({index:i,view:view(JSON.parse(r.state),seat),...(full?{stateHash:r.hash}:{})})),note:'离线回放：只含每一步的局面，不会再调用模型，也不含密钥和模型的推理原文。'};}
 async function api(req,res,u,owner){const p=u.pathname;
- if(p==='/api/info')return json(res,200,{version:VERSION,configured:configured(),model,rates,contentHash,authorBudget:AUTHOR_BUDGET});
+ if(p==='/api/info')return json(res,200,{version:VERSION,configured:configured(),model,rates,contentHash,authorBudget:AUTHOR_BUDGET,authorVersion:AUTHOR_VERSION});
  if(p==='/api/catalog')return json(res,200,catalog);
  if(p==='/api/scripts/library')return json(res,200,{scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));

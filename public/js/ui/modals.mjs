@@ -101,14 +101,15 @@ export function reviewModal(data,g,rating){
  const ruleEffects=Array.isArray(data.ruleEffects)?data.ruleEffects:[];
  const paragraphs=value=>(Array.isArray(value)?value:[value]).map(item=>text(item)||text(item?.text)||text(item?.description)).filter(Boolean).map(item=>`<p>${esc(item)}</p>`).join('');
  const sections=[['设计意图',design.premise||design.intent||design.summary],['威胁与布局',design.threatPlan||design.mainThreat||design.primaryThreat||design.threats],
-  ['备用路线',design.backupThreat||design.backupPlan],['可发现的线索',design.clues||design.cluePlan],['可行反制',design.counterplay||design.responses],
+  ['备用路线',design.backupThreat||design.backupPlan],['可发现的线索',design.clues||design.cluePlan],[data.designGrounded?'反制资源与条件':'可行反制',design.counterplay||design.responses],
   ['轮回中的学习',design.loopPlan],['误导与解释',design.misdirection],['难度说明',design.difficultyRationale||design.difficultyReason]];
  const notes=sections.map(([label,value])=>{const body=paragraphs(value);return body?`<section class="review-section"><h4>${label}</h4>${body}</section>`:'';}).join('');
  const clues=Array.isArray(data.clues)?data.clues:[],alternatives=Array.isArray(data.alternatives)?data.alternatives:[];
  return frame('终局复盘',`${head('终局复盘')}<p class="lead">${esc(data.title||g.script.title)}</p>
   ${text(data.summary)?`<p>${esc(data.summary)}</p>`:''}
   ${ruleEffects.length?`<section class="review-section"><h4>本场实际规则</h4>${ruleEffects.map(rule=>`<p><b>${esc(text(rule.name))}</b> · ${esc(text(rule.effect))}</p>`).join('')}</section>`:''}
-  ${notes?`<h4>${aiDesign?'AI 创作设想':'编剧的设计意图'}</h4><p class="hint">${esc(text(data.note)||(aiDesign?'模型说明可能误述规则，请以本场实际规则与速查为准。':'可与本场实际发生的事情对照。'))}</p>${notes}`:'<p class="hint">这份剧本未附设计说明。可结合本场线索与完整回放复盘。</p>'}
+  ${notes?`<h4>${data.designGrounded?'本稿的设计依据':aiDesign?'AI 创作设想':'编剧的设计意图'}</h4><p class="hint">${esc(text(data.note)||(aiDesign?'模型说明可能误述规则，请以本场实际规则与速查为准。':'可与本场实际发生的事情对照。'))}</p>${notes}`:'<p class="hint">这份剧本未附设计说明。可结合本场线索与完整回放复盘。</p>'}
+  ${data.generationTrial?`<p class="hint">生成时进行了 ${Number(data.generationTrial.traces)||0} 条有限策略试跑，${Number(data.generationTrial.completed)||0} 条到达终局，共 ${Number(data.generationTrial.commands)||0} 次行动${data.generationTrial.status==='limited'?'；部分路径达到试跑上限':''}。这不是平衡性评分。</p>`:''}
   ${clues.length?`<section class="review-section"><h4>本场关键线索</h4><ul class="review-clues">${clues.map(c=>`<li>${Number.isInteger(c.loop)&&Number.isInteger(c.day)?`<small>第 ${c.loop} 轮回 · 第 ${c.day} 日</small>`:''}<span>${esc(text(c)||text(c.text))}</span></li>`).join('')}</ul></section>`:''}
   ${alternatives.length?`<section class="review-section"><h4>可以再想一想</h4>${paragraphs(alternatives)}</section>`:''}
   <section class="review-section"><h4>这份剧本玩起来如何？</h4><div class="row feedback-options">${feedbackOptions.map(([id,label])=>btn(label,'feedback','small'+(rating===id?' primary':''),`data-rating="${id}" aria-pressed="${rating===id}"`)).join('')}</div>${rating?'<p class="hint">已记录，可以重新选择。</p>':''}</section>
