@@ -1,4 +1,4 @@
-import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
+import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
 import {createGame,view,hash,VERSION} from '../src/engine.mjs';
 import {generateWithAi,model,rates} from '../src/ai.mjs';
 import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
@@ -44,7 +44,7 @@ export async function handleApi(req,env,owner){
  if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await readBody(req),budget=Number(b.budget??.5);if(!Number.isFinite(budget)||budget<.01||budget>10)fail(400,'花费上限须在 $0.01–$10 之间');
-  const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(b.script||starter),budget);return reply(projection(g,env),201);
+  const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(scriptForGame(b)),budget);return reply(projection(g,env),201);
  }
  if(p==='/api/scripts/starter')return reply(starter);
  if(p.startsWith('/api/scripts/')&&req.method==='POST'){

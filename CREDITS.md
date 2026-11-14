@@ -14,3 +14,5 @@
 音效：**Interface Sounds by Kenney**，CC0。[资源页面](https://kenney.nl/assets/interface-sounds)。原始许可保留在 assets/audio/License.txt。
 
 API：DeepSeek 官方服务。采用 `deepseek-flash`，官方当前对应 DeepSeek V4.1 Flash。密钥不包含在本软件与分发包内。
+
+Midnight Zone 规则依据原作者[官方速览表](https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf)，并参照英文 Midnight Circle 规则说明。规则 X / Y 术语参照[官方 FAQ](https://main-bakafire.ssl-lolipop.jp/rooper/sr_game_02_rule.htm)。事件发生公开名称及人工智能的目标声明时序参照[第 5 版主人公规则书](https://main-bakafire.ssl-lolipop.jp/rooper/10th/dl/protagonist_rulebook.pdf)印刷第 24、40 页。

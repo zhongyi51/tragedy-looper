@@ -47,5 +47,7 @@ export async function playStep({state,mode,route,command,ai={}}){
 // intermediate frames and who decided.
 export const stepReport=({mode,route,seat,answer,initial,frames,decorate=v=>v})=>({
  transitionFrames:transitionFrames(state=>decorate(project(mode,state)),initial,frames),
- decision:decisionSummary(route,seat,answer)
+ // True reveals and Ninja disguises share a public response boundary; do not
+ // disclose whether the mastermind had an optional choice through metadata.
+ decision:['reveal_role','incident_check'].includes(initial.phase)&&mode!=='mastermind'?{controller:'剧作家',seat:'M'}:decisionSummary(route,seat,answer)
 });

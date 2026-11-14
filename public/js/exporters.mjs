@@ -6,7 +6,7 @@ import {sanitizePublicReplay} from '../replay-validation.mjs';
 const COMMUNICATION={between_loops_only:'仅轮回间讨论',allowed_during_loop:'允许轮回内讨论'};
 
 export function publicDraft(s){
- return {id:s.id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:s.incidents.map(({day})=>({day})),settings:s.settings,specialRules:s.specialRules||[]};
+ return {id:s.id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:s.incidents.map(({day,type,publicType})=>({day,...(s.settings?.incidentVisibility==='public'?{type:publicType||type}:{})})),settings:s.settings,specialRules:s.specialRules||[]};
 }
 
 export function printableHtml(s,full){
@@ -16,7 +16,7 @@ export function printableHtml(s,full){
  const schedule=d.incidents.map(e=>`<tr><td>第 ${e.day} 日</td><td>${e.type?esc(name(e.type)):'事件未公开'}</td>${full?'<td>'+esc(name(e.culprit))+'</td>':''}</tr>`).join('');
  return `<!doctype html><meta charset="utf-8"><title>${esc(s.title)}</title><style>${style}</style>`
   +`<h1>${esc(s.title)}</h1><p><span class="tag">${full?'剧作家私密页 · 含答案':'主人公公开页'}</span><span class="tag">${esc(s.ruleset)}</span><span class="tag">${s.days} 日 / ${s.loops} 轮回</span><span class="tag">${esc(COMMUNICATION[s.communication]||s.communication)}</span></p>`
-  +(full?`<p>主规则：${esc(name(s.mainPlot))}　副规则：${s.subPlots.map(p=>esc(name(p))).join('、')}</p>`:'')
+  +(full?`<p>规则 Y：${esc(name(s.mainPlot))}　规则 X：${s.subPlots.map(p=>esc(name(p))).join('、')}</p>`:'')
   +`<h2>登场人物</h2><table><tr><th>人物</th>${full?'<th>角色</th>':''}</tr>${cast}</table>`
   +`<h2>事件日程</h2><table><tr><th>日期</th><th>事件</th>${full?'<th>犯人</th>':''}</tr>${schedule}</table>`
   +`<p>公开参数：${esc(JSON.stringify(s.settings||{}))}</p><small>原作 惨劇RoopeR / BakaFire Party · 作者 ${esc(s.author)}</small>`;

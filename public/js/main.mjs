@@ -8,6 +8,7 @@ import {createSession} from './session.mjs';
 import {createAnimator,domFx} from './anim.mjs';
 import {publicDraft,printableHtml,offlineReplayHtml} from './exporters.mjs';
 import {parseDraft,blankDraft,editDraft} from './script-draft.mjs';
+import {generationOptions,randomSetup} from './game-setup.mjs';
 import {TABLE_SKELETON,emptyGameHtml,tableRegions} from './ui/game.mjs';
 import {homeHtml} from './ui/home.mjs';
 import {rulesHtml} from './ui/rules.mjs';
@@ -56,7 +57,7 @@ function navHtml(){
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
   <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'没有配置 DeepSeek 密钥，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
-const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
+const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
 const replayView=()=>state.replay.data?.frames[state.replay.at].view;
 const tableView=()=>state.page==='game'?state.transitionView||state.g:state.page==='replay'?replayView():null;
@@ -136,6 +137,23 @@ function applyEdit(edit){
  setDraft(editDraft(draft,edit));render();
 }
 
+/* ---------- new-game constraints ---------- */
+function readGameSetup(){
+ const value=id=>$('#'+id)?.value;
+ const setup={communication:value('new-talk'),opponent:value('new-opponent'),budget:Number(value('new-budget')??.5),
+  incidentVisibility:value('new-visibility'),advancedOpen:Boolean($('#new-advanced')?.open)};
+ const fields={days:'new-days',loops:'new-loops',incidentCount:'new-incidents',seed:'new-seed',characterPool:'new-pool',mainPlot:'new-main'};
+ for(const [key,id] of Object.entries(fields))if($('#'+id))setup[key]=value(id);
+ if($('#new-sub-0'))setup.subPlots=[value('new-sub-0'),...($('#new-sub-1')?[value('new-sub-1')]:[])];
+ if($('#new-ai-character'))setup.includeAI=$('#new-ai-character').checked;
+ return setup;
+}
+function updateNewGame(script){
+ const mode=$('input[name="new-mode"]:checked').value,setup=readGameSetup();
+ if(Number(setup.incidentCount)>Number(setup.days))setup.incidentCount=Number(setup.days);
+ openModal(newGameModal(state,mode,script||$('input[name="new-script"]:checked').value,setup));
+}
+
 /* ---------- replay ---------- */
 const replay=state.replay;
 function stopReplay(){replay.playing=false;clearInterval(stopReplay.timer);}
@@ -198,14 +216,22 @@ const actions={
   openModal(truthModal(state.truth.script,g));
  },
  async create(b){
-  if(state.creating)return;state.creating=true;b.disabled=true;
+  if(state.creating)return;
+  for(const input of document.querySelectorAll('.modal input'))if(!input.checkValidity()){
+   const details=input.closest('details');if(details)details.open=true;input.reportValidity();return;
+  }
   const pick=group=>$(`input[name="${group}"]:checked`).value;
-  const type=pick('new-script'),mode=pick('new-mode'),budget=+($('#new-budget')?.value??.5),talk=$('#new-talk').value,opponent=$('#new-opponent').value;
+  const type=pick('new-script'),mode=pick('new-mode'),setup=readGameSetup();
+  state.modal=newGameModal(state,mode,type,setup);state.creating=true;b.disabled=true;
   try{
-   const script=type==='editor'?readDraft():type==='starter'?await api('/scripts/starter'):await api('/scripts/generate',{ruleset:type,seed:Date.now(),title:'未曾发生的明天'});
-   script.communication=talk;
-   const created=await api('/games',{script,mode,budget});
-   localStorage.setItem('tl-opp-'+created.id,opponent);openGame(created);play('confirmation_001');
+   const request={mode,budget:setup.budget,incidentVisibility:setup.incidentVisibility};
+   if(randomSetup(type))request.setup=generationOptions(type,setup);
+   else{
+    request.script=type==='editor'?readDraft():await api('/scripts/starter');
+    request.script.communication=setup.communication;
+   }
+   const created=await api('/games',request);
+   localStorage.setItem('tl-opp-'+created.id,setup.opponent);openGame(created);play('confirmation_001');
    if(!localStorage.getItem('tl-guide-seen')){localStorage.setItem('tl-guide-seen','1');openModal(guideModal());}
   }finally{state.creating=false;b.disabled=false;}
  },
@@ -285,6 +311,9 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',async e=>{
  const t=e.target;
  try{
+  if(t.name==='new-script')return updateNewGame(t.value);
+  if(t.id==='new-ruleset')return updateNewGame(t.value);
+  if(['new-main','new-sub-0','new-sub-1','new-days'].includes(t.id))return updateNewGame();
   if(t.id==='replay-range')return render();
   if(t.id==='gen-set'){editor.generator.ruleset=t.value;return;}
   if(t.dataset.edit)return applyEdit({kind:t.dataset.edit,key:t.dataset.key,value:t.value});
@@ -321,7 +350,7 @@ document.addEventListener('keydown',e=>{
   return;
  }
  if(e.key==='Tab'&&state.modal){
-  const items=[...document.querySelectorAll('.modal button:not(:disabled),.modal input,.modal select,.modal textarea,.modal a[href]')],first=items[0],last=items.at(-1);
+  const items=[...document.querySelectorAll('.modal button:not(:disabled),.modal input,.modal select,.modal textarea,.modal a[href],.modal summary')].filter(el=>el.getClientRects().length),first=items[0],last=items.at(-1);
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}
   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
   return;

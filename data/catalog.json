@@ -1,8 +1,8 @@
 {
   "schemaVersion": "research-catalog-1",
   "status": "research_data_not_executable_rules",
-  "baseline": "JP5-FirstSteps-BasicTragedyX",
-  "verifiedDate": "2026-11-08",
+  "baseline": "JP5-FirstSteps-BasicTragedyX-MidnightZone",
+  "verifiedDate": "2026-11-14",
   "translation": "项目工作译名，非官方中文译文",
   "source": "BakaFire Party 惨劇RoopeR 5th 主人公の書；惨劇コモンズ5th；来源见sources目录及08-sources.md",
   "sets": [
@@ -27,6 +27,22 @@
       "subPlots": 2,
       "finalGuess": true,
       "sourceRef": "JP5:p26,32-36"
+    },
+    {
+      "id": "MZ",
+      "name": "Midnight Zone",
+      "mainPlots": 1,
+      "subPlots": 2,
+      "finalGuess": true,
+      "recommendedCast": [
+        8,
+        12
+      ],
+      "recommendedDays": [
+        5,
+        7
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
     }
   ],
   "locations": [
@@ -866,7 +882,8 @@
       "goodwillRefusal": "none",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [],
       "sourceRef": "JP5:p26"
@@ -879,7 +896,8 @@
       "goodwillRefusal": "none",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "此人死亡时，主人公失败，轮回立即结束。"
@@ -910,7 +928,8 @@
       "goodwillRefusal": "optional",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）或所在地点暗跃 +1。"
@@ -925,7 +944,8 @@
       "goodwillRefusal": "mandatory",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "翻牌结算时，可以让同一地点的人物和所在地点无视暗跃禁止。位置按移动之后算。"
@@ -940,7 +960,8 @@
       "goodwillRefusal": "none",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "轮回结束时如果已经死亡，公开此角色，主人公失败。",
@@ -956,7 +977,8 @@
       "goodwillRefusal": "none",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）不安 +1。"
@@ -971,7 +993,8 @@
       "goodwillRefusal": "none",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "日结束时，如果同一地点恰好只有另一个活着的人物，那个人物死亡。"
@@ -1013,7 +1036,8 @@
       "maxCount": null,
       "goodwillRefusal": "mandatory",
       "sets": [
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [],
       "sourceRef": "JP5:p34"
@@ -1054,13 +1078,91 @@
       "maxCount": null,
       "goodwillRefusal": "optional",
       "sets": [
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effects_zh": [
         "学校暗跃达到 2 时，拥有误导者的能力（角色不变）。",
         "都市暗跃达到 2 时，拥有关键人物的能力（角色不变）。"
       ],
       "sourceRef": "JP5:p35"
+    },
+    {
+      "id": "ninja",
+      "name_ja": "ニンジャ",
+      "name_zh_working": "忍者",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "MZ"
+      ],
+      "effects_zh": [
+        "日结束时，可以杀死同一地点暗跃达到 2 的人物（可以是自己）。",
+        "公开此角色时，剧作家可以谎称为本剧本已配役的另一个非普通人角色。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "obstinate",
+      "name_ja": "ゼッタイシャ",
+      "name_zh_working": "绝对者",
+      "maxCount": null,
+      "goodwillRefusal": "mandatory",
+      "sets": [
+        "MZ"
+      ],
+      "effects_zh": [
+        "必须被指定为至少一个事件的犯人。",
+        "事件阶段，只要此人仍可引发事件，就不受不安数量限制；事件禁止仍然优先。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "castingConstraints": [
+        "mustBeCulprit"
+      ]
+    },
+    {
+      "id": "magician",
+      "name_ja": "マジシャン",
+      "name_zh_working": "魔术师",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MZ"
+      ],
+      "effects_zh": [
+        "剧作家能力阶段，可以将同一地点不安至少为 1 的人物移到相邻地点（不能斜移）。所有魔术师合计每轮回一次。",
+        "死亡时，移除自己全部不安。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "immortal",
+      "name_ja": "イモータル",
+      "name_zh_working": "不死者",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MZ"
+      ],
+      "effects_zh": [
+        "不会死亡。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "prophet",
+      "name_ja": "プロフェシー",
+      "name_zh_working": "预言者",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MZ"
+      ],
+      "effects_zh": [
+        "剧作家不能对这个人物盖行动牌。",
+        "同一地点的其他人物作为犯人时，事件不会发生。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
     }
   ],
   "plots": [
@@ -1116,7 +1218,8 @@
       "name_zh_working": "被封印之物",
       "kind": "Y",
       "sets": [
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "addedRoles": {
         "brain": 1,
@@ -1304,6 +1407,178 @@
       },
       "effect_zh": "",
       "sourceRef": "JP5:p33"
+    },
+    {
+      "id": "secret_record",
+      "name_ja": "シークレットレコード",
+      "name_zh_working": "绝密报告",
+      "kind": "Y",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "key_person": 1,
+        "brain": 1,
+        "misleader": 1
+      },
+      "effect_zh": "轮回结束时，若本轮回公开过幕后黑手、因子或魔术师角色，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "male_confrontation",
+      "name_ja": "漢の戦い",
+      "name_zh_working": "男子汉的战争",
+      "kind": "Y",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "ninja": 1
+      },
+      "effect_zh": "忍者必须是男性，不能是少年。轮回结束时，若忍者（包括其尸体）暗跃达到 2，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "castingConstraints": [
+        "ninja.tag=male"
+      ]
+    },
+    {
+      "id": "devils_hand",
+      "name_ja": "忍び寄る魔手",
+      "name_zh_working": "魔爪渐进",
+      "kind": "Y",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "key_person": 1,
+        "cultist": 1,
+        "ninja": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "fated_connections",
+      "name_ja": "因果の絆",
+      "name_zh_working": "因果之绊",
+      "kind": "Y",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "friend": 1,
+        "serial_killer": 1,
+        "misleader": 1
+      },
+      "effect_zh": "轮回开始时，为上个轮回结束时已死亡的一名人物设置 EX 卡；与「诸神之骰」不叠加。带有 EX 卡的人物角色变为关键人物，失去原角色。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "love_hate_spiral",
+      "name_ja": "憎愛スパイラル",
+      "name_zh_working": "爱与恨的螺旋",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "friend": 1,
+        "obstinate": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "witches_tea_time",
+      "name_ja": "魔女のお茶会",
+      "name_zh_working": "魔女的茶会",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "friend": 1,
+        "misleader": 1,
+        "witch": 2
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "dice_of_gods",
+      "name_ja": "神のサイコロ",
+      "name_zh_working": "诸神之骰",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "serial_killer": 1,
+        "obstinate": 1
+      },
+      "effect_zh": "轮回开始时，为上个轮回结束时已死亡的一名人物设置 EX 卡；与「因果之绊」不叠加。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "unsafe_trigger",
+      "name_ja": "不定因子χ怪",
+      "name_zh_working": "χ异因子",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "factor": 1
+      },
+      "effect_zh": "剧作家能力阶段，可以在活着的因子所在地点放置 1 暗跃。每轮回一次。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "showtime_death",
+      "name_ja": "死のショウタイム",
+      "name_zh_working": "死亡真人秀",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "magician": 1,
+        "immortal": 1
+      },
+      "effect_zh": "轮回结束时，若仍存活的人物不超过 6 人，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "unanswered_heart",
+      "name_ja": "通わぬ心",
+      "name_zh_working": "心无灵犀",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "misleader": 1,
+        "magician": 1
+      },
+      "effect_zh": "翻牌结算时，友好禁止同时具有移动禁止的效果。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "worship_apocalypse",
+      "name_ja": "滅亡を謳うもの",
+      "name_zh_working": "灭亡讴歌",
+      "kind": "X",
+      "sets": [
+        "MZ"
+      ],
+      "addedRoles": {
+        "prophet": 1
+      },
+      "effect_zh": "剧本必须至少包含一个自杀事件。事件阶段，若预言者仍然存活，普通人作为犯人时不安临界 −1。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "castingConstraints": [
+        "incidents.include=suicide"
+      ]
     }
   ],
   "incidents": [
@@ -1325,7 +1600,8 @@
       "name_zh_working": "不安扩大",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effect_zh": "任意一个人物不安 +2，再让另一个人物暗跃 +1。",
       "defaultChooser": "mastermind",
@@ -1337,7 +1613,8 @@
       "name_zh_working": "自杀",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effect_zh": "犯人死亡。",
       "defaultChooser": "mastermind",
@@ -1349,7 +1626,8 @@
       "name_zh_working": "医院事件",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effect_zh": "医院暗跃达到 1 时，医院里的所有人物死亡；达到 2 时，主人公也死亡。",
       "defaultChooser": "mastermind",
@@ -1373,7 +1651,8 @@
       "name_zh_working": "行踪不明",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MZ"
       ],
       "effect_zh": "把犯人移到任意一个他能进入的地点，然后那个地点暗跃 +1。",
       "defaultChooser": "mastermind",
@@ -1412,6 +1691,86 @@
       "effect_zh": "与犯人同一地点的一个人物（可以是犯人）友好、不安或暗跃 +1。",
       "defaultChooser": "mastermind",
       "sourceRef": "JP5:p31,36"
+    },
+    {
+      "id": "serial_murder",
+      "name_ja": "連続殺人",
+      "name_zh_working": "连续杀人",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "与犯人同一地点的另一个人物死亡。同一人物可以是多个连续杀人事件的犯人。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "repeatCulprit": true
+    },
+    {
+      "id": "conspiracies",
+      "name_ja": "陰謀工作",
+      "name_zh_working": "阴谋工作",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "以暗跃数量代替不安判断是否发生。发生时，选择结算「连续杀人」或「行踪不明」的效果。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "triggerCounter": "intrigue"
+    },
+    {
+      "id": "uproar",
+      "name_ja": "大暴動",
+      "name_zh_working": "大暴动",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "学校暗跃达到 1 时，学校里的所有人物死亡；都市暗跃达到 1 时，都市里的所有人物死亡。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "confession",
+      "name_ja": "告白",
+      "name_zh_working": "告白",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "公开犯人及其角色。忍者仍可按自身能力谎报角色。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "breakthrough",
+      "name_ja": "打開",
+      "name_zh_working": "突破",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "领导者选择任意一名人物或一个地点，移除其 2 暗跃。",
+      "defaultChooser": "leader",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "faked_suicide",
+      "name_ja": "偽装自殺",
+      "name_zh_working": "伪装自杀",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "为犯人设置 EX 卡。本轮回余下时间，主人公不能对任何带有 EX 卡的人物盖行动牌。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "fake_incident",
+      "name_ja": "偽装事件",
+      "name_zh_working": "伪装事件",
+      "sets": [
+        "MZ"
+      ],
+      "effect_zh": "若犯人初始地点的暗跃达到 2，主人公死亡。公开日程可以记为另一事件名称，秘密剧本仍须写为伪装事件。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
+      "allowsPublicType": true
     }
   ],
   "actionDeckEntries": [

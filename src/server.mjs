@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
-import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from './content.mjs';
+import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from './content.mjs';
 import {createGame,view,hash,VERSION} from './engine.mjs';
 import {configureKey,configured,generateWithAi,model,rates} from './ai.mjs';
 import {MODES,project,playStep,stepReport,saveSummary} from './play.mjs';
@@ -36,7 +36,7 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/catalog')return json(res,200,catalog);
  if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
-  const b=await body(req),script=b.script||starter,mode=MODES.includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('花费上限须在 $0.01–$10 之间');
+  const b=await body(req),script=scriptForGame(b),mode=MODES.includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('花费上限须在 $0.01–$10 之间');
   const state=createGame(script),id=randomUUID();db.exec('BEGIN');try{db.prepare('INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)').run(id,owner,mode,JSON.stringify(state),budget,new Date().toISOString());db.prepare('INSERT INTO frames VALUES(?,?,?,?,?)').run(id,0,'null',JSON.stringify(state),hash(state));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}return json(res,201,response(getGame(id,owner)));
  }
  if(p==='/api/scripts/starter')return json(res,200,starter);

@@ -1,22 +1,48 @@
 import {esc,icon,btn,iconBtn} from '../html.mjs';
-import {char,name,COUNTERS} from '../lookup.mjs';
+import {char,name,COUNTERS,plotsFor} from '../lookup.mjs';
+import {normalizeGameSetup,randomSetup} from '../game-setup.mjs';
+import {parseDraft} from '../script-draft.mjs';
 import {cardsOn} from './board.mjs';
 import {recapHtml} from './dock.mjs';
 
 const frame=(label,body,cls='')=>`<div class="overlay"><section class="modal ${cls}" role="dialog" aria-modal="true" aria-label="${esc(label)}">${body}</section></div>`;
 const head=title=>`<header class="modal-head"><h2>${title}</h2>${iconBtn('close','close','关闭')}</header>`;
 
-export function newGameModal(state,mode='heroes',script='starter'){
- const {info,editor}=state;
- const tile=(group,value,title,detail,checked,glyph='')=>`<label class="tile"><input type="radio" name="${group}" value="${value}"${checked?' checked':''}><span>${glyph?icon(glyph):''}<b>${title}</b><small>${detail}</small></span></label>`;
+export function newGameModal(state,mode='heroes',script='starter',values={}){
+ const {info,editor}=state,random=randomSetup(script),draft=script==='editor'?parseDraft(editor.text):null;
+ const setup=normalizeGameSetup(script,{communication:draft?.communication||'between_loops_only',incidentVisibility:draft?.settings?.incidentVisibility||'hidden',...values});
+ const option=(value,label,current)=>`<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;
+ const select=(id,options,current)=>`<select id="${id}">${options.map(([v,l])=>option(v,l,current)).join('')}</select>`;
+ const field=(label,control,cls='')=>`<label class="field ${cls}"><span>${label}</span>${control}</label>`;
+ const number=(id,value,min,max)=>`<input id="${id}" type="number" min="${min}" max="${max}" step="1" required value="${esc(value)}">`;
+ const plotOptions=kind=>[['','随机'],...plotsFor(setup.ruleset,kind).map(p=>[p.id,p.name_zh_working])];
+ const tile=(group,value,title,detail,checked,glyph='')=>`<label class="tile"><input type="radio" id="${group}-${value}" name="${group}" value="${value}"${checked?' checked':''}><span>${glyph?icon(glyph):''}<b>${title}</b><small>${detail}</small></span></label>`;
  return frame('新对局',`${head('新对局')}
   <h4>你扮演</h4><div class="tiles">${tile('new-mode','heroes','主人公','阻止惨剧',mode==='heroes','users')}${tile('new-mode','mastermind','剧作家','制造惨剧',mode==='mastermind','mask')}${tile('new-mode','observe','观战','看双方自动对局',mode==='observe','eye')}</div>
-  <h4>剧本</h4><div class="tiles">${tile('new-script','starter','起始剧本','3 天 × 3 轮回 · 推荐新手',script==='starter')}${tile('new-script','FS','随机 · 入门','规则少，容易上手',script==='FS')}${tile('new-script','BTX','随机 · 进阶','规则更多，有最后的战斗',script==='BTX')}${editor.text.trim()?tile('new-script','editor','我的剧本','剧本工坊里的那份',script==='editor'):''}</div>
+  <h4>剧本</h4><div class="tiles">${tile('new-script','starter','起始剧本','3 天 × 3 轮回 · 推荐新手',script==='starter')}${tile('new-script','FS','随机 · FS','First Steps · 入门',script==='FS')}${tile('new-script','BTX','随机 · BTX','Basic Tragedy Χ · 进阶',script==='BTX')}${tile('new-script','MZ','随机 · MZ','Midnight Zone · 扩展',script==='MZ')}${editor.text.trim()?tile('new-script','editor','我的剧本','剧本工坊里的那份',script==='editor'):''}</div>
   <div class="fields">
-   <label class="field"><span>对手</span><select id="new-opponent">${info.configured?'<option value="ai">DeepSeek AI</option>':''}<option value="bot">离线机器人</option></select></label>
-   <label class="field"><span>主人公讨论</span><select id="new-talk"><option value="between_loops_only">只在轮回之间</option><option value="allowed_during_loop">随时可以</option></select></label>
-   ${info.configured?'<label class="field"><span>AI 花费上限（美元）</span><input id="new-budget" type="number" min=".01" max="10" step=".1" value=".5"></label>':''}
+   ${field('对手',select('new-opponent',[...(info.configured?[['ai','DeepSeek AI']]:[]),['bot','离线机器人']],setup.opponent||(info.configured?'ai':'bot')))}
+   ${field('主人公讨论',select('new-talk',[['between_loops_only','只在轮回之间'],['allowed_during_loop','随时可以']],setup.communication))}
+   ${info.configured?field('AI 花费上限（美元）',`<input id="new-budget" type="number" min=".01" max="10" step=".01" required value="${esc(setup.budget)}">`):''}
   </div>
+  <details class="setup-options" id="new-advanced"${setup.advancedOpen?' open':''}>
+   <summary>进阶自定义 <span>本场的规则与人物</span></summary>
+   ${random?`<div class="fields">
+    ${field('惨剧集合',select('new-ruleset',[['FS','FS · First Steps'],['BTX','BTX · Basic Tragedy Χ'],['MZ','MZ · Midnight Zone']],setup.ruleset))}
+    ${field('随机种子',number('new-seed',setup.seed,0,Number.MAX_SAFE_INTEGER))}
+    ${field('每轮回天数',number('new-days',setup.days,1,10))}
+    ${field('轮回数',number('new-loops',setup.loops,1,8))}
+    ${field('规则 Y',select('new-main',plotOptions('Y'),setup.mainPlot),'wide')}
+    ${setup.subPlots.map((p,i)=>field('规则 X'+(setup.ruleset!=='FS'?' '+(i+1):''),select('new-sub-'+i,plotOptions('X').filter(([id])=>!id||id===p||!setup.subPlots.includes(id)),p),'wide')).join('')}
+    ${field('人物池',select('new-pool',[['standard','常用人物'],['all','全部基础人物（24 人）']],setup.characterPool))}
+    ${field('事件数',number('new-incidents',setup.incidentCount,0,Math.min(10,Number(setup.days))))}
+   </div>
+   <label class="setup-check"><input id="new-ai-character" type="checkbox"${setup.includeAI?' checked':''}><span>保证人工智能（AI）登场</span></label>
+   <p class="hint">人物会从所选池中抽取。人工智能可模拟日程中的事件。</p>
+   <p class="hint">指定规则会缩小推理范围；想保留悬念请选“随机”。</p>`:'<p class="hint">这份剧本已有固定的规则、人物与日程。选择随机剧本即可在此定制，或在剧本工坊编辑。</p>'}
+   <div class="fields">${field('事件日程',select('new-visibility',[['hidden','隐藏名称（本站默认）'],['public','公开名称（原版日程）']],setup.incidentVisibility),'wide')}</div>
+   <p class="hint">已发生的事件会公开名称和结果；事件或能力明确要求时，才公开犯人身份。MZ 的伪装事件按其公开名称显示。人工智能主动模拟会公开所选日的名称，其他隐藏日程不变。</p>
+  </details>
   <footer class="modal-foot">${btn('取消','close')}${btn('开始'+icon('next'),'create','primary big')}</footer>`,'wide');
 }
 
@@ -26,7 +52,7 @@ export function characterModal(id,v){
  const stat=key=>`<span class="${COUNTERS[key].cls}">${icon(COUNTERS[key].icon)}${COUNTERS[key].label} ${here[key]}${key==='paranoia'?' / '+c.paranoiaLimit:''}</span>`;
  return frame(name(id)+'详情',`${head(`${esc(name(id))} <small>${esc(c.name_ja)}</small>`)}
   <div class="detail"><img class="detail-card" src="/${c.card}" alt="${esc(name(id))}的人物卡"><div class="detail-copy">
-   ${role?`<p class="detail-role">角色：<b>${esc(name(role))}</b>${v.secret?' · 只有你知道':' · 已确认'}</p>`:''}
+   ${role?`<p class="detail-role">角色：<b>${esc(name(role))}</b>${v.secret?' · 只有你知道':v.script.ruleset==='MZ'?' · 已宣告':' · 已确认'}</p>`:''}
    ${here?`<p class="detail-state">${stat('goodwill')}${stat('paranoia')}${stat('intrigue')}${here.guard?stat('guard'):''}${here.alive?'':'<span class="dead">已死亡</span>'}</p><p class="hint">位于${esc(name(here.location))}${here.present?'':'（未登场）'}</p>`:''}
    ${cards?`<div class="detail-cards"><span class="hint">今天的牌</span>${cards}</div>`:''}
    <p class="hint">初始地点：${esc(name(c.start))} · 不能进入：${c.forbiddenLocations.map(l=>esc(name(l))).join('、')||'无'} · 不安上限 ${c.paranoiaLimit}</p>
@@ -39,7 +65,7 @@ export function guideModal(){
  const step=(title,text)=>`<li><b>${title}</b><p>${text}</p></li>`;
  return frame('玩法',`${head('怎么玩')}
   <ol class="guide-steps">
-   ${step('目标','只要有一个轮回从头到尾没有失败，主人公就赢。每个轮回都失败，剧作家赢。')}
+   ${step('目标','只要有一个轮回从头到尾没有失败，主人公就赢。轮回全部失败后，FS 由剧作家获胜；BTX / MZ 还有最后的战斗，主人公可指认全部配役争取胜利。')}
    ${step('出牌','先选一张手牌，再点人物或地点。六张牌出齐后一起翻开。')}
    ${step('看计数',`<span class="p">${icon('unrest')}不安</span>满了，当天的犯人就会引发事件。<span class="i">${icon('intrigue')}暗跃</span>多了，轮回多半会失败。<span class="g">${icon('heart')}友好</span>够了，就能用人物的能力。`)}
    ${step('推理','留意剧作家总把牌出给谁。“推理”页会帮你排除不可能的角色和规则。')}
@@ -51,10 +77,10 @@ export function guideModal(){
 export function truthModal(script,g){
  const known=g.knownRoles||{};
  return frame('真相',`${head('真相')}
-  <div class="truth-plots"><div><small>主规则</small><b>${esc(name(script.mainPlot))}</b></div>${script.subPlots.map(p=>`<div><small>副规则</small><b>${esc(name(p))}</b></div>`).join('')}</div>
+  <div class="truth-plots"><div><small>规则 Y</small><b>${esc(name(script.mainPlot))}</b></div>${script.subPlots.map(p=>`<div><small>规则 X</small><b>${esc(name(p))}</b></div>`).join('')}</div>
   <div class="truth-grid">${script.characters.map(c=>{
    const role=script.roles[c],special=role!=='person';
-   return `<div class="truth-card${special?'':' plain'}${known[c]?' found':''}"><img src="/${char(c).portrait}" alt=""><b>${esc(name(c))}</b><span>${esc(name(role))}</span>${g.mode==='heroes'&&special?`<small>${known[c]?'已识破':'未识破'}</small>`:''}</div>`;
+   return `<div class="truth-card${special?'':' plain'}${known[c]?' found':''}"><img src="/${char(c).portrait}" alt=""><b>${esc(name(c))}</b><span>${esc(name(role))}</span>${g.mode==='heroes'&&special?`<small>${known[c]?(script.ruleset==='MZ'?'曾宣告':'已识破'):'未识破'}</small>`:''}</div>`;
   }).join('')}</div>
   <h4>事件日程</h4>${script.incidents.map(e=>`<div class="schedule"><b>第 ${e.day} 日</b><span>${esc(name(e.type))}</span><em>犯人 ${esc(name(e.culprit))}</em></div>`).join('')||'<p class="hint">没有事件。</p>'}
   <footer class="modal-foot">${btn('再来一局','new')}${btn(icon('film')+'回放','open-replay','primary')}</footer>`,'wide truth');

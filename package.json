@@ -1,6 +1,6 @@
 {
   "name": "tragedy-looper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "private": true,
   "engines": {
@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.mjs",
+    "dev": "node src/server.mjs",
     "test": "node scripts/test-all.mjs",
     "build": "node scripts/build-worker.mjs"
   }

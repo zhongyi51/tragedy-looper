@@ -5,11 +5,11 @@ import {MARKS,clues,failure} from '../deduce.mjs';
 const REFUSAL={optional:'可以拒绝能力',mandatory:'一定拒绝能力'};
 
 export function incidentSchedule(v){
- const named=v.seat==='M'||Boolean(v.secret);
+ const named=v.seat==='M'||Boolean(v.secret)||v.script.settings?.incidentVisibility==='public';
  return v.script.incidents.map(e=>{
   const happened=v.occurred?.includes(e.day),status=happened?'已发生':e.day<v.day?'未发生':e.day===v.day?'今日':'';
-  const culprit=v.knownCulprits?.[e.day];
-  return `<div class="schedule${e.day===v.day?' today':''}${e.day<v.day?' past':''}${happened?' happened':''}"><b>第 ${e.day} 日</b><span class="${named&&e.type?'':'unrevealed'}">${named&&e.type?esc(name(e.type)):'事件未公开'}</span>${culprit?`<em>犯人 ${esc(name(culprit))}</em>`:''}${status?`<i>${status}</i>`:''}</div>`;
+  const culprit=v.knownCulprits?.[e.day],type=(named?e.type:undefined)||v.knownIncidentTypes?.[e.day];
+  return `<div class="schedule${e.day===v.day?' today':''}${e.day<v.day?' past':''}${happened?' happened':''}"><b>第 ${e.day} 日</b><span class="${type?'':'unrevealed'}">${type?esc(name(type)):'事件未公开'}</span>${culprit?`<em>犯人 ${esc(name(culprit))}</em>`:''}${status?`<i>${status}</i>`:''}</div>`;
  }).join('')||'<p class="hint">没有事件。</p>';
 }
 
@@ -24,8 +24,8 @@ function intel(v,ctx){
    ${v.secret.incidents.map(e=>`<p class="secret-incident">第 ${e.day} 日 · ${esc(name(e.type))} · 犯人 ${esc(name(e.culprit))}</p>`).join('')}</section>`:'';
  const budget=!ctx.readOnly&&v.aiConfigured?`<section class="block budget"><h4>AI 花费</h4><div class="budget-row"><span>${v.spent===null?'对局结束后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}</section>`:'';
  return `<section class="block"><h4>${icon('clock')}事件日程</h4>${incidentSchedule(v)}</section>
-  ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的能力可以查出角色。</p>'}</section>`}
-  ${v.knownPlots?.length?`<section class="block"><h4>已公开的副规则</h4><p class="plots">${v.knownPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p></section>`:''}
+  ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':v.script.ruleset==='MZ'?'已宣告的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的能力可以查出角色。</p>'}</section>`}
+  ${v.knownPlots?.length?`<section class="block"><h4>已公开的规则 X</h4><p class="plots">${v.knownPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p></section>`:''}
   ${flags.length?`<section class="block"><h4>本轮回</h4>${flags.map(f=>`<p class="flag">${esc(f)}</p>`).join('')}</section>`:''}
   ${curtain}${budget}
   ${v.winner&&!ctx.readOnly?`<section class="block">${btn('查看真相','truth','primary wide')}</section>`:''}
@@ -57,18 +57,18 @@ function sheet(v,ctx){
  const a=ctx.analysis,tool=ctx.tool,cols=a.roles.filter(r=>!r.hidden),gone=a.roles.filter(r=>r.hidden);
  const toolBtn=(id,label)=>`<button type="button" class="tool ${id}${tool===id?' active':''}" data-do="sheet-tool" data-tool="${id}" aria-pressed="${tool===id}"><b>${MARKS[id]}</b>${label}</button>`;
  const chip=p=>`<button type="button" class="plot-chip ${p.mark}${p.auto?' auto':''}" data-do="sheet-plot" data-p="${p.id}"${p.locked?' disabled':''} title="${esc([p.auto||(p.locked?'已公开':''),p.effect].filter(Boolean).join(' · '))}"><i>${MARKS[p.mark]||''}</i><span><b>${esc(p.name)}</b>${p.roles?`<small>${esc(p.roles)}</small>`:''}</span></button>`;
- const quota=r=>r.id==='person'?'':r.min===r.max?r.max:r.min+'–'+r.max;
+ const quota=r=>r.uncertain?'—':r.id==='person'?'':r.min===r.max?r.max:r.min+'–'+r.max;
  const cell=(row,r)=>{
   const c=row.cells[r.id],state=c.locked?'已确认':c.auto||(c.lead?'推论：很可能':'');
   return `<td><button type="button" class="cell ${c.mark}${c.auto?' auto':''}${c.locked?' locked':''}${c.lead?' lead':''}" data-do="sheet" data-c="${row.id}" data-r="${r.id}"${c.locked?' disabled':''} title="${esc(state)}" aria-label="${esc(`${name(row.id)} · ${r.name}：${MARKS[c.mark]||'未标记'}${state?'（'+state+'）':''}`)}">${MARKS[c.mark]||(c.lead?'✓':'')}</button></td>`;
  };
  const culprit=e=>`<label class="culprit-row"><b>第 ${e.day} 日</b>${e.known?`<span class="sure">${esc(name(e.known))} · 已确认</span>`:`<select data-sheet-culprit="${e.day}" aria-label="第 ${e.day} 日事件的犯人"><option value="">未定</option>${v.script.characters.map(c=>`<option value="${c}"${e.guess===c?' selected':''}>${esc(name(c))}</option>`).join('')}</select>`}</label>`;
  const history=clues(v);
- return `<div class="sheet-tools" role="toolbar" aria-label="标记工具">${toolBtn('no','排除')}${toolBtn('yes','认定')}${toolBtn('maybe','存疑')}
+ return `${a.manualOnly?'<p class="hint">MZ 中角色公开可能是伪装，EX 卡也可能改变角色。此处保留你的标记，不据此自动排除原配役。</p>':''}<div class="sheet-tools" role="toolbar" aria-label="标记工具">${toolBtn('no','排除')}${toolBtn('yes','认定')}${toolBtn('maybe','存疑')}
    <button type="button" class="icon-btn sheet-wide" data-do="sheet-wide" title="${ctx.wide?'收窄':'加宽'}" aria-label="${ctx.wide?'收窄侧栏':'加宽侧栏'}" aria-pressed="${Boolean(ctx.wide)}">${icon('panel')}</button></div>
   <section class="block"><h4>规则 <small>${a.only?'只剩一种组合':`还剩 ${a.combos} 种组合`}</small></h4>
-   <div class="plot-chips"><span class="plot-kind">主规则</span>${a.plots.main.map(chip).join('')}</div>
-   <div class="plot-chips"><span class="plot-kind">副规则 ×${a.plots.subCount}</span>${a.plots.sub.map(chip).join('')}</div></section>
+   <div class="plot-chips"><span class="plot-kind">规则 Y</span>${a.plots.main.map(chip).join('')}</div>
+   <div class="plot-chips"><span class="plot-kind">规则 X ×${a.plots.subCount}</span>${a.plots.sub.map(chip).join('')}</div></section>
   <section class="block"><h4>角色</h4>
    <div class="sheet-scroll"><table class="sheet"><thead><tr><th></th>${cols.map(r=>`<th class="${r.id!=='person'&&r.max&&r.yes>=r.max?'full':''}" title="${esc(r.name)}${r.id==='person'?'':` · ${quota(r)} 人，已认定 ${r.yes}`}"><span>${esc(r.name)}</span><small>${quota(r)}</small></th>`).join('')}</tr></thead>
    <tbody>${a.rows.map(row=>`<tr class="${row.confirmed?'confirmed':''}"><th><button type="button" class="sheet-who" data-character="${row.id}" title="${esc(row.note)}"><img src="/${char(row.id).portrait}" alt="" loading="lazy">${esc(name(row.id))}${row.note?'<i></i>':''}</button></th>${cols.map(r=>cell(row,r)).join('')}</tr>`).join('')}</tbody></table></div>
@@ -88,9 +88,9 @@ function reference(v){
  const role=r=>`<div class="ref"><b>${esc(r.name_zh_working)}${r.maxCount?`<i>至多 ${r.maxCount} 人</i>`:''}${REFUSAL[r.goodwillRefusal]?`<i>${REFUSAL[r.goodwillRefusal]}</i>`:''}</b>${r.effects_zh.length?r.effects_zh.map(t=>`<p>${esc(t)}</p>`).join(''):'<p class="none">没有能力</p>'}</div>`;
  const incident=e=>`<div class="ref"><b>${esc(e.name_zh_working)}</b><p>${esc(e.effect_zh)}</p></div>`;
  const fold=(title,body,open=false)=>`<details class="fold"${open?' open':''}><summary>${title}</summary>${body}</details>`;
- return `<p class="hint">本剧本：1 条主规则 + ${set==='FS'?1:2} 条副规则。</p>
-  ${fold('主规则',plotsFor(set,'Y').map(plot).join(''),true)}
-  ${fold('副规则',plotsFor(set,'X').map(plot).join(''))}
+ return `<p class="hint">本剧本：1 条规则 Y + ${set==='FS'?1:2} 条规则 X。</p>
+  ${fold('规则 Y',plotsFor(set,'Y').map(plot).join(''),true)}
+  ${fold('规则 X',plotsFor(set,'X').map(plot).join(''))}
   ${fold('角色',rolesFor(set).map(role).join(''))}
   ${fold('事件',incidentsFor(set).map(incident).join(''))}`;
 }

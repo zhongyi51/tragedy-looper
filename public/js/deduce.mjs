@@ -1,7 +1,7 @@
 // The deduction sheet's logic: what the player's marks and the public record still leave possible.
 import {char,name,phaseLabel,rolesFor,plotsFor,plotRoles} from './lookup.mjs';
 
-const SUB_PLOTS={FS:1,BTX:2};
+const SUB_PLOTS={FS:1,BTX:2,MZ:2};
 export const MARKS={no:'✗',yes:'✓',maybe:'?'};
 // Results worth reading back: at the end of a day, and loop by loop on the sheet.
 export const NOTABLE=['death','incident','reveal','refused','ignored'];
@@ -61,8 +61,10 @@ export function failure(v,loop=v.loop){
 
 export function analyze(v,marks){
  marks={...emptyMarks(),...marks};
- const set=v.script.ruleset,roles=rolesFor(set),def=new Map(roles.map(r=>[r.id,r])),cast=v.script.characters;
- const known=v.knownRoles||{},knownPlots=v.knownPlots||[],{refused,granted}=requests(v);
+ const set=v.script.ruleset,manualOnly=set==='MZ',roles=rolesFor(set),def=new Map(roles.map(r=>[r.id,r])),cast=v.script.characters;
+ // In Midnight Zone a Ninja may lie about its role and EX can change a role during a loop.
+ // Keep declarations visible, but never treat them as proof of the original script assignment.
+ const known=manualOnly?{}:v.knownRoles||{},knownPlots=v.knownPlots||[],{refused,granted}=manualOnly?{refused:new Set(),granted:new Set()}:requests(v);
  const picked=c=>Object.keys(marks.roles[c]||{}).find(r=>marks.roles[c][r]==='yes'&&def.has(r));
 
  // 1. Each cell from confirmed roles, the player's marks and how the character answered requests.
@@ -94,29 +96,29 @@ export function analyze(v,marks){
  }));
  const fits=(combo,strict)=>knownPlots.every(p=>combo.ids.includes(p))
   &&(!strict||Object.entries(marks.plots).every(([p,m])=>m==='maybe'||(m==='yes')===combo.ids.includes(p)))
-  &&roles.every(({id:r})=>{
+  &&(manualOnly||roles.every(({id:r})=>{
    if(r==='person')return true;
    const [lo,hi]=combo.quota[r]||[0,0];
    return (strict?yes:sure)[r]<=hi&&(strict?open:free)[r]>=lo;
-  });
+  }));
  let combos=all.filter(c=>fits(c,true));
  const conflict=!combos.length;
  if(conflict)combos=all.filter(c=>fits(c,false));
  if(!combos.length)combos=all;
- const range=Object.fromEntries(roles.map(({id:r})=>[r,r==='person'?[0,cast.length]:[Math.min(...combos.map(c=>c.quota[r]?.[0]||0)),Math.max(...combos.map(c=>c.quota[r]?.[1]||0))]]));
+ const range=Object.fromEntries(roles.map(({id:r})=>[r,r==='person'||manualOnly?[0,cast.length]:[Math.min(...combos.map(c=>c.quota[r]?.[0]||0)),Math.max(...combos.map(c=>c.quota[r]?.[1]||0))]]));
 
  // 3. Cells the rules settle: roles no remaining combination has, and roles already fully cast.
  for(const c of cast)for(const {id:r} of roles){
   if(cells[c][r].mark||r==='person')continue;
   if(!range[r][1])cells[c][r]={mark:'no',auto:'这一局没有这个角色'};
-  else if(yes[r]>=range[r][1])cells[c][r]={mark:'no',auto:'人数已满'};
+  else if(!manualOnly&&yes[r]>=range[r][1])cells[c][r]={mark:'no',auto:'人数已满'};
  }
 
  // 4. What follows: a role with exactly enough candidates left, a character with one role left.
  const hints=[],warns=conflict?['这些标记互相矛盾，没有哪种规则组合能同时满足。']:[];
  const lead=(c,r,text)=>{if(cells[c][r].lead)return;cells[c][r].lead=true;hints.push({character:c,role:r,text});};
  for(const {id:r} of roles){
-  if(r==='person'||range[r][0]<1)continue;
+  if(manualOnly||r==='person'||range[r][0]<1)continue;
   const need=range[r][0]-yes[r],left=cast.filter(c=>['','maybe'].includes(cells[c][r].mark));
   if(need>0&&left.length===need)for(const c of left)lead(c,r,`只剩${name(c)}能当${name(r)}`);
   else if(need>0&&left.length<need)warns.push(`能当${name(r)}的人不够了。`);
@@ -129,7 +131,7 @@ export function analyze(v,marks){
  }
  // Public events that point at a role: a loop that ends the moment one person dies, a ban that fails on someone.
  const points=(c,r,text)=>{if(def.has(r)&&range[r][1]&&!known[c]&&!picked(c)&&['','maybe'].includes(cells[c][r].mark))lead(c,r,text);};
- for(const e of v.log){
+ for(const e of manualOnly?[]:v.log){
   if(e.type==='failed'&&e.when==='death'&&e.dead.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死，轮回就结束了，多半是${name('key_person')}`);
   if(e.type==='ignored'&&e.what==='goodwill')points(e.who,'time_traveler',`${name(e.who)}不受友好禁止影响，多半是${name('time_traveler')}`);
  }
@@ -140,8 +142,9 @@ export function analyze(v,marks){
   return {id:p.id,name:p.name_zh_working,roles:plotRoles(p),effect:p.effect_zh||'',...state};
  };
  return {
-  roles:roles.map(({id:r})=>({id:r,name:name(r),min:range[r][0],max:range[r][1],yes:yes[r],hidden:r!=='person'&&!range[r][1]&&!yes[r]})),
-  rows:cast.map(c=>({id:c,cells:cells[c],confirmed:Boolean(known[c]),pick:known[c]?null:picked(c)||null,note:refused.has(c)?'拒绝过能力':granted.has(c)?'接受过能力':''})),
+  manualOnly,
+  roles:roles.map(({id:r})=>({id:r,name:name(r),uncertain:manualOnly,min:range[r][0],max:range[r][1],yes:yes[r],hidden:r!=='person'&&!range[r][1]&&!yes[r]})),
+  rows:cast.map(c=>({id:c,cells:cells[c],confirmed:Boolean(known[c]),pick:known[c]?null:picked(c)||null,note:manualOnly&&v.knownRoles?.[c]?'已宣告：'+name(v.knownRoles[c])+'（可能是伪装）':refused.has(c)?'拒绝过能力':granted.has(c)?'接受过能力':''})),
   plots:{main:plotsFor(set,'Y').map(plot),sub:plotsFor(set,'X').map(plot),subCount:SUB_PLOTS[set]},
   combos:combos.length,only:combos.length===1?combos[0].ids.map(name):null,
   culprits:v.script.incidents.map(e=>({day:e.day,known:v.knownCulprits?.[e.day]||null,guess:cast.includes(marks.culprits[e.day])?marks.culprits[e.day]:null})),
