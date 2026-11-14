@@ -7,3 +7,5 @@ dist/
 .openai/*.json.local
 outputs/
 reports/browser-*.json
+__pycache__/
+*.pyc

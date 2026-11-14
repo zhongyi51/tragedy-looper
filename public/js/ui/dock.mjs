@@ -71,7 +71,7 @@ function choices(v,blocked,sheet){
 function outcome(v){
  const win=v.winner==='heroes',yours=v.mode==='observe'?'':(v.mode!=='mastermind')===win?' · 你赢了':' · 你输了';
  return `<div class="outcome ${win?'heroes':'mastermind'}"><span class="outcome-mark" aria-hidden="true">${icon(win?'sun':'skull')}</span><div><b>${win?'明天，终于到来。':'惨剧，再度重演。'}</b><p>${win?'主人公':'剧作家'}获胜${yours} · 共 ${v.loop} 个轮回</p></div>
-  <div class="row">${btn('查看真相','truth','primary')}${btn('回放','open-replay')}${btn('导出回放','full-replay','ghost')}${btn(icon('plus')+'再来一局','new')}</div></div>`;
+  <div class="row">${btn('查看真相','truth','primary')}${btn('终局复盘','review')}${btn('回放','open-replay')}${btn('导出回放','full-replay','ghost')}${btn(icon('plus')+'再来一局','new')}</div></div>`;
 }
 
 function waiting(v,ctx){

@@ -7,7 +7,8 @@ import {sanitizePublicReplay} from '../public/replay-validation.mjs';
 const script=visibility=>({...structuredClone(starter),settings:{incidentVisibility:visibility}});
 
 test('official public schedule exposes incident types without revealing culprits or plots',()=>{
- const s=createGame(script('public'));
+ const s=createGame(script(undefined));
+ assert.equal(view(s,'public').script.settings.incidentVisibility,'public');
  for(const seat of ['A','B','C','public']){
   const v=view(s,seat);
   assert.deepEqual(v.script.incidents,[{day:3,type:'suicide'}]);
@@ -20,8 +21,8 @@ test('official public schedule exposes incident types without revealing culprits
  assert.deepEqual(publicScript(s.script).incidents,[{day:3,type:'suicide'}]);
 });
 
-test('legacy and hidden schedules retain dates only before the event occurs',()=>{
- for(const sc of [starter,script('hidden')]){
+test('explicit legacy hidden schedules retain dates only before the event occurs',()=>{
+ for(const sc of [script('hidden')]){
   const s=createGame(sc);
   for(const seat of ['A','B','C','public'])assert.deepEqual(view(s,seat).script.incidents,[{day:3}]);
   assert.deepEqual(view(s,'M').script.incidents,[{day:3,type:'suicide'}]);

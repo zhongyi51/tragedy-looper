@@ -5,7 +5,7 @@ import {createGame,applyCommand,turn,legalActions} from '../src/engine.mjs';
 import {decide} from '../src/ai.mjs';
 
 test('MC protagonist decisions receive public EX state without the hidden script or mastermind choices',async t=>{
- let state=createGame(generateScript({ruleset:'MC',seed:81126,incidentCount:3,includeAI:true,characterPool:'all'}));
+ let state=createGame(generateScript({ruleset:'MC',seed:81126,incidentCount:3,includeAI:true,characterPool:'all',incidentVisibility:'hidden'}));
  for(let n=0;n<20&&state.phase!=='hero_cards';n++)state=applyCommand(state,turn(state),legalActions(state)[0].command);
  assert.equal(state.phase,'hero_cards');state.extraGauge=3;state.notes.M='MC_SECRET_MASTER_NOTE';
  let sent;

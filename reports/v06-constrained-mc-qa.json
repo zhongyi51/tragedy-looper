@@ -1,0 +1,190 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "2a7889d2-6852-49af-8779-16cb7fdf6312",
+  "potentialProviderCalls": 4,
+  "httpRequests": 76,
+  "author": {
+    "MC": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MC",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 3,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111403,
+          "mainPlot": "tightrope_plan",
+          "subPlots": [
+            "isolated_psycho",
+            "master_detective"
+          ],
+          "characters": [
+            "ai_character",
+            "police",
+            "office_worker",
+            "doctor",
+            "boy_student",
+            "shrine_maiden",
+            "girl_student",
+            "patient"
+          ]
+        },
+        "requestId": "4da95091-c2b2-4387-9c59-08d34aab3d47"
+      },
+      "creationSent": true,
+      "gameId": "04e7eb9d-c805-4cd0-80cb-a80e19a1cde9",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停之后的旧街：三重迷影",
+      "ruleset": "MC",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "suspicious_letter"
+        },
+        {
+          "day": 3,
+          "type": "serial_murder"
+        }
+      ]
+    }
+  },
+  "play": {
+    "MC": {
+      "gameId": "04e7eb9d-c805-4cd0-80cb-a80e19a1cde9",
+      "controller": "bot",
+      "steps": 62,
+      "transitionFrames": 105,
+      "maximumGauge": 1,
+      "winner": "mastermind",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 86,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "reviewSummary": "剧作家获胜。实际规则：钢丝上的计划、隔离病栋、我是名侦探。",
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 8,
+          "activeIncidents": 3,
+          "inactiveIncidents": 0,
+          "informationSources": 3,
+          "maximumScheduledEX": 4,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "以‘钢丝上的计划’为主轴：轮回结束时EX不超过1则主人公失败。‘隔离病栋’让首轮结束时EX≤2时次轮EX加1。‘名侦探’引入私家侦探（不能为犯人、不会死亡），EX为0时同地点存活犯人无须不安条件即可引发事件。8人配役：幕后黑手、杀手、朋友、误导者、偏执者、治疗师、私家侦探、普通人。玩家需通过能力与事件推理配役并管理EX。",
+        "threatPlan": "首日‘不安扩大’由偏执者引发，使一人不安+2、另一人暗跃+1，抬高风险。次日‘可疑的信件’由误导者引发，移动犯人所在地点一人，若实际移动则次日无法移动，制造位置混乱。末日‘连续杀人’由杀手引发，杀死同地点另一人，且同一人可为多次连续杀人犯人。事件实际发生即EX+1（未产生效果也计），与连续杀人共同施压。私家侦探使EX为0时犯人可无视不安引发事件。",
+        "counterplay": "警察友好4每轮回一次可得知本轮回已发生的一个事件犯人；友好5每轮回一次给同地点一人1点护卫，护卫抵消一次死亡。巫女友好3每日在神社时神社暗跃−1；友好5每轮回一次得知同地点一人（含自己）角色。医生友好2每日使同地点另一人不安±1（若角色会拒绝且友好2，剧作家也可用）；友好3每日本轮回患者可进入任何地点。上班族友好3每日得知其角色。学生友好2每日使同地点另一学生不安−1。人工智能友好3每轮回一次选日程事件立即结算，需犯人时由AI充当且不算事件发生。可通过提升友好使用上述能力获取信息与保护，并以EX管理避免‘钢丝上的计划’失败。",
+        "cluePlan": "公开日程仅显示事件与日期，不自动公开犯人。警察能力可确认已发生事件犯人；巫女能力可验同地点角色；上班族能力可自证角色。‘可疑的信件’效果为移动犯人所在地点一人，可制造位置混淆，需用能力区分事实与推测。人工智能结算日程事件时由AI充当犯人，其计数总和视为不安。学生能力可降不安影响状态。",
+        "loopPlan": "第一轮3天学习事件顺序、EX增长节奏与人物位置；若首轮结束时EX≤2，触发‘隔离病栋’次轮开始EX加1。第二轮3天利用已知信息提升友好、使用警察/巫女/AI能力集中调查与反制，并管理EX避免轮回结束时EX≤1。2轮回配合3天事件密度，提供推理与反制窗口。"
+      },
+      "authoredScript": {
+        "title": "雨停之后的旧街：三重迷影",
+        "intro": "雨停之后，旧街的医院、神社、都市与学校之间，接连发生不安与死亡。人工智能、警察、上班族、医生、少年少女、巫女与住院患者被卷入其中。你只有两次轮回，必须在终局前找出所有配役，或活过这场惨剧。",
+        "ruleset": "MC",
+        "days": 3,
+        "loops": 2,
+        "communication": "between_loops_only",
+        "characters": [
+          "ai_character",
+          "police",
+          "office_worker",
+          "doctor",
+          "boy_student",
+          "shrine_maiden",
+          "girl_student",
+          "patient"
+        ],
+        "mainPlot": "tightrope_plan",
+        "subPlots": [
+          "isolated_psycho",
+          "master_detective"
+        ],
+        "roles": {
+          "ai_character": "brain",
+          "office_worker": "killer",
+          "patient": "friend",
+          "girl_student": "misleader",
+          "doctor": "paranoiac",
+          "shrine_maiden": "therapist",
+          "boy_student": "private_investigator",
+          "police": "person"
+        },
+        "incidents": [
+          {
+            "day": 1,
+            "type": "unease",
+            "culprit": "doctor"
+          },
+          {
+            "day": 2,
+            "type": "suspicious_letter",
+            "culprit": "girl_student"
+          },
+          {
+            "day": 3,
+            "type": "serial_murder",
+            "culprit": "office_worker"
+          }
+        ],
+        "settings": {
+          "incidentVisibility": "public"
+        },
+        "specialRules": [],
+        "id": "ai-9d39d2ae-3bab-47aa-833a-7e9fd3432f47",
+        "author": "DeepSeek 编剧",
+        "source": "ai",
+        "difficulty": "standard",
+        "seed": 26111403,
+        "privateDesign": {
+          "premise": "以‘钢丝上的计划’为主轴：轮回结束时EX不超过1则主人公失败。‘隔离病栋’让首轮结束时EX≤2时次轮EX加1。‘名侦探’引入私家侦探（不能为犯人、不会死亡），EX为0时同地点存活犯人无须不安条件即可引发事件。8人配役：幕后黑手、杀手、朋友、误导者、偏执者、治疗师、私家侦探、普通人。玩家需通过能力与事件推理配役并管理EX。",
+          "threatPlan": "首日‘不安扩大’由偏执者引发，使一人不安+2、另一人暗跃+1，抬高风险。次日‘可疑的信件’由误导者引发，移动犯人所在地点一人，若实际移动则次日无法移动，制造位置混乱。末日‘连续杀人’由杀手引发，杀死同地点另一人，且同一人可为多次连续杀人犯人。事件实际发生即EX+1（未产生效果也计），与连续杀人共同施压。私家侦探使EX为0时犯人可无视不安引发事件。",
+          "counterplay": "警察友好4每轮回一次可得知本轮回已发生的一个事件犯人；友好5每轮回一次给同地点一人1点护卫，护卫抵消一次死亡。巫女友好3每日在神社时神社暗跃−1；友好5每轮回一次得知同地点一人（含自己）角色。医生友好2每日使同地点另一人不安±1（若角色会拒绝且友好2，剧作家也可用）；友好3每日本轮回患者可进入任何地点。上班族友好3每日得知其角色。学生友好2每日使同地点另一学生不安−1。人工智能友好3每轮回一次选日程事件立即结算，需犯人时由AI充当且不算事件发生。可通过提升友好使用上述能力获取信息与保护，并以EX管理避免‘钢丝上的计划’失败。",
+          "cluePlan": "公开日程仅显示事件与日期，不自动公开犯人。警察能力可确认已发生事件犯人；巫女能力可验同地点角色；上班族能力可自证角色。‘可疑的信件’效果为移动犯人所在地点一人，可制造位置混淆，需用能力区分事实与推测。人工智能结算日程事件时由AI充当犯人，其计数总和视为不安。学生能力可降不安影响状态。",
+          "loopPlan": "第一轮3天学习事件顺序、EX增长节奏与人物位置；若首轮结束时EX≤2，触发‘隔离病栋’次轮开始EX加1。第二轮3天利用已知信息提升友好、使用警察/巫女/AI能力集中调查与反制，并管理EX避免轮回结束时EX≤1。2轮回配合3天事件密度，提供推理与反制窗口。",
+          "intendedDifficulty": "standard",
+          "intentionalExceptions": []
+        },
+        "generation": {
+          "source": "ai",
+          "version": "script-author-1",
+          "attempts": 2,
+          "designReview": "catalog-grounded-1",
+          "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+          "scriptHash": "11ec423ef5bc144a9c708b8dccd78e2eb9ba2a004eac8b6b7224322c9f760428",
+          "quality": {
+            "review": "static"
+          }
+        },
+        "validationStatus": "规则与静态质量检查通过；尚未经人工试玩"
+      }
+    }
+  },
+  "tactics": {},
+  "errors": [],
+  "lastSuite": "play",
+  "lastSuitePassed": true,
+  "allRequiredPassed": false
+}

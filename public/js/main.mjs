@@ -8,13 +8,13 @@ import {createSession} from './session.mjs';
 import {createAnimator,domFx} from './anim.mjs';
 import {publicDraft,printableHtml,offlineReplayHtml} from './exporters.mjs';
 import {parseDraft,blankDraft,editDraft} from './script-draft.mjs';
-import {generationOptions,randomSetup} from './game-setup.mjs';
+import {generationOptions,randomSetup,freshSeed,libraryItems,creationAttempt} from './game-setup.mjs';
 import {TABLE_SKELETON,emptyGameHtml,tableRegions} from './ui/game.mjs';
 import {homeHtml} from './ui/home.mjs';
 import {rulesHtml} from './ui/rules.mjs';
 import {editorHtml} from './ui/editor.mjs';
 import {replayIntroHtml,replayBarHtml} from './ui/replay.mjs';
-import {newGameModal,characterModal,guideModal,truthModal,bannerHtml} from './ui/modals.mjs';
+import {newGameModal,characterModal,guideModal,truthModal,reviewModal,bannerHtml} from './ui/modals.mjs';
 import {analyze,emptyMarks,markRole,markPlot,markCulprit} from './deduce.mjs';
 
 const PAGES=[['home','首页','home'],['game','对局','board'],['editor','剧本','pen'],['replay','回放','film'],['rules','规则','book']];
@@ -141,8 +141,9 @@ function applyEdit(edit){
 function readGameSetup(){
  const value=id=>$('#'+id)?.value;
  const setup={communication:value('new-talk'),opponent:value('new-opponent'),budget:Number(value('new-budget')??.5),
-  incidentVisibility:value('new-visibility'),advancedOpen:Boolean($('#new-advanced')?.open)};
- const fields={days:'new-days',loops:'new-loops',incidentCount:'new-incidents',seed:'new-seed',characterPool:'new-pool',mainPlot:'new-main'};
+  incidentVisibility:'public',advancedOpen:Boolean($('#new-advanced')?.open)};
+ const fields={days:'new-days',loops:'new-loops',incidentCount:'new-incidents',seed:'new-seed',characterPool:'new-pool',mainPlot:'new-main',
+  ruleset:'new-ruleset',lengthPreset:'new-length',difficulty:'new-difficulty',theme:'new-theme',libraryId:'new-library'};
  for(const [key,id] of Object.entries(fields))if($('#'+id))setup[key]=value(id);
  if($('#new-sub-0'))setup.subPlots=[value('new-sub-0'),...($('#new-sub-1')?[value('new-sub-1')]:[])];
  if($('#new-ai-character'))setup.includeAI=$('#new-ai-character').checked;
@@ -150,7 +151,7 @@ function readGameSetup(){
 }
 function updateNewGame(script){
  const mode=$('input[name="new-mode"]:checked').value,setup=readGameSetup();
- if(Number(setup.incidentCount)>Number(setup.days))setup.incidentCount=Number(setup.days);
+ if(setup.days!==''&&setup.days!==undefined&&setup.incidentCount!==''&&Number(setup.incidentCount)>Number(setup.days))setup.incidentCount=Number(setup.days);
  openModal(newGameModal(state,mode,script||$('input[name="new-script"]:checked').value,setup));
 }
 
@@ -215,6 +216,19 @@ const actions={
   if(state.truth?.id!==g.id)state.truth={id:g.id,script:await api(`/games/${g.id}/script?full=1`)};
   openModal(truthModal(state.truth.script,g));
  },
+ async review(){
+  const g=state.g;if(!g?.winner)return;
+  const data=await api(`/games/${g.id}/review`);state.review={gameId:g.id,data};
+  if(data.feedback?.rating)state.feedback[g.id]=data.feedback.rating;
+  openModal(reviewModal(data,g,state.feedback[g.id]));
+ },
+ async feedback(b){
+  const g=state.g;if(!g?.winner||state.sendingFeedback)return;
+  state.sendingFeedback=true;b.disabled=true;
+  try{await api(`/games/${g.id}/feedback`,{rating:b.dataset.rating});state.feedback[g.id]=b.dataset.rating;
+   if(state.review?.gameId===g.id)openModal(reviewModal(state.review.data,g,b.dataset.rating));toast('已记下这份剧本的体验。');
+  }finally{state.sendingFeedback=false;b.disabled=false;}
+ },
  async create(b){
   if(state.creating)return;
   for(const input of document.querySelectorAll('.modal input'))if(!input.checkValidity()){
@@ -222,18 +236,25 @@ const actions={
   }
   const pick=group=>$(`input[name="${group}"]:checked`).value;
   const type=pick('new-script'),mode=pick('new-mode'),setup=readGameSetup();
-  state.modal=newGameModal(state,mode,type,setup);state.creating=true;b.disabled=true;
+  let createdSuccessfully=false;
+  state.creating=true;state.modal=newGameModal(state,mode,type,setup);render();
   try{
-   const request={mode,budget:setup.budget,incidentVisibility:setup.incidentVisibility};
+   const request={mode,budget:setup.budget,incidentVisibility:'public',communication:setup.communication};
    if(randomSetup(type))request.setup=generationOptions(type,setup);
+   else if(type==='library')request.libraryId=setup.libraryId;
    else{
     request.script=type==='editor'?readDraft():await api('/scripts/starter');
     request.script.communication=setup.communication;
    }
-   const created=await api('/games',request);
-   localStorage.setItem('tl-opp-'+created.id,setup.opponent);openGame(created);play('confirmation_001');
+   state.creationAttempt=creationAttempt(request,state.creationAttempt);
+   const created=await api('/games',{...request,requestId:state.creationAttempt.requestId});state.creationAttempt=null;
+   localStorage.setItem('tl-opp-'+created.id,setup.opponent);openGame(created);createdSuccessfully=true;play('confirmation_001');
    if(!localStorage.getItem('tl-guide-seen')){localStorage.setItem('tl-guide-seen','1');openModal(guideModal());}
-  }finally{state.creating=false;b.disabled=false;}
+  }catch(error){
+   if(!error.uncertain&&error.code!=='CREATION_PENDING')state.creationAttempt=null;
+   if(error.code==='CREATION_PENDING')error.message='这次编剧仍在处理，可稍后点击开始恢复。';
+   throw error;
+  }finally{state.creating=false;if(!createdSuccessfully&&state.modal){state.modal=newGameModal(state,mode,type,setup);render();}}
  },
  async refresh(){state.saves=await api('/games');render();},
  async load(b){state.auto=false;openGame(await api('/games/'+b.dataset.id));await session.resumeRules();},
@@ -245,6 +266,7 @@ const actions={
  cast(b){applyEdit({kind:'cast',key:b.dataset.id});},
  async generate(b){await generate(b.dataset.do);},
  'ai-generate':b=>generate(b.dataset.do),
+ 'ai-polish':b=>generate(b.dataset.do),
  async 'starter-editor'(){setDraft(await api('/scripts/starter'));render();},
  async validate(){await validate();render();},
  'play-editor'(){readDraft();openModal(newGameModal(state,'mastermind','editor'));},
@@ -268,12 +290,15 @@ const actions={
 };
 async function generate(kind){
  if(state.working)return;
- const gen=editor.generator,config={ruleset:gen.ruleset,seed:+gen.seed,title:gen.theme||'未曾发生的明天',theme:gen.theme};
+ const gen=editor.generator;
+ if(kind!=='ai-polish'&&!gen.lockSeed)gen.seed=freshSeed(gen.seed);
+ const config=kind==='ai-polish'?{script:readDraft(),theme:gen.theme}:{ruleset:gen.ruleset,seed:+gen.seed,theme:gen.theme,
+  lengthPreset:gen.lengthPreset||'standard',difficulty:gen.difficulty||'standard',incidentVisibility:'public'};
  state.working=true;render();
  try{
-  const data=await api(kind==='generate'?'/scripts/generate':'/scripts/ai-generate',config);
+  const data=await api(kind==='generate'?'/scripts/generate':kind==='ai-polish'?'/scripts/ai-polish':'/scripts/ai-generate',config);
   setDraft(data.script||data);
-  toast(kind==='generate'?'已生成剧本':'AI 润色完成，约 $'+data.estimatedCost.toFixed(5));
+  toast(kind==='generate'?(gen.lockSeed?'已按种子生成剧本':'已生成另一份剧本'):(kind==='ai-polish'?'AI 润色完成':'AI 编剧完成')+(Number.isFinite(data.estimatedCost)?'，约 $'+data.estimatedCost.toFixed(5):''));
  }finally{state.working=false;render();}
 }
 
@@ -301,7 +326,7 @@ document.addEventListener('click',async e=>{
 
 document.addEventListener('input',e=>{
  const t=e.target;
- if(t.id==='gen-seed')editor.generator.seed=+t.value;
+ if(t.id==='gen-seed'){editor.generator.seed=+t.value;editor.generator.lockSeed=true;const lock=$('#gen-lock');if(lock)lock.checked=true;const button=$('[data-do="generate"]');if(button)button.textContent='按种子生成';}
  else if(t.id==='gen-theme')editor.generator.theme=t.value;
  else if(t.id==='notes')localStorage.setItem('note-'+t.dataset.note,t.value);
  else if(t.id==='script-editor'){editor.text=t.value;editor.report=null;validateSoon();}
@@ -312,10 +337,12 @@ document.addEventListener('change',async e=>{
  const t=e.target;
  try{
   if(t.name==='new-script')return updateNewGame(t.value);
-  if(t.id==='new-ruleset')return updateNewGame(t.value);
-  if(['new-main','new-sub-0','new-sub-1','new-days'].includes(t.id))return updateNewGame();
+  if(['new-ruleset','new-main','new-sub-0','new-sub-1','new-days','new-length','new-library'].includes(t.id))return updateNewGame();
   if(t.id==='replay-range')return render();
   if(t.id==='gen-set'){editor.generator.ruleset=t.value;return;}
+  if(t.id==='gen-lock'){editor.generator.lockSeed=t.checked;render();return;}
+  if(t.id==='gen-length'){editor.generator.lengthPreset=t.value;return;}
+  if(t.id==='gen-difficulty'){editor.generator.difficulty=t.value;return;}
   if(t.dataset.edit)return applyEdit({kind:t.dataset.edit,key:t.dataset.key,value:t.value});
   if(t.dataset.sheetCulprit)return editMarks(marks=>markCulprit(marks,t.dataset.sheetCulprit,t.value));
   if(t.id==='autoplay'){
@@ -367,7 +394,7 @@ window.addEventListener('hashchange',()=>{const page=location.hash.replace(/^#\/
 
 /* ---------- start ---------- */
 try{
- [state.catalog,state.info,state.saves]=await Promise.all([api('/catalog'),api('/info'),api('/games')]);
+ [state.catalog,state.info,state.saves,state.library]=await Promise.all([api('/catalog'),api('/info'),api('/games'),api('/scripts/library').then(libraryItems).catch(()=>[])]);
  setCatalog(state.catalog);
  const id=localStorage.getItem('tl-game'),resume=localStorage.getItem('tl-resume'),wanted=location.hash.replace(/^#\//,'');
  if(id)try{state.g=await api('/games/'+id);if(resume===id){state.page='game';localStorage.removeItem('tl-resume');}}catch(error){if(resume)throw error;if(error.status===404)localStorage.removeItem('tl-game');}

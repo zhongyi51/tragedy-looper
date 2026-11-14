@@ -22,15 +22,15 @@ const player=()=>({...view(createGame(starter),'A'),id:'mc-ui',mode:'heroes',bud
 const replay=v=>({format:'tragedy-replay-1',perspective:'public',frames:[{view:v}]});
 const state={info:{configured:true},editor:{text:'',tab:'form',generator:{ruleset:'MC',seed:1,theme:''}}};
 
-test('MC opening defaults to three incidents while explicit counts and partial rule choices survive',()=>{
- assert.equal(normalizeGameSetup('MC').incidentCount,3);
- const random=generationOptions('MC',{seed:77});assert.equal(random.ruleset,'MC');assert.equal(random.incidentCount,3);assert.ok(!('mainPlot'in random));assert.ok(!('roles'in random));
+test('MC opening leaves preset event counts to the server while explicit counts survive',()=>{
+ assert.equal(normalizeGameSetup('MC').incidentCount,'');
+ const random=generationOptions('MC',{seed:77});assert.equal(random.ruleset,'MC');assert.equal(random.incidentCount,undefined);assert.equal(random.lengthPreset,'standard');assert.ok(!('mainPlot'in random));assert.ok(!('roles'in random));
  assert.equal(generationOptions('MC',{seed:77,incidentCount:1}).incidentCount,1);
  const html=newGameModal(state,'heroes','MC',{advancedOpen:true});
- assert.match(html,/Mystery Circle/);assert.match(html,/name="new-script" value="MC" checked/);
+ assert.match(html,/Mystery Circle/);assert.match(html,/name="new-script" value="random" checked/);assert.match(html,/<option value="MC" selected>/);
  assert.equal((html.match(/id="new-sub-/g)||[]).length,2);
  assert.match(html,/私家侦探不能担任犯人/);
- assert.match(html,/id="new-incidents"[^>]*value="3"/);
+ assert.match(html,/id="new-incidents"[^>]*placeholder="按时长生成"[^>]*value=""/);
 });
 
 test('new public replay fields are optional for old saves and validated when present',()=>{
@@ -58,7 +58,7 @@ test('MC public counters and temporary restrictions remain visible without revea
 });
 
 test('HUD exposes a simulation-revealed day but keeps other legacy hidden schedule types concealed',()=>{
- const v=player();v.script.incidents=[{day:1,type:'murder'},{day:2,type:'suicide'},{day:3,type:'hospital_incident'}];v.knownIncidentTypes={2:'suicide'};
+ const v=player();v.script.settings={incidentVisibility:'hidden'};v.script.incidents=[{day:1,type:'murder'},{day:2,type:'suicide'},{day:3,type:'hospital_incident'}];v.knownIncidentTypes={2:'suicide'};
  const html=hudHtml(v);assert.match(html,/第 2 日 · 自杀/);assert.doesNotMatch(html,/谋杀|医院事件/);
 });
 

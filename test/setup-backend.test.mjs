@@ -56,7 +56,7 @@ test('generation rejects malformed and incompatible settings with useful structu
 });
 
 test('selected public schedules reveal types but never culprits or hidden casting',()=>{
- const hidden=structuredClone(starter),published=structuredClone(starter);published.settings.incidentVisibility='public';
+ const hidden=structuredClone(starter),published=structuredClone(starter);hidden.settings.incidentVisibility='hidden';published.settings.incidentVisibility='public';
  for(const s of [hidden,published]){
   const p=publicScript(s);assert.equal(p.roles,undefined);assert.equal(p.mainPlot,undefined);assert.equal(p.subPlots,undefined);
   assert.equal(p.incidents[0].culprit,undefined);assert.equal(p.incidents[0].type,s===published?'suicide':undefined);
@@ -97,10 +97,10 @@ test('Worker creates configured games without exposing setup secrets and stores 
 });
 
 const base=process.env.TEST_URL;
-test('HTTP local server accepts the same setup contract and preserves old defaults',{skip:!base},async()=>{
+test('HTTP local server accepts the same setup contract and uses the standard public schedule',{skip:!base},async()=>{
  let cookie='';const request=async(path,body)=>{const response=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json',Cookie:cookie},...(body===undefined?{}:{body:JSON.stringify(body)})});cookie=response.headers.get('set-cookie')?.split(';')[0]||cookie;return {status:response.status,data:await response.json()};};
  const r=await request('/api/games',{mode:'heroes',setup:{ruleset:'BTX',seed:80,characterPool:'all',includeAI:true,days:2,loops:1,incidentCount:0,incidentVisibility:'public'}});assert.equal(r.status,201);assert.equal(r.data.script.days,2);assert.equal(r.data.secret,undefined);assert.deepEqual(r.data.script.incidents,[]);
- const traditional=await request('/api/games',{});assert.equal(traditional.status,201);assert.deepEqual(traditional.data.script.incidents,[{day:3}]);
+ const traditional=await request('/api/games',{});assert.equal(traditional.status,201);assert.deepEqual(traditional.data.script.incidents,[{day:3,type:'suicide'}]);assert.equal(traditional.data.script.incidents[0].culprit,undefined);assert.equal(traditional.data.script.roles,undefined);
  const invalid=await request('/api/games',{setup:{days:0}});assert.equal(invalid.status,400);assert.equal(invalid.data.code,'INVALID_SETUP');
 });
 

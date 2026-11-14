@@ -40,7 +40,7 @@ function form(d){
    ${field('天数',`<input type="number" min="1" max="10" data-edit="field" data-key="days" value="${esc(d.days??4)}">`)}
    ${field('轮回数',`<input type="number" min="1" max="8" data-edit="field" data-key="loops" value="${esc(d.loops??3)}">`)}
    ${field('主人公讨论',select('field','communication',[['between_loops_only','只在轮回之间'],['allowed_during_loop','随时可以']],d.communication,'主人公讨论'))}
-   ${field('事件日程',select('setting','incidentVisibility',[['hidden','隐藏名称（本站默认）'],['public','公开名称（原版日程）']],d.settings?.incidentVisibility||'hidden','事件日程'))}
+   ${field('事件日程',select('setting','incidentVisibility',[['public','公开名称（原版日程）'],['hidden','隐藏名称（自定玩法）']],d.settings?.incidentVisibility||'public','事件日程'))}
   </div></section>
   <section class="form-block"><h3>规则</h3><div class="fields">
    ${field('规则 Y',select('field','mainPlot',plotOptions('Y'),d.mainPlot,'规则 Y'),'wide')}
@@ -71,9 +71,14 @@ export function editorHtml(state){
    <aside class="panel generator"><h3>生成</h3>
     ${field('惨剧集合',`<select id="gen-set">${RULESETS.map(([id,label])=>option(id,label,gen.ruleset)).join('')}</select>`)}
     ${field('随机种子',`<input id="gen-seed" type="number" value="${esc(gen.seed)}">`)}
+    <label class="setup-check"><input id="gen-lock" type="checkbox"${gen.lockSeed?' checked':''}><span>固定种子，复现这份随机剧本</span></label>
+    ${field('时长',`<select id="gen-length">${[['quick','短局'],['standard','标准'],['long','长局']].map(([id,label])=>option(id,label,gen.lengthPreset||'standard')).join('')}</select>`)}
+    ${field('AI 编剧难度',`<select id="gen-difficulty">${[['beginner','入门'],['standard','标准'],['hard','挑战']].map(([id,label])=>option(id,label,gen.difficulty||'standard')).join('')}</select>`)}
     ${field('主题（可选）',`<input id="gen-theme" value="${esc(gen.theme)}" placeholder="例如：雨夜的末班电车">`)}
-    ${btn('随机生成','generate','primary',working?'disabled':'')}
-    ${btn(icon('bot')+'AI 生成','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
+    ${btn(gen.lockSeed?'按种子生成':'随机生成 · 换一份','generate','primary',working?'disabled':'')}
+    ${btn(icon('bot')+'AI 编剧','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
+    ${btn('润色标题与简介','ai-polish','',working||!info.configured||!draft?'disabled':'')}
+    <p class="hint">AI 编剧会设计规则、配役和事件；试作剧本尚需试玩，每次上限 $0.12。润色只改标题与简介。</p>
     ${btn('载入起始剧本','starter-editor')}
     <label class="btn file">导入<input type="file" id="script-file" accept=".json,application/json"></label>
    </aside>

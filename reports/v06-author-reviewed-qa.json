@@ -1,0 +1,181 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "6b4f1750-9aef-4d01-951b-f8b4fb632136",
+  "potentialProviderCalls": 36,
+  "httpRequests": 21,
+  "author": {
+    "FS": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_REVIEW: 设计核对未通过，这次没有创建对局。最后校验：design.cluePlan: 普通事件不会自动公开犯人；告白可公开身份，封闭之环仅公开地点，其他线索须引用具体调查能力。"
+        },
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：公开标题或简介含角色/规则名称，请改成只依据公开人物、地点和主题的文案"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "FS",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111400
+        },
+        "requestId": "c5992693-e2a4-4c59-a217-0aaa06e7cd10"
+      },
+      "creationSent": true,
+      "gameId": "fb388823-b523-45c0-99b0-5407929d09f5",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停后的旧街",
+      "ruleset": "FS",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "murder"
+        }
+      ]
+    },
+    "BTX": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "BTX",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111401
+        },
+        "requestId": "2b1db604-2446-4d50-9f4d-b80241493b8e"
+      },
+      "creationSent": true,
+      "gameId": "6f75efd0-007c-4a28-81e5-0e129b690a81",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停旧街的契约",
+      "ruleset": "BTX",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "evil"
+        }
+      ]
+    },
+    "MZ": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.ai_character: 人工智能不能是普通人"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MZ",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111402
+        },
+        "requestId": "fcc8c12a-aaf7-4531-baa4-f36d8f765fa3"
+      },
+      "creationSent": true,
+      "gameId": "747cf503-0973-4eaa-95f5-127a31912b56",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停之后的旧街",
+      "ruleset": "MZ",
+      "publicSchedule": [
+        {
+          "day": 2,
+          "type": "suicide"
+        },
+        {
+          "day": 3,
+          "type": "serial_murder"
+        }
+      ]
+    },
+    "MC": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.ai_character: 人工智能不能是普通人"
+        },
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: min=1 max=1 actual=0；incidents.1.culprit: 同一犯人只可重复用于连续杀人事件；roles.teacher: 愚者必须被指定为事件犯人"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MC",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 3,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111403
+        },
+        "requestId": "72280466-0e86-4a2f-a7f4-5ae429698d20"
+      },
+      "creationSent": true,
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: min=1 max=1 actual=0；incidents.1.culprit: 同一犯人只可重复用于连续杀人事件；incidents.2.culprit: 同一犯人只可重复用于连续杀人事件"
+    }
+  },
+  "play": {},
+  "tactics": {},
+  "errors": [
+    {
+      "suite": "author",
+      "case": "MC",
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: min=1 max=1 actual=0；incidents.1.culprit: 同一犯人只可重复用于连续杀人事件；incidents.2.culprit: 同一犯人只可重复用于连续杀人事件"
+    }
+  ],
+  "lastSuite": "author",
+  "lastSuitePassed": false,
+  "allRequiredPassed": false
+}

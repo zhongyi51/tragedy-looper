@@ -12,7 +12,7 @@ export function parseDraft(text){
 
 export function blankDraft(){
  return {id:'custom-'+Date.now().toString(36),title:'未命名的剧本',author:'',ruleset:'FS',days:4,loops:3,communication:'between_loops_only',
-  characters:[],mainPlot:plotsFor('FS','Y')[0].id,subPlots:[plotsFor('FS','X')[0].id],roles:{},incidents:[],settings:{},specialRules:[]};
+  characters:[],mainPlot:plotsFor('FS','Y')[0].id,subPlots:[plotsFor('FS','X')[0].id],roles:{},incidents:[],settings:{incidentVisibility:'public'},specialRules:[]};
 }
 
 // How many of each role the chosen plots demand, next to how many the cast currently has.

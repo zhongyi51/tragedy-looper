@@ -65,7 +65,7 @@ test('AI receives explicit location bluff rules and can legally select a locatio
 });
 
 test('AI history is precisely the seat projection rather than raw stored history',async()=>{
- let s=createGame(starter);
+ let s=createGame({...starter,settings:{...starter.settings,incidentVisibility:'hidden'}});
  for(const [card,target]of [['move_h#0','girl_student'],['intrigue_1#0','office_worker'],['paranoia_1#0','doctor']])s=applyCommand(s,turn(s),{type:'place',card,target});
  s.log.push({n:s.log.length+1,loop:1,day:1,type:'incident',text:`预告的「${name(starter.incidents[0].type)}」没有发生。`});
  let payload;

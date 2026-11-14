@@ -22,7 +22,7 @@ test('new games retain the compact layout and put advanced controls behind a clo
  const html=newGameModal(state);
  assert.match(html,/<details class="setup-options" id="new-advanced">/);
  assert.match(html,/name="new-script" value="starter" checked/);
- assert.match(html,/value="hidden" selected/);
+ assert.match(html,/按原版公开日期和名称/);assert.doesNotMatch(html,/id="new-visibility"/);
  assert.match(html,/固定的规则、人物与日程/);
  assert.doesNotMatch(html,/id="new-main"/);
  for(const set of ['FS','BTX','MZ','MC']){
@@ -48,7 +48,7 @@ test('set switches keep compatible rule choices and clear incompatible or duplic
 test('opening constraints leave random secrets to the server and preserve partially random plots',()=>{
  const x=plotsFor('MZ','X')[0].id;
  const options=generationOptions('MZ',{days:'6',loops:'4',seed:'123',incidentCount:'3',subPlots:[x,''],characterPool:'all',includeAI:true,incidentVisibility:'public',communication:'allowed_during_loop'});
- assert.deepEqual(options,{ruleset:'MZ',title:'未曾发生的明天',days:6,loops:4,seed:123,incidentCount:3,subPlots:[x,''],characterPool:'all',includeAI:true,incidentVisibility:'public',communication:'allowed_during_loop'});
+ assert.deepEqual(options,{ruleset:'MZ',lengthPreset:'standard',days:6,loops:4,seed:123,incidentCount:3,subPlots:[x,''],characterPool:'all',includeAI:true,incidentVisibility:'public',communication:'allowed_during_loop'});
  for(const key of ['roles','characters','incidents','mainPlot'])assert.ok(!(key in options));
  const random=generationOptions('BTX',{seed:14});assert.ok(!('subPlots' in random));
 });
@@ -115,10 +115,10 @@ test('the short guide distinguishes First Steps from sets with a final battle',(
 });
 
 test('AI simulation reveals only the selected hidden day and offers its target choices',()=>{
- const v=player();v.script.incidents=[{day:1,type:'murder'},{day:2,type:'suicide'},{day:3,type:'hospital_incident'}];
+ const v=player();v.script.settings={incidentVisibility:'hidden'};v.script.incidents=[{day:1,type:'murder'},{day:2,type:'suicide'},{day:3,type:'hospital_incident'}];
  v.knownIncidentTypes={2:'suicide'};
  const html=incidentSchedule(v);assert.match(html,/自杀/);assert.doesNotMatch(html,/谋杀|医院事件/);assert.equal((html.match(/事件未公开/g)||[]).length,2);
  const choice={...v,phaseId:'ai_target',turn:'A',actions:[{command:{type:'ai_target',target:'doctor'},label:'医生'}]};
  assert.match(turnGuidance(choice).detail,/已公开所选事件/);assert.equal(choiceGroups(choice)[0].title,'选择模拟事件的目标');assert.equal(choiceGroups(choice)[0].items[0].text,'医生');
- const config=newGameModal(state,'heroes','MZ',{advancedOpen:true});assert.match(config,/其他隐藏日程不变/);
+ const config=newGameModal(state,'heroes','MZ',{advancedOpen:true});assert.match(config,/事件日程按原版公开日期和名称/);
 });

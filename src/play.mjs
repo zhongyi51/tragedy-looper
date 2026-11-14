@@ -1,7 +1,7 @@
 // Table logic shared by the local server and the hosted Worker: who may act,
 // what each player may see, and how one step turns into saved frames.
 import {view,turn,applyCommand,botCommand,advanceAutomatic,transitionFrames} from './engine.mjs';
-import {decide,decisionSummary} from './ai.mjs';
+import {decide,decisionSummary,rememberDecision} from './ai.mjs';
 
 export const MODES=['heroes','mastermind','observe'];
 export const STEP_ROUTES=['command','ai-step','bot-step','advance'];
@@ -38,7 +38,7 @@ export async function playStep({state,mode,route,command,ai={}}){
  else commands=[route==='bot-step'?botCommand(state,seat):command];
  const frames=[];let current=state;
  for(const next of commands){const beats=[];current=applyCommand(current,seat,next,beats);frames.push({seat,command:next,state:current,beats});}
- if(answer)current.notes[seat]=answer.note||current.notes[seat];
+ if(answer)rememberDecision(current,seat,answer);
  frames.push(...advanceAutomatic(current,automatic).steps);
  return {seat,frames,answer};
 }

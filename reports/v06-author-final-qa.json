@@ -1,0 +1,137 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "0a7a01d0-9518-4816-8dd8-64b9db810463",
+  "potentialProviderCalls": 8,
+  "httpRequests": 8,
+  "author": {
+    "FS": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "FS",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111400
+        },
+        "requestId": "f3670b0c-ab11-46dc-8b95-911344a261ad"
+      },
+      "creationSent": true,
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: 人数和所选的规则对不上"
+    },
+    "BTX": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "BTX",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111401
+        },
+        "requestId": "bd08808d-7a20-4cc9-b565-575319c5f807"
+      },
+      "creationSent": true,
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: 人数和所选的规则对不上；incidents.1.day: 事件的日期超出范围，或和别的事件重复"
+    },
+    "MZ": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MZ",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111402
+        },
+        "requestId": "45c34b65-4f7b-4c83-8fab-d5850d6cd51e"
+      },
+      "creationSent": true,
+      "gameId": "498ad89d-8260-43c9-9aec-6883ed546c58",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停之后的旧街：两夜告白",
+      "ruleset": "MZ",
+      "publicSchedule": [
+        {
+          "day": 2,
+          "type": "conspiracies"
+        },
+        {
+          "day": 3,
+          "type": "confession"
+        }
+      ]
+    },
+    "MC": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MC",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 3,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111403
+        },
+        "requestId": "6da3bd05-f1ab-4151-83a5-765b6c32c3ba"
+      },
+      "creationSent": true,
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.friend: 人数和所选的规则对不上"
+    }
+  },
+  "play": {},
+  "tactics": {},
+  "errors": [
+    {
+      "suite": "author",
+      "case": "FS",
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: 人数和所选的规则对不上"
+    },
+    {
+      "suite": "author",
+      "case": "BTX",
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.misleader: 人数和所选的规则对不上；incidents.1.day: 事件的日期超出范围，或和别的事件重复"
+    },
+    {
+      "suite": "author",
+      "case": "MC",
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.friend: 人数和所选的规则对不上"
+    }
+  ],
+  "lastSuite": "author",
+  "lastSuitePassed": false,
+  "allRequiredPassed": false
+}

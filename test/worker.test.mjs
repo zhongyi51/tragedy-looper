@@ -34,17 +34,19 @@ test('cloud provider uncertainty keeps reservation, does not retry, and can reco
  const row=sql.prepare('SELECT state,spent,locked_until FROM games WHERE id=?').get(g.id);assert.ok(row.spent>0);assert.equal(row.locked_until,0);assert.equal(JSON.parse(row.state).revision,0);assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0})).status,200);
 });
 
-test('cloud event schedules are hidden in game, script and every public replay frame',async()=>{
+test('cloud standard schedules show names while explicit hidden schedules and all secret answers stay concealed',async()=>{
  const {request}=fixture();
- for(const mode of ['heroes','observe','mastermind']){
-  const g=(await request('/api/games',{mode})).data;
+ for(const visibility of [undefined,'hidden'])for(const mode of ['heroes','observe','mastermind']){
+  const g=(await request('/api/games',{mode,...(visibility?{incidentVisibility:visibility}:{})})).data;
+  const schedule=visibility==='hidden'?[{day:3}]:[{day:3,type:'suicide'}];
   if(mode==='mastermind')assert.equal(g.secret.incidents[0].type,'suicide');
-  else assert.deepEqual(g.script.incidents,[{day:3}]);
+  else assert.equal(g.secret,undefined);
+  assert.deepEqual(g.script.incidents,mode==='mastermind'?[{day:3,type:'suicide'}]:schedule);assert.equal(g.script.roles,undefined);assert.equal(g.script.mainPlot,undefined);
   const script=(await request('/api/games/'+g.id+'/script')).data;
-  assert.deepEqual(script.incidents,[{day:3}]);
+  assert.deepEqual(script.incidents,schedule);assert.equal(script.roles,undefined);
   const replay=(await request('/api/games/'+g.id+'/replay')).data;
-  assert.deepEqual(replay.script.incidents,[{day:3}]);
-  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,[{day:3}]);assert.equal(frame.view.secret,undefined);}
+  assert.deepEqual(replay.script.incidents,schedule);assert.equal(replay.script.roles,undefined);
+  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,schedule);assert.equal(frame.view.secret,undefined);assert.equal(frame.view.script.roles,undefined);}
  }
 });
 

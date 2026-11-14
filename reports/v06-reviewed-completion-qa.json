@@ -1,0 +1,343 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "6b4f1750-9aef-4d01-951b-f8b4fb632136",
+  "potentialProviderCalls": 28,
+  "httpRequests": 117,
+  "author": {
+    "BTX": {
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "BTX",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111401
+        },
+        "requestId": "2b1db604-2446-4d50-9f4d-b80241493b8e"
+      },
+      "creationSent": true,
+      "gameId": "6f75efd0-007c-4a28-81e5-0e129b690a81",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停旧街的契约",
+      "ruleset": "BTX",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "evil"
+        }
+      ]
+    },
+    "MZ": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.ai_character: 人工智能不能是普通人"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MZ",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111402
+        },
+        "requestId": "fcc8c12a-aaf7-4531-baa4-f36d8f765fa3"
+      },
+      "creationSent": true,
+      "gameId": "747cf503-0973-4eaa-95f5-127a31912b56",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停之后的旧街",
+      "ruleset": "MZ",
+      "publicSchedule": [
+        {
+          "day": 2,
+          "type": "suicide"
+        },
+        {
+          "day": 3,
+          "type": "serial_murder"
+        }
+      ]
+    }
+  },
+  "play": {
+    "BTX": {
+      "gameId": "6f75efd0-007c-4a28-81e5-0e129b690a81",
+      "controller": "bot",
+      "steps": 60,
+      "transitionFrames": 115,
+      "maximumGauge": 0,
+      "winner": "mastermind",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 82,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "reviewSummary": "剧作家获胜。实际规则：与我缔结契约、不安的传闻、因果之线。",
+      "qualitySummary": {
+        "accepted": true,
+        "score": 92,
+        "issues": [
+          {
+            "code": "SPARSE_ROLES",
+            "message": "普通人超过七成，角色互动可能稀疏。",
+            "severity": "warning",
+            "penalty": 8
+          }
+        ],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 9,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 4,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "规则Y「与我缔结契约」要求关键人物为少女；本稿出演中仅有巫女（tag=student/girl），但角色配属由剧本选定，主人公初始未必知道。轮回结束时巫女暗跃达2则主人公失败。X「不安的传闻」每轮回一次令任意地点暗跃+1；「因果之线」在每轮回开始时使上轮结束时有友好的人物（含死者）不安+2，目标非玩家预先可知。",
+        "threatPlan": "威胁来源可执行为：不安的传闻每轮回给神社暗跃+1；事件「邪气污染」（day2，按日程）使神社暗跃+2；事件「不安扩大」（day1）可指定任一人物不安+2并令另一人物暗跃+1。但事件具体目标由剧作家选择，日程只固定类型与日期，不能断言必打神社或巫女。误导者上班族在剧作家能力阶段可令同地点一人（含自己）不安+1，与其友好无关。2轮回、2事件构成节奏，但压力数值随剧作家选择浮动。",
+        "counterplay": "巫女友好3、在神社时主人公能力可使神社暗跃−1（每天一次），可对冲部分增长。警察友好4每轮回可得知本轮回已发生的一个事件的犯人；友好5每轮回可给同地点一人护卫抵消一次死亡。医生友好2每天可对同地点另一人物不安±1。护士友好2可对同地点不安已满者不安−1且不可拒绝。军人友好4每轮回可使主人公本轮回不死亡。教师友好3每轮回可得知同地点一名学生的角色，用于辨认少女，但需同地点。以上均需在正确地点并达友好门槛，不能保证阻断巫女暗跃达2。",
+        "cluePlan": "公开事实仅为日程所列：day1「不安扩大」、day2「邪气污染」及事件类型名称；普通事件不自动公开犯人。可验证线索：警察友好4能力可查本轮回已发生的某一事件犯人；教师友好3可查同地点学生角色；巫女友好5每轮回可查同地点一人角色，均受地点与门槛约束。上班族友好3可得知上班族角色，是查误导者的直接路径。记者无信息类能力，不能据其能力推断角色。",
+        "loopPlan": "第1轮：优先在神社提升巫女友好至3以启用每日暗跃−1，同时尝试警察友好4查事件犯人、教师友好3辨学生角色。第2轮：注意因果之线上轮有友好者不安+2，需要预留护士或医生调不安的窗口；利用已继承友好继续查角色。最终需在最终战推导全配役。2轮回3天能否既压暗跃又完成推理不作保证。"
+      },
+      "authoredScript": {
+        "title": "雨停旧街的契约",
+        "intro": "旧街的雨停了，神社却渗出水声。六个人聚在湿漉漉的街口，有人低声说：和我缔结契约吧。",
+        "ruleset": "BTX",
+        "days": 3,
+        "loops": 2,
+        "communication": "between_loops_only",
+        "characters": [
+          "shrine_maiden",
+          "police",
+          "doctor",
+          "teacher",
+          "office_worker",
+          "journalist",
+          "patient",
+          "nurse",
+          "soldier"
+        ],
+        "mainPlot": "contract",
+        "subPlots": [
+          "unsettling_rumor",
+          "threads_fate"
+        ],
+        "roles": {
+          "shrine_maiden": "key_person",
+          "journalist": "person",
+          "office_worker": "misleader",
+          "police": "person",
+          "doctor": "person",
+          "teacher": "person",
+          "patient": "person",
+          "nurse": "person",
+          "soldier": "person"
+        },
+        "incidents": [
+          {
+            "day": 1,
+            "type": "unease",
+            "culprit": "journalist"
+          },
+          {
+            "day": 2,
+            "type": "evil",
+            "culprit": "office_worker"
+          }
+        ],
+        "settings": {
+          "incidentVisibility": "public"
+        },
+        "specialRules": [],
+        "id": "ai-b6713b81-cf3a-45c6-acf8-34c18992bc5d",
+        "author": "DeepSeek 编剧",
+        "source": "ai",
+        "difficulty": "standard",
+        "seed": 26111401,
+        "privateDesign": {
+          "premise": "规则Y「与我缔结契约」要求关键人物为少女；本稿出演中仅有巫女（tag=student/girl），但角色配属由剧本选定，主人公初始未必知道。轮回结束时巫女暗跃达2则主人公失败。X「不安的传闻」每轮回一次令任意地点暗跃+1；「因果之线」在每轮回开始时使上轮结束时有友好的人物（含死者）不安+2，目标非玩家预先可知。",
+          "threatPlan": "威胁来源可执行为：不安的传闻每轮回给神社暗跃+1；事件「邪气污染」（day2，按日程）使神社暗跃+2；事件「不安扩大」（day1）可指定任一人物不安+2并令另一人物暗跃+1。但事件具体目标由剧作家选择，日程只固定类型与日期，不能断言必打神社或巫女。误导者上班族在剧作家能力阶段可令同地点一人（含自己）不安+1，与其友好无关。2轮回、2事件构成节奏，但压力数值随剧作家选择浮动。",
+          "counterplay": "巫女友好3、在神社时主人公能力可使神社暗跃−1（每天一次），可对冲部分增长。警察友好4每轮回可得知本轮回已发生的一个事件的犯人；友好5每轮回可给同地点一人护卫抵消一次死亡。医生友好2每天可对同地点另一人物不安±1。护士友好2可对同地点不安已满者不安−1且不可拒绝。军人友好4每轮回可使主人公本轮回不死亡。教师友好3每轮回可得知同地点一名学生的角色，用于辨认少女，但需同地点。以上均需在正确地点并达友好门槛，不能保证阻断巫女暗跃达2。",
+          "cluePlan": "公开事实仅为日程所列：day1「不安扩大」、day2「邪气污染」及事件类型名称；普通事件不自动公开犯人。可验证线索：警察友好4能力可查本轮回已发生的某一事件犯人；教师友好3可查同地点学生角色；巫女友好5每轮回可查同地点一人角色，均受地点与门槛约束。上班族友好3可得知上班族角色，是查误导者的直接路径。记者无信息类能力，不能据其能力推断角色。",
+          "loopPlan": "第1轮：优先在神社提升巫女友好至3以启用每日暗跃−1，同时尝试警察友好4查事件犯人、教师友好3辨学生角色。第2轮：注意因果之线上轮有友好者不安+2，需要预留护士或医生调不安的窗口；利用已继承友好继续查角色。最终需在最终战推导全配役。2轮回3天能否既压暗跃又完成推理不作保证。",
+          "intendedDifficulty": "standard",
+          "intentionalExceptions": []
+        },
+        "generation": {
+          "source": "ai",
+          "version": "script-author-1",
+          "attempts": 2,
+          "designReview": "catalog-grounded-1",
+          "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+          "scriptHash": "8741b49309d0d8791d529f1fcb1cb427e90264aac0454b89e265557b4dd6519b",
+          "quality": {
+            "review": "static"
+          }
+        },
+        "validationStatus": "规则与静态质量检查通过；尚未经人工试玩"
+      }
+    },
+    "MZ": {
+      "gameId": "747cf503-0973-4eaa-95f5-127a31912b56",
+      "controller": "bot",
+      "steps": 24,
+      "transitionFrames": 46,
+      "maximumGauge": 0,
+      "winner": "heroes",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 34,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "reviewSummary": "主人公获胜。实际规则：因果之绊、爱与恨的螺旋、灭亡讴歌。",
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 10,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 3,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "本稿为MZ规则，主规则「因果之绊」叠加「爱与恨的螺旋」「灭亡讴歌」两条X规则。第二天公定自杀事件，犯人由人工智能（绝对者）充当；第三天公定连续杀人，犯人是住院患者。第一轮死者会在下一轮开始时被设为EX卡并转为关键人物，失去原角色，这一点不会自动公开。",
+        "threatPlan": "人工智能带有绝对者，必须成为至少一个事件的犯人，故第二天自杀案由它充当犯人并死亡。住院患者带连环杀手，日结束时若同地点恰好只有另一名活人，该人即死；第三天连续杀人案也以其为犯人。若无人干预，死亡可能波及朋友等会致败的角色。",
+        "counterplay": "警察友好4每轮一次得知本轮回已发生事件的一名犯人；友好5每轮一次给同地点一人1点护卫，可抵消一次死亡。巫女友好5每轮一次得知同地点一人的角色；教师友好3每轮一次得知同地点一名学生的角色。医生友好2每日可对同地点另一人不安±1。朋友公开后每轮开始友好+1。",
+        "cluePlan": "公开日程只列事件日期与名称，普通事件不自动公开犯人。可用警察友好4确认已发生事件的犯人；用巫女友好5或教师友好3调查同地点人物角色。AI的绝对者身份、患者的连环杀手身份、EX转换后的角色变化均需能力确认，不能默认玩家已知。",
+        "loopPlan": "第一轮三天观察事件日程、积累关键人物友好，并可用警察确认自杀案犯人。轮回开始时为上轮死者设EX卡并转关键人物。第二轮据此调整调查与护卫对象，但三天内能完成的调查次数受每日或每轮次数限制，不宜假定可全部确认。"
+      },
+      "authoredScript": {
+        "title": "雨停之后的旧街",
+        "intro": "连日阴雨停歇后，旧街仍笼罩着潮湿的雾气。医院、神社、都市与学校之间，有人因不安而崩溃，有人因暗跃而走向不可挽回的结局。你将在短短数日内目睹两起事件，并在第二次轮回中接近真相，或至少活着看到雨后的清晨。",
+        "ruleset": "MZ",
+        "days": 3,
+        "loops": 2,
+        "communication": "between_loops_only",
+        "characters": [
+          "boy_student",
+          "girl_student",
+          "rich_girl",
+          "shrine_maiden",
+          "police",
+          "doctor",
+          "patient",
+          "teacher",
+          "journalist",
+          "ai_character"
+        ],
+        "mainPlot": "fated_connections",
+        "subPlots": [
+          "love_hate_spiral",
+          "worship_apocalypse"
+        ],
+        "roles": {
+          "boy_student": "person",
+          "girl_student": "friend",
+          "rich_girl": "friend",
+          "shrine_maiden": "prophet",
+          "police": "person",
+          "doctor": "person",
+          "patient": "serial_killer",
+          "teacher": "misleader",
+          "journalist": "person",
+          "ai_character": "obstinate"
+        },
+        "incidents": [
+          {
+            "day": 2,
+            "type": "suicide",
+            "culprit": "ai_character"
+          },
+          {
+            "day": 3,
+            "type": "serial_murder",
+            "culprit": "patient"
+          }
+        ],
+        "settings": {
+          "incidentVisibility": "public",
+          "godlyLoop": null,
+          "transferDay": null,
+          "bossTerritory": null
+        },
+        "specialRules": [],
+        "id": "ai-1d7a83d0-cec4-4e60-81e0-669be8ecc701",
+        "author": "DeepSeek 编剧",
+        "source": "ai",
+        "difficulty": "standard",
+        "seed": 26111402,
+        "privateDesign": {
+          "premise": "本稿为MZ规则，主规则「因果之绊」叠加「爱与恨的螺旋」「灭亡讴歌」两条X规则。第二天公定自杀事件，犯人由人工智能（绝对者）充当；第三天公定连续杀人，犯人是住院患者。第一轮死者会在下一轮开始时被设为EX卡并转为关键人物，失去原角色，这一点不会自动公开。",
+          "threatPlan": "人工智能带有绝对者，必须成为至少一个事件的犯人，故第二天自杀案由它充当犯人并死亡。住院患者带连环杀手，日结束时若同地点恰好只有另一名活人，该人即死；第三天连续杀人案也以其为犯人。若无人干预，死亡可能波及朋友等会致败的角色。",
+          "counterplay": "警察友好4每轮一次得知本轮回已发生事件的一名犯人；友好5每轮一次给同地点一人1点护卫，可抵消一次死亡。巫女友好5每轮一次得知同地点一人的角色；教师友好3每轮一次得知同地点一名学生的角色。医生友好2每日可对同地点另一人不安±1。朋友公开后每轮开始友好+1。",
+          "cluePlan": "公开日程只列事件日期与名称，普通事件不自动公开犯人。可用警察友好4确认已发生事件的犯人；用巫女友好5或教师友好3调查同地点人物角色。AI的绝对者身份、患者的连环杀手身份、EX转换后的角色变化均需能力确认，不能默认玩家已知。",
+          "loopPlan": "第一轮三天观察事件日程、积累关键人物友好，并可用警察确认自杀案犯人。轮回开始时为上轮死者设EX卡并转关键人物。第二轮据此调整调查与护卫对象，但三天内能完成的调查次数受每日或每轮次数限制，不宜假定可全部确认。",
+          "intendedDifficulty": "standard",
+          "intentionalExceptions": [
+            {
+              "code": "scenario_uses_multiple_X_plots_with_addedRoles",
+              "reason": "两条X规则对应set.subPlots=2。叠加角色为朋友2、连环杀手1、误导者1、绝对者1、预言者1，与「因果之绊」「爱与恨的螺旋」「灭亡讴歌」的addedRoles相加一致，未额外增加配额。"
+            }
+          ]
+        },
+        "generation": {
+          "source": "ai",
+          "version": "script-author-1",
+          "attempts": 2,
+          "designReview": "catalog-grounded-1",
+          "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+          "scriptHash": "59c805f409bcd404c1b9f4498b16829c5648c0df7c5c3e786520bbbad2b2c2f7",
+          "quality": {
+            "review": "static"
+          }
+        },
+        "validationStatus": "规则与静态质量检查通过；尚未经人工试玩"
+      }
+    }
+  },
+  "tactics": {},
+  "errors": [],
+  "lastSuite": "play",
+  "lastSuitePassed": true,
+  "allRequiredPassed": false
+}

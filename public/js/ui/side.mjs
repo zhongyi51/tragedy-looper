@@ -7,7 +7,7 @@ const REFUSAL={optional:'可以拒绝能力',mandatory:'一定拒绝能力'};
 export function incidentSchedule(v){
  const named=v.seat==='M'||Boolean(v.secret)||v.script.settings?.incidentVisibility==='public';
  return v.script.incidents.map(e=>{
-  const happened=v.occurred?.includes(e.day),status=happened?'已发生':e.day<v.day?'未发生':e.day===v.day?'今日':'';
+  const happened=v.occurred?.includes(e.day),status=happened?'已发生':e.day<v.day?'未发生':e.day===v.day?'今日 · 预定':'预定';
   const culprit=v.knownCulprits?.[e.day],type=(named?e.type:undefined)||v.knownIncidentTypes?.[e.day];
   return `<div class="schedule${e.day===v.day?' today':''}${e.day<v.day?' past':''}${happened?' happened':''}"><b>第 ${e.day} 日</b><span class="${type?'':'unrevealed'}">${type?esc(name(type)):'事件未公开'}</span>${culprit?`<em>犯人 ${esc(name(culprit))}</em>`:''}${status?`<i>${status}</i>`:''}</div>`;
  }).join('')||'<p class="hint">没有事件。</p>';
@@ -26,12 +26,12 @@ function intel(v,ctx){
    <table class="roles">${Object.entries(v.secret.roles).filter(([,r])=>r!=='person').map(([c,r])=>`<tr><td>${esc(name(c))}</td><td>${esc(name(r))}</td><td>${v.knownRoles[c]?'已暴露':''}</td></tr>`).join('')}</table>
    ${v.secret.incidents.map(e=>`<p class="secret-incident">第 ${e.day} 日 · ${esc(name(e.type))} · 犯人 ${esc(name(e.culprit))}</p>`).join('')}</section>`:'';
  const budget=!ctx.readOnly&&v.aiConfigured?`<section class="block budget"><h4>AI 花费</h4><div class="budget-row"><span>${v.spent===null?'对局结束后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}</section>`:'';
- return `<section class="block"><h4>${icon('clock')}事件日程</h4>${incidentSchedule(v)}</section>
+ return `${v.script.intro?`<section class="block"><p class="hint">${esc(v.script.intro)}</p></section>`:''}<section class="block"><h4>${icon('clock')}事件日程</h4>${incidentSchedule(v)}</section>
   ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':v.script.ruleset==='MZ'?'已宣告的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的能力可以查出角色。</p>'}</section>`}
   ${v.knownPlots?.length?`<section class="block"><h4>已公开的规则 X</h4><p class="plots">${v.knownPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p></section>`:''}
   ${flags.length?`<section class="block"><h4>本轮回</h4>${flags.map(f=>`<p class="flag">${esc(f)}</p>`).join('')}</section>`:''}
   ${curtain}${budget}
-  ${v.winner&&!ctx.readOnly?`<section class="block">${btn('查看真相','truth','primary wide')}</section>`:''}
+  ${v.winner&&!ctx.readOnly?`<section class="block">${btn('查看真相','truth','primary wide')}${btn('终局复盘','review','wide')}</section>`:''}
   <p class="legend"><span class="g">${icon('heart')}友好</span><span class="p">${icon('unrest')}不安</span><span class="i">${icon('intrigue')}暗跃</span><span class="gd">${icon('shield')}护卫</span></p>`;
 }
 

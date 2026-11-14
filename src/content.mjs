@@ -11,10 +11,10 @@ export const locs=catalog.locations.map(c=>c.id);
 const mustBeCulprit=role=>roles[role]?.castingConstraints?.includes('mustBeCulprit')===true;
 const cannotBeCulprit=role=>roles[role]?.castingConstraints?.includes('cannotBeCulprit')===true;
 export const name=id=>chars[id]?.name_zh_working||roles[id]?.name_zh_working||plots[id]?.name_zh_working||incidents[id]?.name_zh_working||catalog.locations.find(c=>c.id===id)?.name_zh||id;
-export const starter={id:'first-script',title:'起始剧本',author:'BakaFire',ruleset:'FS',days:3,loops:3,communication:'between_loops_only',characters:['boy_student','girl_student','shrine_maiden','office_worker','idol','doctor'],mainPlot:'murder_plan',subPlots:['ripper_shadow'],roles:{boy_student:'person',girl_student:'key_person',shrine_maiden:'serial_killer',office_worker:'killer',idol:'misleader',doctor:'brain'},incidents:[{day:3,type:'suicide',culprit:'girl_student'}],settings:{},specialRules:[],provenance:'官方起始剧本；讨论规则是本地练习用的设置。'};
-// Old scripts keep the site's hidden schedule; official public schedules reveal
-// incident types, never culprits. Observed effects are handled by the engine.
-export function publicScript(s,{includeIncidentTypes=s.settings?.incidentVisibility==='public'}={}){
+export const starter={id:'first-script',title:'起始剧本',author:'BakaFire',ruleset:'FS',days:3,loops:3,communication:'between_loops_only',characters:['boy_student','girl_student','shrine_maiden','office_worker','idol','doctor'],mainPlot:'murder_plan',subPlots:['ripper_shadow'],roles:{boy_student:'person',girl_student:'key_person',shrine_maiden:'serial_killer',office_worker:'killer',idol:'misleader',doctor:'brain'},incidents:[{day:3,type:'suicide',culprit:'girl_student'}],settings:{incidentVisibility:'public'},specialRules:[],provenance:'官方起始剧本；讨论规则是本地练习用的设置。'};
+// Standard play publishes the schedule, never its culprits. Explicit legacy
+// hidden schedules remain readable for old saves and custom variants.
+export function publicScript(s,{includeIncidentTypes=s.settings?.incidentVisibility!=='hidden'}={}){
  const schedule=s.incidents.map(({day,type,publicType})=>{
   // The rules permit an undisguised Fake Incident. Once an alias is supplied,
   // never fall back to its true name if unvalidated/stale data has a bad alias.
@@ -23,7 +23,15 @@ export function publicScript(s,{includeIncidentTypes=s.settings?.incidentVisibil
    :typeof type==='string'&&incidents[type]?type:undefined;
   return {day,...(includeIncidentTypes&&visibleType?{type:visibleType}:{})};
  });
- return structuredClone({id:s.id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:schedule,settings:s.settings,specialRules:s.specialRules||[]});
+ const settings=Object.fromEntries(['incidentVisibility','godlyLoop','transferDay','bossTerritory'].filter(k=>s.settings?.[k]!==undefined).map(k=>[k,s.settings[k]]));
+ settings.incidentVisibility??='public';
+ // A generated ID used to contain the seed, from which the whole secret script
+ // could be reconstructed. Public clients need a label, not the generator input.
+ const id=s.source==='random'||String(s.id||'').startsWith('generated-')?'generated':s.id;
+ return structuredClone({id,title:s.title,author:s.author,ruleset:s.ruleset,days:s.days,loops:s.loops,communication:s.communication,characters:s.characters,incidents:schedule,settings,specialRules:s.specialRules||[],
+  ...(typeof s.intro==='string'?{intro:s.intro.slice(0,600)}:{}),
+  ...(['random','curated','ai','imported'].includes(s.source)?{source:s.source}:{}),
+  ...(['beginner','standard','hard'].includes(s.difficulty)?{difficulty:s.difficulty}:{})});
 }
 export function validateScript(s){
  const errors=[],warnings=[];const err=(path,message)=>errors.push({path,message});
@@ -76,6 +84,20 @@ export function validateScript(s){
  for(const [i,e] of (s.incidents||[]).entries())if(e.culprit==='transfer_student'&&e.day<st.transferDay)warnings.push({path:`incidents.${i}`,message:'到事件那天，转学生还没登场'});
  return {errors,warnings};
 }
+export const LENGTH_PRESETS=Object.freeze({quick:{label:'短局',loops:2},standard:{label:'标准',loops:3},long:{label:'长局',loops:4}});
+const seedMix=(seed,salt)=>{let n=(Number(seed)>>>0)^salt;n=Math.imul(n^(n>>>16),0x7feb352d);n=Math.imul(n^(n>>>15),0x846ca68b);return (n^(n>>>16))>>>0;};
+export function generationLength(ruleset='FS',preset='standard',seed=0){
+ if(!Object.hasOwn(LENGTH_PRESETS,preset))throw setupError('请选择短局、标准或长局');
+ const introductory=ruleset==='FS',ranges=preset==='quick'?[3,4]:preset==='long'?(introductory?[5,6]:[6,7]):(introductory?[4,5]:[4,6]);
+ const days=ranges[0]+seedMix(seed,0x4c454e47)%(ranges[1]-ranges[0]+1);
+ const incidentCount=ruleset==='MC'?(preset==='long'?4:3):preset==='long'?3+(introductory?0:1):preset==='standard'&&!introductory?2+seedMix(seed,0x45564e54)%2:2;
+ return {days,loops:LENGTH_PRESETS[preset].loops,incidentCount:Math.min(days,incidentCount)};
+}
+export function generatedTitle(seed){
+ const times=['雨停之前','黎明之后','落日尽头','雪落之夜','钟声未歇','灯火将熄','薄雾深处','末班车后','潮声渐远','回声散尽','长夜将明','繁星沉默','晚风初起','花落之时','月光背面','落叶归处'];
+ const traces=['的来信','的约定','的旧照片','的陌生人','的回廊','的脚步声','的空座位','的留声机','的钥匙','的纸飞机','的剪影','的窗灯','的无人站台','的风铃','的失物','的第三页'];
+ return times[seedMix(seed,0x5449544c)%times.length]+traces[seedMix(seed,0x4e414d45)%traces.length];
+}
 const standardCharacters=['boy_student','girl_student','rich_girl','shrine_maiden','police','office_worker','informer','doctor','patient','class_rep','alien','idol','journalist','nurse','teacher','soldier'];
 const setupError=message=>Object.assign(Error(message),{code:'INVALID_SETUP'});
 const record=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
@@ -83,6 +105,7 @@ const integer=(value,min,max,label)=>{if(!Number.isInteger(value)||value<min||va
 export function scriptForGame(body={}){
  if(body.setup!==undefined&&body.script!==undefined)throw setupError('生成设置和已有剧本不能同时提交');
  const script=body.setup!==undefined?generateScript(body.setup):structuredClone(body.script===undefined?starter:body.script);
+ if(record(script)&&script.settings===undefined)script.settings={incidentVisibility:'public'};
  if(body.incidentVisibility!==undefined){
   if(!['hidden','public'].includes(body.incidentVisibility))throw setupError('事件日程须选择隐藏名称或公开名称');
   if(!record(script)||script.settings!==undefined&&!record(script.settings))throw setupError('剧本或剧本设置无效');
@@ -92,7 +115,11 @@ export function scriptForGame(body={}){
 }
 export function generateScript(options={}){
  if(!record(options))throw setupError('生成设置必须是对象');
- let {ruleset='FS',seed=Date.now(),title='未命名的轮回',mainPlot,subPlots,days=ruleset==='FS'?4:5,loops=3,communication='between_loops_only',characters,characterPool='standard',includeAI=false,settings={},incidentVisibility=settings?.incidentVisibility??'hidden',incidentCount}=options;
+ let {ruleset='FS',seed=globalThis.crypto.getRandomValues(new Uint32Array(1))[0],title,mainPlot,subPlots,days,loops,lengthPreset='standard',communication='between_loops_only',characters,characterPool='standard',includeAI=false,settings={},incidentVisibility=settings?.incidentVisibility??'public',incidentCount}=options;
+ if(!Number.isSafeInteger(seed))throw setupError('种子须为安全整数');
+ const length=generationLength(ruleset,lengthPreset,seed);if(days===undefined)days=length.days;if(loops===undefined)loops=length.loops;
+ if(incidentCount===undefined)incidentCount=Math.min(days,length.incidentCount,characters?.length??24);
+ if(title===undefined)title=generatedTitle(seed);
  const set=catalog.sets.find(set=>set.id===ruleset);if(!set)throw setupError('不支持这个惨剧集合');
  if(typeof title!=='string'||!title.trim()||title.length>120)throw setupError('标题须在 1–120 字之间');
  if(!Number.isSafeInteger(seed))throw setupError('种子须为安全整数');
@@ -180,11 +207,14 @@ export function generateScript(options={}){
  if(subPlots.includes('worship_apocalypse')&&count===0)throw setupError('「灭亡讴歌」至少需要一个自杀事件');
  const evs=shuffle(catalog.incidents.filter(e=>e.sets.includes(ruleset))),cul=[...shuffle(requiredCulprits),...shuffle(cast.filter(c=>!requiredCulprits.includes(c)&&!cannotBeCulprit(assigned[c])))];
  if(subPlots.includes('worship_apocalypse')){const suicide=evs.findIndex(e=>e.id==='suicide');[evs[0],evs[suicide]]=[evs[suicide],evs[0]];}
- const eventDays=count===2&&days>2?[2,days]:shuffle(Array.from({length:days},(_,i)=>i+1)).slice(0,count).sort((a,b)=>a-b);
+ // Keep a preparation window when the schedule has room, but vary every date.
+ // Dense schedules may begin on day one; no hard-coded second/final-day pair.
+ const possibleDays=Array.from({length:days-(days>=4&&count<days-1?1:0)},(_,i)=>i+(days>=4&&count<days-1?2:1));
+ const eventDays=shuffle(possibleDays).slice(0,count).sort((a,b)=>a-b);
  const schedule=eventDays.map((day,i)=>{const type=evs[i%evs.length].id;return {day,type,culprit:cul[i]??cul[0],...(type==='fake_incident'?{publicType:shuffle(evs.filter(e=>e.id!==type))[0].id}:{})};});
  // A fixed MC cast can have fewer eligible culprits than scheduled days.
  // Repeated culprits are legal only when all of their events are Serial Murder.
  if(count>cul.length){if(!cul.length)throw setupError('出演名单中没有可担任事件犯人的人物');for(const event of schedule)if(event.culprit===cul[0]){event.type='serial_murder';delete event.publicType;}}
- const s={id:`generated-${seed}`,title:title.trim(),author:'随机生成',ruleset,days,loops,communication,characters:cast,roles:assigned,mainPlot,subPlots,incidents:schedule,settings:st,specialRules:[],seed,validationStatus:'规则上成立，但没有试玩平衡过'};
+ const s={id:`generated-${seed}`,title:title.trim(),author:'随机生成',source:'random',generatorVersion:'2',ruleset,days,loops,communication,characters:cast,roles:assigned,mainPlot,subPlots,incidents:schedule,settings:st,specialRules:[],seed,validationStatus:'规则上成立，但没有试玩平衡过'};
  const errors=validateScript(s).errors;if(errors.length)throw setupError(errors.map(e=>e.message).join('；'));return s;
 }

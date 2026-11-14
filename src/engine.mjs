@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.5.0';
+export const VERSION='0.6.0';
 export const VISIBILITY_POLICY='hidden_incident_names_v1';
 export const phases={setup:'轮回准备',extra_setup:'EX 卡设置',reveal_role:'角色公开',ai_target:'事件模拟',incident_check:'事件',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end_forced:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;
@@ -24,7 +24,7 @@ const FORBIDDEN={move:'移动',goodwill:'友好',paranoia:'不安',intrigue:'暗
 function forbid(s,target,what,hit,by){for(const p of hit)strike(s,target,p.seat);log(s,`${name(target)}的${FORBIDDEN[what]}被禁止。`,'blocked',{who:target,what,by:by.seat,hit:hit.map(p=>p.seat)});}
 // Older saves recorded the hidden name even when an incident did not happen.
 // Sanitize at the observation boundary too, including historical replay frames.
-function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&s.script.settings?.incidentVisibility!=='public'&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
+function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&s.script.settings?.incidentVisibility==='hidden'&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
 function counter(s,id,type,n,by){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${COUNTER_ZH[type]} ${n>0?'+'+n:'−'+-n}`,'counter',{who:id,...(by?{by}:{})});}
 function extraGauge(s,amount){if(s.script.ruleset!=='MC')return;s.extraGauge=Math.max(0,(s.extraGauge||0)+amount);log(s,`EX 计量 · ${s.extraGauge}`,'counter',{what:'extraGauge'});}
 function declareRole(s,id,role){s.knownRoles[id]=role;(s.loopRevealedRoles||=[]).push(role);log(s,`${name(id)}的角色是「${name(role)}」。`,'reveal',{who:id});}
@@ -150,7 +150,7 @@ export function legalActions(s,seat=turn(s)){
     case 'boss':living(s).filter(t=>t.location===s.script.settings.bossTerritory&&t.id!==c.id).forEach(t=>addG(t.id));break;
     case 'nurse':other.filter(t=>t.paranoia>=chars[t.id].paranoiaLimit).forEach(t=>addG(t.id));break;
     case 'forensic':if(i===0){for(const a of other)for(const b of other.filter(t=>t.id!==a.id)){const counters=['goodwill','paranoia','intrigue','guard'].filter(k=>a[k]>0);for(const counter of counters.length?counters:['goodwill'])addG(a.id,{to:b.id,counter});}}else Object.values(s.board).filter(t=>t.present&&!t.alive).forEach(t=>addG(t.id));break;
-    case 'ai_character':for(const e of s.script.incidents){if(s.script.settings?.incidentVisibility!=='public'||publicIncidentType(e)==='bestial_murder'){addG('',{day:e.day});out.at(-1).label+=` · 第 ${e.day} 日事件`;continue;}const type=publicIncidentType(e),preview={...s,pending:{incident:type,culprit:c.id,chooser:seat,simulated:true}},choices=incidents[type]?.sets.includes(s.script.ruleset)?incidentOptions(preview):[];if(!choices.length)addG('',{day:e.day});else for(const choice of choices){const args=Object.fromEntries(Object.entries(choice.command).filter(([k])=>k!=='type').map(([k,v])=>['effect'+k[0].toUpperCase()+k.slice(1),v]));addG('',{day:e.day,...args});out.at(-1).label+=` · 第 ${e.day} 日 · ${choice.label}`;}}break;
+    case 'ai_character':for(const e of s.script.incidents){if(s.script.settings?.incidentVisibility==='hidden'||publicIncidentType(e)==='bestial_murder'){addG('',{day:e.day});out.at(-1).label+=` · 第 ${e.day} 日事件`;continue;}const type=publicIncidentType(e),preview={...s,pending:{incident:type,culprit:c.id,chooser:seat,simulated:true}},choices=incidents[type]?.sets.includes(s.script.ruleset)?incidentOptions(preview):[];if(!choices.length)addG('',{day:e.day});else for(const choice of choices){const args=Object.fromEntries(Object.entries(choice.command).filter(([k])=>k!=='type').map(([k,v])=>['effect'+k[0].toUpperCase()+k.slice(1),v]));addG('',{day:e.day,...args});out.at(-1).label+=` · 第 ${e.day} 日 · ${choice.label}`;}}break;
     case 'teacher':if(i===0)students.forEach(t=>[-1,1].forEach(amount=>addG(t.id,{amount})));else students.forEach(t=>addG(t.id));break;
     case 'transfer_student':other.forEach(t=>addG(t.id));break;
     case 'soldier':if(i===0)same.forEach(t=>addG(t.id));else addG();break;
@@ -347,7 +347,7 @@ function apply(s,seat,a){
  // Previous versions gave protagonist models the named incident schedule.
  // Their persisted notes may retain those secrets: clear only the three AI
  // protagonist notes once, preserving all board state and mastermind notes.
- if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
+ if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};if(s.aiMemory)s.aiMemory={M:s.aiMemory.M};delete s.heroDiscussion;s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
  switch(a.type){
   case 'incident_check':checkIncident(s,a.territory);break;
   case 'ai_target':{const p=s.pending;if(p.incident==='bestial_murder'&&p.stage==='declare_murder'){p.action={...p.action,effectMurderTarget:a.murderTarget};p.stage='declare_unease';log(s,`人工智能已声明杀人目标${a.murderTarget?'：'+name(a.murderTarget):'：无目标'}。`,'ability',{who:'ai_character'});break;}const action={...p.action,...Object.fromEntries(Object.entries(a).filter(([k])=>k!=='type').map(([k,v])=>['effect'+k[0].toUpperCase()+k.slice(1),v]))};log(s,`人工智能已声明事件目标${a.target?'：'+name(a.target):''}${a.to?'、'+name(a.to):''}${a.counter?'（'+COUNTER_ZH[a.counter]+'）':''}。`,'ability',{who:'ai_character'});s.pending={action};s.phase='refusal';break;}
@@ -359,7 +359,7 @@ function apply(s,seat,a){
   case 'end_forced':{if(a.index<0){finishForcedEnd(s);break;}const task=s.forcedEnd[a.index];task.done=true;if(task.ability==='poison'){addUsage(s,task.actor+':poison','loop');kill(s,[a.target]);}else if(task.ability==='poison_heroes')killHeroes(s);else kill(s,task.targets);settleEmptyForced(s);if(s.forcedEnd.every(t=>t.done))finishForcedEnd(s);break;}
   case 'end_area':resolveEnd(s,a.territory);break;
   case 'mm':if(a.ability==='therapist'){addUsage(s,a.actor+':therapist');if(s.board[a.target].paranoia>0)counter(s,a.target,'paranoia',-1);settleEmptyTherapy(s);}else if(a.ability==='paranoiac'){addUsage(s,a.actor+':paranoiac');counter(s,a.actor,a.counter,1);}else if(a.ability==='magician'){addUsage(s,'magician','loop');move(s,a.target,a.to);}else if(a.ability==='unsafe_trigger'){addUsage(s,'unsafe_trigger','loop');counter(s,a.target,'intrigue',1);}else{addUsage(s,a.ability==='rumor'?'rumor':a.actor+':'+(a.ability==='doctor'?'mm':a.ability),a.ability==='rumor'?'loop':'day');counter(s,a.target,a.ability==='brain'||a.ability==='rumor'?'intrigue':'paranoia',a.amount??1);}break;
-  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);if(a.actor==='ai_character'&&(s.script.settings?.incidentVisibility!=='public'||publicIncidentType(s.script.incidents.find(e=>e.day===a.day))==='bestial_murder')){const type=publicIncidentType(s.script.incidents.find(e=>e.day===a.day));(s.knownIncidentTypes||={})[a.day]=type;log(s,`人工智能选择第 ${a.day} 日的「${name(type)}」，先声明模拟目标。`,'ability',{who:a.actor});s.pending={action:a,incident:incidents[type]?.sets.includes(s.script.ruleset)?type:'no_effect',culprit:a.actor,chooser:seat,simulated:true,...(type==='bestial_murder'?{stage:'declare_murder'}:{})};s.phase='ai_target';break;}log(s,`请求使用${name(a.actor)}的能力 ${a.index+1}${a.actor==='ai_character'?`：第 ${a.day} 日事件${a.effectTarget?'，目标 '+name(a.effectTarget):''}${a.effectTo?'，另一目标 '+name(a.effectTo):''}${a.effectCounter?'，计数 '+COUNTER_ZH[a.effectCounter]:''}${a.effectEffect?'，效果 '+name(a.effectEffect):''}`:''}。`,'ability',{who:a.actor,ability:a.index});s.phase='refusal';s.pending={action:a};break;}
+  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);if(a.actor==='ai_character'&&(s.script.settings?.incidentVisibility==='hidden'||publicIncidentType(s.script.incidents.find(e=>e.day===a.day))==='bestial_murder')){const type=publicIncidentType(s.script.incidents.find(e=>e.day===a.day));(s.knownIncidentTypes||={})[a.day]=type;log(s,`人工智能选择第 ${a.day} 日的「${name(type)}」，先声明模拟目标。`,'ability',{who:a.actor});s.pending={action:a,incident:incidents[type]?.sets.includes(s.script.ruleset)?type:'no_effect',culprit:a.actor,chooser:seat,simulated:true,...(type==='bestial_murder'?{stage:'declare_murder'}:{})};s.phase='ai_target';break;}log(s,`请求使用${name(a.actor)}的能力 ${a.index+1}${a.actor==='ai_character'?`：第 ${a.day} 日事件${a.effectTarget?'，目标 '+name(a.effectTarget):''}${a.effectTo?'，另一目标 '+name(a.effectTo):''}${a.effectCounter?'，计数 '+COUNTER_ZH[a.effectCounter]:''}${a.effectEffect?'，效果 '+name(a.effectEffect):''}`:''}。`,'ability',{who:a.actor,ability:a.index});s.phase='refusal';s.pending={action:a};break;}
   case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,`${name(pending.actor)}拒绝了请求。`,'refused',{who:pending.actor});else executeGoodwill(s,pending);break;}
   case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`公开规则 X「${name(a.plot)}」。`,'reveal');s.pending=null;s.phase='hero_ability';break;
   case 'incident':resolveIncidentChoice(s,a);break;
@@ -454,7 +454,8 @@ export function transitionFrames(project,initial,steps){
 export function strategicBriefing(s,seat=turn(s)){
  if(!seat||['between','guess','over'].includes(s.phase))return [];
  const out=[],live=living(s),daysLeft=s.script.days-s.day+1,loopsLeft=s.script.loops-s.loop;
- out.push(`第 ${s.loop}/${s.script.loops} 轮回，第 ${s.day}/${s.script.days} 日；本轮回含今日还剩 ${daysLeft} 次出牌机会。${seat==='M'?(loopsLeft?`还需再让 ${loopsLeft+1} 个轮回全部失败。`:'这是最后一个轮回：只要本轮回失败就能获胜。'):(loopsLeft?`本轮回失败后还剩 ${loopsLeft} 次重来机会。`:'这是最后一个轮回，必须阻止所有惨剧。')}`);
+ const finalGuess=s.script.ruleset!=='FS';
+ out.push(`第 ${s.loop}/${s.script.loops} 轮回，第 ${s.day}/${s.script.days} 日；本轮回含今日还剩 ${daysLeft} 次出牌机会。${seat==='M'?(loopsLeft?`还需再让 ${loopsLeft+1} 个轮回全部失败。`:finalGuess?'这是最后一个轮回；令其失败后仍有最后的战斗，必须兼顾隐藏配役。':'这是最后一个轮回；令其失败即可获胜。'):(loopsLeft?`本轮回失败后还剩 ${loopsLeft} 次重来机会。`:finalGuess?'这是最后一个轮回；争取平安度过，也要为最后的战斗收集可核对的配役证据。':'这是最后一个轮回，必须避免轮回失败。')}`);
  if(seat!=='M'){
   const pending=s.script.incidents.filter(e=>e.day>=s.day&&!s.occurred.includes(e.day)).map(e=>e.day);
   if(pending.length)out.push(`尚未到来的事件日：${pending.map(d=>'第'+d+'日').join('、')}。${s.script.ruleset==='MC'?'通常由不安达到临界触发；事件与角色能力可能调整临界或强制发生。':'事件在犯人不安达到临界时发生。'}`);
@@ -466,7 +467,7 @@ export function strategicBriefing(s,seat=turn(s)){
   const alone=locs.map(l=>live.filter(c=>c.location===l)).filter(g=>g.length===2).map(g=>g.map(c=>name(c.id)).join('与'));
   if(alone.length)out.push('两人独处的地点（若一方是连环杀手，另一方日结束会死亡）：'+alone.join('；')+'。');
   const known=Object.entries(s.knownRoles).map(([c,r])=>`${name(c)}=${name(r)}`);if(known.length)out.push((s.script.ruleset==='MZ'?'已宣告角色（忍者可能伪装，EX 卡可能改变角色）：':'已确认角色：')+known.join('、')+'。');
-  out.push('提升友好可解锁人物能力（如公开角色、减少不安）。观察剧作家把不安+1/暗跃+1放在谁身上，通常就是犯人或关键角色。');
+  out.push('提升友好可解锁能力；同时检查移动救援、事件模拟与信息获取。剧作家的目标是线索，也可能是佯攻，不能直接认定犯人或关键人物。');
   return out;
  }
  const sc=s.script,roleOf=r=>live.filter(c=>hasRole(s,c.id,r));
@@ -514,152 +515,325 @@ export function strategicBriefing(s,seat=turn(s)){
  out.push('策略：集中资源推进 1–2 条最快的失败路径，再用其他牌制造干扰。主人公每天最多 3 张牌，且同日两张以上暗跃禁止会全部失效；移动牌只作用于人物，不能移动地点。');
  return out;
 }
+// Event values are goals for this script, not a blanket preference to cause events.
 function incidentWeight(s,e){
+ let weight;
  switch(e.type){
-  case 'suicide':return hasRole(s,e.culprit,'key_person')||hasRole(s,e.culprit,'friend')?12:2;
-  case 'murder':return 8;
-  case 'hospital_incident':return s.locations.hospital>=1?9:4;
-  case 'faraway_murder':return 6;
-  case 'evil':return s.script.mainPlot==='sealed_item'?10:3;
-  case 'butterfly':return s.script.mainPlot==='change_future'?12:3;
-  default:return 4;
+  case 'suicide':weight=hasRole(s,e.culprit,'key_person')||hasRole(s,e.culprit,'friend')?12:2;break;
+  case 'murder':case 'serial_murder':weight=8;break;
+  case 'bestial_murder':weight=9;break;
+  case 'hospital_incident':weight=s.locations.hospital>=1?9:4;break;
+  case 'terrorism':weight=s.locations.city>=1?9:4;break;
+  case 'faraway_murder':weight=6;break;
+  case 'evil':weight=s.script.mainPlot==='sealed_item'?10:3;break;
+  case 'butterfly':weight=s.script.mainPlot==='change_future'?12:3;break;
+  case 'breakthrough':case 'confession':weight=-4;break;
+  case 'silver_bullet':weight=-2;break;
+  case 'fake_incident':weight=s.locations[s.board[e.culprit].initial]>=2?12:4;break;
+  default:weight=3;
  }
+ if(s.script.ruleset==='MC'&&e.type!=='silver_bullet'){
+  const increment=e.type==='bestial_murder'&&e.culprit!=='black_cat'?2:1,gauge=s.extraGauge||0;
+  if(s.script.mainPlot==='tightrope_plan')weight-=gauge<=1?10:3;
+  if(s.script.mainPlot==='quilt_incidents')weight+=gauge<3?6+increment:1;
+  if(living(s).some(c=>hasRole(s,c.id,'poisoner')))weight+=gauge+increment>=4?12:gauge<2&&gauge+increment>=2?5:1;
+ }
+ return weight;
 }
 function plotLocations(s){
  const sc=s.script,initial=r=>Object.keys(sc.roles).filter(c=>sc.roles[c]===r).map(c=>s.board[c].initial),out=new Set();
- if(sc.mainPlot==='protect_place')out.add('school');if(sc.mainPlot==='sealed_item')out.add('shrine');
+ if(sc.mainPlot==='protect_place'||sc.mainPlot==='black_school')out.add('school');if(sc.mainPlot==='sealed_item')out.add('shrine');
  if(sc.mainPlot==='avenger')initial('brain').forEach(l=>out.add(l));if(sc.mainPlot==='time_bomb')initial('witch').forEach(l=>out.add(l));
  if(upcomingIncidents(s).some(e=>e.type==='hospital_incident'))out.add('hospital');
+ if(upcomingIncidents(s).some(e=>e.type==='terrorism'))out.add('city');
+ if(sc.mainPlot==='secret_record')for(const c of living(s))if(hasRole(s,c.id,'factor'))out.add('city');
  return [...out];
 }
-// Mastermind-side evaluation of a full state; only the mastermind bot may use it.
+// Full-state scores are private to the mastermind. A lost loop is not a won
+// match: in sets with Final Guess, exposing identities still has a cost.
 function mastermindValue(s){
- if(s.winner==='mastermind'||s.phase==='between'||s.phase==='guess')return 1000;
+ if(s.winner==='mastermind')return 1000;
  if(s.winner==='heroes')return -1000;
+ const exposed=Object.keys(s.knownRoles).length*3+Object.keys(s.knownCulprits).length*1.5+s.knownPlots.length*3;
+ if(s.phase==='between'||s.phase==='guess')return 600-exposed;
  const live=living(s),keys=live.filter(c=>hasRole(s,c.id,'key_person')),killers=live.filter(c=>hasRole(s,c.id,'killer'));let v=0;
- for(const e of upcomingIncidents(s)){const c=s.board[e.culprit];if(!c.alive||!c.present||s.suppressed.includes(e.culprit))continue;const limit=Math.max(1,chars[e.culprit].paranoiaLimit);v+=incidentWeight(s,e)*Math.min(c.paranoia,limit)/limit;}
+ for(const e of upcomingIncidents(s)){const trigger=incidentTrigger(s,e);if(trigger.unavailable||trigger.suppressed||trigger.blocked)continue;const progress=trigger.forced?1:Math.min(trigger.value/Math.max(1,trigger.limit),1);v+=incidentWeight(s,e)*progress;}
  for(const k of keys)v+=Math.min(k.intrigue,2)*3+(killers.some(x=>x.location===k.location)?3:0);
- for(const l of plotLocations(s))v+=Math.min(s.locations[l],2)*4;
+ for(const l of plotLocations(s)){const threshold=s.script.mainPlot==='black_school'&&l==='school'?Math.max(1,s.loop-1):2;v+=Math.min(s.locations[l],threshold)*4;}
  for(const k of killers)v+=Math.min(k.intrigue,4);
  for(const k of live.filter(c=>hasRole(s,c.id,'loved_one')))v+=Math.min(k.paranoia,3)+Math.min(k.intrigue,1)*2;
  v+=Object.values(s.board).filter(c=>c.present&&!c.alive&&hasRole(s,c.id,'friend')).length*50;
- v-=live.reduce((n,c)=>n+c.goodwill*.4+c.guard*2,0)+Object.keys(s.knownRoles).length*2+Object.keys(s.knownCulprits).length*1.5+s.knownPlots.length*2;
+ if(s.script.ruleset==='MC'){
+  const gauge=s.extraGauge||0;
+  if(s.script.mainPlot==='tightrope_plan')v+=gauge<=1?14:0;
+  if(s.script.mainPlot==='quilt_incidents')v+=Math.min(gauge,3)*7;
+  if(live.some(c=>hasRole(s,c.id,'poisoner')))v+=gauge>=4?45:gauge>=2?8:0;
+  if(s.script.subPlots.includes('smell_gunpowder'))v+=Math.min(12,live.reduce((n,c)=>n+c.paranoia,0))*1.8;
+ }
+ if(s.script.mainPlot==='male_confrontation')for(const c of live.filter(c=>hasRole(s,c.id,'ninja')))v+=Math.min(2,c.intrigue)*8;
+ if(s.script.mainPlot==='secret_record'&&(s.loopRevealedRoles||[]).some(r=>['brain','factor','magician'].includes(r)))v+=40;
+ if(s.script.subPlots.includes('showtime_death'))v+=Math.max(0,9-live.length)*8;
+ v-=live.reduce((n,c)=>n+c.goodwill*.4+c.guard*2,0)+exposed;
  return v;
 }
 function mastermindPlacement(s,a){
  const type=a.card.split('#')[0],t=a.target,c=s.board[t];
- if(!c)return ['intrigue_1','intrigue_2'].includes(type)?(plotLocations(s).includes(t)&&s.locations[t]<2?(type==='intrigue_2'?9:8):1):.2;
+ if(!c){const goal=plotLocations(s).includes(t),threshold=s.script.mainPlot==='black_school'&&t==='school'?Math.max(1,s.loop-1):2;return ['intrigue_1','intrigue_2'].includes(type)?(goal&&s.locations[t]<threshold?(type==='intrigue_2'?9:8):1):.2;}
  const live=living(s),is=r=>hasRole(s,t,r),keys=live.filter(k=>hasRole(s,k.id,'key_person')),killers=live.filter(k=>hasRole(s,k.id,'killer'));
- const incidents=upcomingIncidents(s).filter(e=>e.culprit===t&&!s.suppressed.includes(t)),limit=chars[t].paranoiaLimit;
- if(type==='paranoia_1'){let n=is('loved_one')&&c.paranoia<3?5:.5;for(const e of incidents){const need=limit-c.paranoia;if(need>0&&need<=(e.day-s.day+1)*2)n=Math.max(n,incidentWeight(s,e)+(e.day===s.day?2:0));}return n;}
+ const events=upcomingIncidents(s).filter(e=>e.culprit===t&&!s.suppressed.includes(t));
+ if(type==='paranoia_1'){
+  let n=is('loved_one')&&c.paranoia<3?5:s.script.subPlots.includes('smell_gunpowder')?3:.5;
+  for(const e of events){const trigger=incidentTrigger(s,e),need=trigger.limit-trigger.value;if(trigger.forced||e.type==='conspiracies')continue;if(need>0&&need<=(e.day-s.day+1)*2)n=Math.max(n,incidentWeight(s,e)+(e.day===s.day?2:0));}
+  return n;
+ }
  if(type==='intrigue_1'||type==='intrigue_2'){
+  if(is('ninja')&&s.script.mainPlot==='male_confrontation'&&c.intrigue<2)return 10;
   if(is('key_person')&&c.intrigue<2&&(killers.length||s.script.mainPlot==='contract'||upcomingIncidents(s).some(e=>e.type==='faraway_murder')))return type==='intrigue_2'&&c.intrigue===0?9:7;
-  if(is('killer'))return c.intrigue<4?3:.5;if(is('loved_one')&&c.intrigue<1)return 5;return .8;
+  if(is('killer'))return c.intrigue<4?3:.5;if(is('loved_one')&&c.intrigue<1)return 5;
+  for(const e of events)if(e.type==='conspiracies'||s.script.mainPlot==='strychnine'&&['serial_murder','suicide'].includes(e.type)){const trigger=incidentTrigger(s,e);if(trigger.value<trigger.limit)return Math.max(.2,incidentWeight(s,e));}
+  return .8;
  }
  if(type.startsWith('move')){
-  const to=moveDestination(s,t,type);if(!to||to===c.location)return .1;
+  const to=moveDestination(s,t,type);if(!to||to===c.location||movementBlocked(s,t,to))return .1;
   const there=live.filter(x=>x.location===to&&x.id!==t);
   if(is('killer')&&keys.some(k=>k.location===to))return 9+(keys.some(k=>k.location===to&&k.intrigue>=2)?2:0);
   if(is('key_person')&&killers.some(k=>k.location===to))return 9+(c.intrigue>=2?2:0);
   if((is('key_person')||is('friend'))&&there.length===1&&hasRole(s,there[0].id,'serial_killer'))return 10;
   if(is('serial_killer')&&there.length===1)return hasRole(s,there[0].id,'key_person')||hasRole(s,there[0].id,'friend')?11:4;
-  if(upcomingIncidents(s).some(e=>e.culprit===t&&e.type==='murder')&&keys.some(k=>k.location===to))return 6;
+  if(is('poisoner')&&(s.extraGauge||0)>=2&&there.some(x=>hasRole(s,x.id,'key_person')))return 10;
+  if(events.some(e=>['murder','serial_murder','bestial_murder'].includes(e.type))&&keys.some(k=>k.location===to))return 6;
   return .5;
  }
  if(type==='forbid_goodwill')return is('time_traveler')&&s.day>=s.script.days-1?8:c.goodwill>=1?2+c.goodwill:.3;
- if(type==='forbid_paranoia')return incidents.some(e=>e.day<=s.day+1)&&c.paranoia>=limit?5:.2;
+ if(type==='forbid_paranoia')return events.some(e=>e.day<=s.day+1&&incidentTrigger(s,e).occurs&&incidentWeight(s,e)>0)?5:.2;
  return .3;
 }
 const reducesParanoia=(a,i)=>['boy_student','girl_student','nurse'].includes(a)||a==='idol'&&i===0;
-// Protagonist bot: only its own observation. Mastermind card targets are public
-// and are the main signal for where a threat is being built.
+// All helpers prefixed public/hero receive a seat projection, never the script's
+// secret role map. A MZ declaration is not a confirmed original identity.
+const publicRoles=v=>({...(v.script.ruleset==='MZ'?{}:v.knownRoles),...v.guessed});
+const publicLiving=v=>Object.values(v.board).filter(c=>c.alive&&c.present);
+const eventType=(v,e)=>e?.type||v.knownIncidentTypes?.[e?.day];
 function revealedHistory(v){
  const h={paranoia:{},intrigue:{}};
  for(const e of v.log)for(const p of e.type==='cards'&&e.cards||[]){if(p.seat!=='M')continue;const t=p.card.split('#')[0];if(t==='paranoia_1')h.paranoia[p.target]=(h.paranoia[p.target]||0)+1;if(t.startsWith('intrigue'))h.intrigue[p.target]=(h.intrigue[p.target]||0)+1;}
  return h;
 }
-function heroScore(v,a,history){
+function publicMoveDestination(v,id,type){
+ const c=v.board[id],at=catalog.locations.find(l=>l.id===c.location),to=catalog.locations.find(l=>l.x===(at.x^Number(type==='move_h'||type==='move_d'))&&l.y===(at.y^Number(type==='move_v'||type==='move_d'))).id;
+ return publicCanMove(v,id,to)?to:null;
+}
+function publicCanMove(v,id,to){
+ const c=v.board[id];return locs.includes(to)&&(id==='patient'&&v.flags.patientFree||!chars[id].forbiddenLocations.includes(to))
+  &&(to===c.location||c.movementLockedDay!==v.day&&(v.closedLocations?.[c.location]??-1)<v.day&&(v.closedLocations?.[to]??-1)<v.day);
+}
+function publicDanger(v){
+ const known=publicRoles(v),live=publicLiving(v);let risk=0;
+ const importance=c=>known[c.id]==='key_person'?24:known[c.id]==='friend'?16:12;
+ for(const c of live){
+  if(c.guard>0||['private_investigator','immortal','time_traveler'].includes(known[c.id]))continue;
+  const others=live.filter(t=>t.id!==c.id&&t.location===c.location);
+  if(others.length===1&&known[others[0].id]==='serial_killer')risk+=importance(c);
+  if(known[c.id]==='key_person'&&c.intrigue>=2&&others.some(t=>known[t.id]==='killer'))risk+=24;
+  if(v.extraGauge>=2&&others.some(t=>known[t.id]==='poisoner'))risk+=importance(c)*.6;
+ }
+ return risk;
+}
+function publicMoveValue(v,id,to){
+ if(!publicCanMove(v,id,to)||v.board[id].location===to)return -1;
+ const next={...v,board:{...v.board,[id]:{...v.board[id],location:to}}};
+ return (publicDanger(v)-publicDanger(next))*1.5;
+}
+function publicEndFailure(v){
+ const known=publicRoles(v),ps=v.knownPlots,live=publicLiving(v);
+ if(Object.values(v.board).some(c=>c.present&&!c.alive&&known[c.id]==='friend'))return true;
+ if(ps.includes('tightrope_plan')&&(v.extraGauge||0)<=1||ps.includes('quilt_incidents')&&v.extraGauge>=3)return true;
+ if(ps.includes('black_school')&&v.locations.school>=v.loop-1)return true;
+ if(ps.includes('smell_gunpowder')&&live.reduce((n,c)=>n+c.paranoia,0)>=12)return true;
+ if(ps.includes('protect_place')&&v.locations.school>=2||ps.includes('sealed_item')&&v.locations.shrine>=2)return true;
+ if(ps.includes('contract')&&live.some(c=>known[c.id]==='key_person'&&c.intrigue>=2))return true;
+ if(ps.includes('change_future')&&v.script.incidents.some(e=>v.occurred.includes(e.day)&&eventType(v,e)==='butterfly'))return true;
+ return false;
+}
+function goodwillValue(v,id,amount){
+ const c=v.board[id];if(!c)return 0;
+ const old=c.goodwill,next=Math.max(0,old+amount);if(roles[publicRoles(v)[id]]?.goodwillRefusal==='mandatory'&&!chars[id].abilities.some(a=>a.cannotRefuse))return (next-old)*.1;
+ const crossed=chars[id].abilities.filter(a=>a.minGoodwill>Math.min(old,next)&&a.minGoodwill<=Math.max(old,next)).length;
+ return (next-old)*.6+Math.sign(amount)*crossed*4;
+}
+function addParanoiaValue(v,id,amount=1){
+ const c=v.board[id];if(!c)return -1;
+ const today=v.script.incidents.find(e=>e.day===v.day&&v.knownCulprits[e.day]===id);
+ if(today){const kind=eventType(v,today),known=publicRoles(v);if(kind==='suicide'&&['key_person','friend'].includes(known[id]))return -30;
+  const helpful=kind==='breakthrough'||kind==='confession'||v.knownPlots.includes('tightrope_plan')&&(v.extraGauge||0)<2;
+  const harmful=v.knownPlots.includes('quilt_incidents')&&(v.extraGauge||0)>=2||v.knownPlots.includes('smell_gunpowder')||known[id]==='loved_one';
+  const threshold=chars[id].paranoiaLimit+(kind==='bestial_murder'?1:kind==='portent'?-1:0);
+  if(helpful&&!harmful&&c.paranoia<threshold)return c.paranoia+amount>=threshold?10:3;
+ }
+ return -2;
+}
+function simulatedIncidentValue(v,type,a){
+ const t=a.target&&v.board[a.target],known=publicRoles(v);
+ if(type==='silver_bullet')return publicEndFailure(v)?-40:9+Math.min(3,v.script.days-v.day);
+ if(type==='breakthrough')return 4*Math.min(2,t?.intrigue??v.locations[a.target]??0)-.5;
+ if(type==='confession')return known.ai_character?-1:v.script.ruleset==='MZ'?3:6;
+ if(type==='spreading')return goodwillValue(v,a.target,-2)+goodwillValue(v,a.to,2)-.5;
+ if(type==='suspicious_letter')return t?publicMoveValue(v,t.id,a.to)-.5:-1;
+ if(type==='murder'||type==='serial_murder'||type==='faraway_murder')return t?['key_person','friend'].includes(known[t.id])?-50:['killer','serial_killer','poisoner','brain'].includes(known[t.id])?12:-4:-1;
+ if(type==='butterfly')return a.counter==='goodwill'?goodwillValue(v,a.target,1):a.counter==='paranoia'?addParanoiaValue(v,a.target):-3;
+ if(type==='unease')return addParanoiaValue(v,a.target,2)-2;
+ if(type==='portent')return addParanoiaValue(v,a.target);
+ if(type==='bestial_murder')return a.murderTarget!==undefined?simulatedIncidentValue(v,'serial_murder',{target:a.murderTarget}):addParanoiaValue(v,a.target,2)-2;
+ if(type==='conspiracies')return simulatedIncidentValue(v,a.effect,a);
+ if(type==='hospital_incident'||type==='terrorism')return (v.locations[type==='terrorism'?'city':'hospital']>=2&&!v.flags.heroImmortal)?-100:-4;
+ if(type==='suicide')return ['key_person','friend'].includes(known.ai_character)?-50:['killer','poisoner'].includes(known.ai_character)?8:-5;
+ if(type==='missing'||type==='evil'||type==='fake_incident'||type==='uproar')return -4;
+ return -1;
+}
+// Role quotas narrow guesses using only confirmed public identities and revealed
+// plots. Unrevealed rules are considered together, including optional role counts.
+function publicGuessWeights(v){
+ const known=publicRoles(v),ids=v.script.characters,sets=catalog.plots.filter(p=>p.sets.includes(v.script.ruleset)),ys=sets.filter(p=>p.kind==='Y'),xs=sets.filter(p=>p.kind==='X'),count=catalog.sets.find(s=>s.id===v.script.ruleset).subPlots;
+ const combinations=count===1?xs.map(x=>[x]):xs.flatMap((x,i)=>xs.slice(i+1).map(y=>[x,y]));
+ const candidates=[];
+ for(const y of ys)for(const pair of combinations){const ps=[y,...pair];if(!v.knownPlots.every(id=>ps.some(p=>p.id===id)))continue;const quota={};
+  for(const p of ps)for(const [r,n]of Object.entries(p.addedRoles)){const q=quota[r]||=[0,0];q[0]=Math.min((roles[r].maxCount??99),q[0]+(typeof n==='number'?n:n.min));q[1]=Math.min((roles[r].maxCount??99),q[1]+(typeof n==='number'?n:n.max));}
+  const actual={};for(const [c,r]of Object.entries(known))if(c!=='irregular')actual[r]=(actual[r]||0)+1;
+  const unknown=ids.filter(c=>c!=='irregular'&&!known[c]).length;
+  if(Object.entries(actual).some(([r,n])=>r!=='person'&&n>(quota[r]?.[1]||0))||Object.entries(quota).some(([r,[lo]])=>(actual[r]||0)+unknown<lo))continue;
+  const nonPerson=Object.values(quota).reduce((n,[lo,hi])=>n+(lo+hi)/2,0);quota.person=[Math.max(0,ids.length-Number(ids.includes('irregular'))-nonPerson),Math.max(0,ids.length-Number(ids.includes('irregular'))-nonPerson)];
+  candidates.push(Object.fromEntries(Object.entries(quota).map(([r,[lo,hi]])=>[r,Math.max(0,(lo+hi)/2-(actual[r]||0))])));
+ }
+ const weights={};for(const q of candidates)for(const [r,n]of Object.entries(q))weights[r]=(weights[r]||0)+n/Math.max(1,candidates.length);
+ return weights;
+}
+function heroScore(v,a,history,guessWeights){
  const c=v.board[a.target];
  if(a.type==='place'){
-  const type=a.card.split('#')[0],mmTargets=v.placements.filter(p=>p.seat==='M').map(p=>p.target),targeted=mmTargets.includes(a.target);
-  const soon=v.script.incidents.some(e=>e.day>=v.day&&e.day<=v.day+1);
-  // Shared convention: once a teammate answers a mastermind target, others avoid a second Forbid Intrigue that would cancel it.
-  const answered=v.placements.some(p=>p.seat!=='M'&&p.seat!==v.seat&&mmTargets.includes(p.target))?.3:1;
-  if(!c)return type==='forbid_intrigue'?(targeted?7+v.locations[a.target]+(history.intrigue[a.target]||0):v.locations[a.target]>=1?2:.2)*answered:.1;
+  const type=a.card.split('#')[0],mmTargets=v.placements.filter(p=>p.seat==='M').map(p=>p.target),targeted=mmTargets.includes(a.target),soon=v.script.incidents.some(e=>e.day>=v.day&&e.day<=v.day+1);
+  // The convention prevents hidden teammate cards from being inferred. Only the
+  // day's leader uses Forbid Intrigue; alternate public conventions are for AI.
+  const forbidAllowed=v.seat===v.leader;
+  if(!c)return type==='forbid_intrigue'?(forbidAllowed?(targeted?7+v.locations[a.target]+(history.intrigue[a.target]||0):v.locations[a.target]>=1?2:.2):-3):.1;
   const limit=chars[c.id].paranoiaLimit,gap=limit-c.paranoia,suspect=history.paranoia[c.id]||0;
-  if(type==='paranoia_minus_1')return c.paranoia>0&&gap<=1?(soon?11:7)+(targeted?2:0)+suspect:targeted&&c.paranoia>0&&gap<=2?4+suspect:.1;
-  if(type==='forbid_intrigue')return (targeted?6+c.intrigue+(history.intrigue[c.id]||0):c.intrigue>=1?2:.2)*answered;
-  if(type==='goodwill_1'||type==='goodwill_2'){const min=Math.min(...chars[c.id].abilities.map(x=>x.minGoodwill),99);if(min===99)return .3;if(c.goodwill>=min)return 1;return 4.5-Math.max(0,min-c.goodwill-(type==='goodwill_2'?2:1))*.6-(targeted?.4:0);}
+  if(type.startsWith('move_')){const to=publicMoveDestination(v,c.id,type);return to ? .4+publicMoveValue(v,c.id,to) : -.2;}
+  if(type==='paranoia_minus_1'){
+   const beneficial=addParanoiaValue(v,c.id)>0;if(beneficial)return -3;
+   return c.paranoia>0&&gap<=1?(soon?11:7)+(targeted?2:0)+suspect:targeted&&c.paranoia>0&&gap<=2?4+suspect:.1;
+  }
+  if(type==='paranoia_1')return addParanoiaValue(v,c.id);
+  if(type==='forbid_intrigue')return forbidAllowed?(targeted?6+c.intrigue+(history.intrigue[c.id]||0):c.intrigue>=1?2:.2):-3;
+  if(type==='goodwill_1'||type==='goodwill_2')return 1.5+goodwillValue(v,c.id,type==='goodwill_2'?2:1)-(targeted?.4:0);
   if(type==='forbid_move')return targeted?3:.3;
-  return type==='paranoia_1'?.05:.4;
+  return .2;
  }
  if(a.type==='goodwill'){
-  const t=a.target&&v.board[a.target],ratio=t?t.paranoia/Math.max(1,chars[t.id].paranoiaLimit):0,unknown=t&&!v.knownRoles[t.id];
-  if(reducesParanoia(a.actor,a.index)||a.actor==='doctor'&&a.index===0||a.actor==='teacher'&&a.index===0)return a.amount===1?-1:t?.paranoia>0?3+ratio*5:-1;
+  if(roles[publicRoles(v)[a.actor]]?.goodwillRefusal==='mandatory'&&!chars[a.actor].abilities[a.index].cannotRefuse)return -4;
+  const t=a.target&&v.board[a.target],ratio=t?t.paranoia/Math.max(1,chars[t.id].paranoiaLimit):0,unknown=t&&!publicRoles(v)[t.id];
+  if(a.actor==='ai_character'){
+   const e=v.script.incidents.find(e=>e.day===a.day),type=eventType(v,e);
+   if(!type)return 1; // A legacy hidden schedule may still be inspected once.
+   const args=Object.fromEntries(Object.entries(a).filter(([k])=>k.startsWith('effect')).map(([k,x])=>[k[6].toLowerCase()+k.slice(7),x]));
+   return simulatedIncidentValue(v,type,args);
+  }
+  if(a.actor==='journalist')return a.index===0?addParanoiaValue(v,a.target):-2;
+  if(reducesParanoia(a.actor,a.index)||a.actor==='doctor'&&a.index===0||a.actor==='teacher'&&a.index===0)return a.amount===1?addParanoiaValue(v,a.target):t?.paranoia>0?(addParanoiaValue(v,a.target)>0?-3:3+ratio*5):-1;
   if(['office_worker','irregular','boss'].includes(a.actor)||['shrine_maiden','forensic','teacher'].includes(a.actor)&&a.index===1)return unknown?4:-1;
   if(a.actor==='shrine_maiden')return v.locations.shrine>0?5:-1;
   if(a.actor==='transfer_student'||a.actor==='godly_being'&&a.index===1)return t?.intrigue>0||(!t&&v.locations[a.target]>0)?5:-1;
-  if(a.actor==='soldier')return a.index===1?5:-1;
-  if(a.actor==='alien')return a.index===1?5:-2;
-  if(a.actor==='journalist'||a.actor==='ai_character')return -1;
-  if(a.actor==='police'||a.actor==='godly_being')return a.index===0?(v.knownCulprits[a.day]?-1:4):2;
+  if(a.actor==='soldier')return a.index===1?(v.flags.heroImmortal?-1:5):addParanoiaValue(v,a.target,2);
+  if(a.actor==='alien')return a.index===1?5:simulatedIncidentValue(v,'murder',{target:a.target});
+  if(a.actor==='police'||a.actor==='godly_being')return a.index===0?(v.knownCulprits[a.day]?-1:4):Math.max(1,publicDanger(v)>0?9:2);
   if(a.actor==='henchman')return 4;
   if(a.actor==='forensic')return .2;
+  if(a.actor==='rich_girl'||a.actor==='idol'&&a.index===1)return goodwillValue(v,a.target,1);
   return 1;
  }
+ if(a.type==='ai_target'){
+  const day=Number(v.choiceTitle?.match(/第 (\d+) 日/)?.[1]),type=eventType(v,v.script.incidents.find(e=>e.day===day));
+  return simulatedIncidentValue(v,type,a);
+ }
+ if(a.type==='incident')return 4*Math.min(2,c?.intrigue??v.locations[a.target]??0);
  if(a.type==='pass')return 0;if(a.type==='next_loop')return 10;if(a.type==='final_battle')return 0;
- if(a.type==='guess')return v.knownRoles[a.character]===a.role?10:a.role==='person'?1:0;
+ if(a.type==='guess'){
+  const known=publicRoles(v);if(known[a.character])return known[a.character]===a.role?100:-100;
+  if(a.character==='ai_character'&&a.role==='person')return -100;
+  if(Object.values(v.knownCulprits).includes(a.character)&&roles[a.role]?.castingConstraints?.includes('cannotBeCulprit'))return -100;
+  return (guessWeights||publicGuessWeights(v))[a.role]??0;
+ }
  return 1;
 }
-// The next `count` commands the practice bot would give this seat in a row.
+function heroOptions(v,options){const history=revealedHistory(v),weights=v.phaseId==='guess'?publicGuessWeights(v):undefined;return options.map((o,i)=>({o,score:heroScore(v,o.command,history,weights)+(i%7)*.001})).sort((a,b)=>b.score-a.score);}
+// The next commands of one seat, retaining legality after each card. Protagonist
+// scores never evaluate applyCommand results against the hidden true script.
 export function botPlan(s,seat=turn(s),count=1){
  const out=[];let current=s;
  while(out.length<count&&turn(current)===seat&&current.phase===s.phase){const command=botCommand(current,seat);out.push(command);current=applyCommand(current,seat,command);}
  return out;
 }
-// Deterministic per-day variety: the same state always gives the same choice,
-// but equal-looking days in different loops do not replay move for move.
 function dayNoise(s,i){let h=(Math.imul(s.loop,0x9E3779B1)^Math.imul(s.day,0x85EBCA6B)^Math.imul(i+1,0xC2B2AE35)^(Number(s.script.seed)|0))>>>0;h^=h>>>15;h=Math.imul(h,0x2C1B3C6D);h^=h>>>12;return (h>>>0)/4294967296;}
-const mastermindWon=s=>s.winner==='mastermind'||s.phase==='between'||s.phase==='guess';
-function bestByValue(s,options){let best=options[0],score=-Infinity;for(const [i,o] of options.entries()){const n=mastermindValue(applyCommand(s,'M',o.command))+(i%7)*.001;if(n>score){score=n;best=o;}}return best;}
-// Plays today out with the given mastermind cards, assuming the protagonists
-// do nothing useful, to see whether the loop already fails tonight.
-function winsToday(s,cards){
- let sim=cp({...s,log:[]});
- sim.placements=[...cards.map(c=>({seat:'M',card:c.card,target:c.target})),...['A','B','C'].map((seat,i)=>({seat,card:'goodwill_1#0',target:locs[i]}))];
- resolveMovement(sim);
- for(let n=0;n<40&&!stopped(sim)&&sim.loop===s.loop&&sim.day===s.day;n++){
-  const seat=turn(sim),options=legalActions(sim,seat);
-  sim=applyCommand(sim,seat,(seat==='M'?bestByValue(sim,options):options.find(o=>o.command.type==='pass')||options[0]).command);
+function mastermindCandidates(s,options,limit=12){
+ if(options.length<=limit||options[0]?.command.type==='place')return options;
+ const quick=a=>{
+  if(a.type==='end_ability')return a.ability==='heroes'?100:a.ability==='travel'?80:hasRole(s,a.target,'key_person')?100:hasRole(s,a.target,'friend')?60:5;
+  if(a.type==='mm'){
+   const card=a.ability==='brain'||a.ability==='rumor'||a.counter==='intrigue'?'intrigue_1#0':'paranoia_1#0';
+   const value=mastermindPlacement(s,{type:'place',target:a.target,card});return a.ability==='therapist'||a.amount===-1?-value:value;
+  }
+  const target=a.murderTarget||a.target;
+  if(target&&s.board[target]&&['murder','serial_murder','faraway_murder','bestial_murder'].includes(s.pending?.incident))return hasRole(s,target,'key_person')?100:hasRole(s,target,'friend')?60:5;
+  if(s.pending?.incident==='unease'||s.pending?.stage==='unease')return (a.target?mastermindPlacement(s,{card:'paranoia_1#0',target:a.target}):0)+(a.to?mastermindPlacement(s,{card:'intrigue_1#0',target:a.to}):0);
+  return a.type==='pass'?-1:0;
+ };
+ return options.map((o,i)=>({o,i,value:quick(o.command)})).sort((a,b)=>b.value-a.value||a.i-b.i).slice(0,limit).map(x=>x.o);
+}
+function bestByValue(s,options){let best=options[0],score=-Infinity;for(const [i,o] of mastermindCandidates(s,options).entries()){const n=mastermindValue(applyCommand(s,'M',o.command))+(i%7)*.001;if(n>score){score=n;best=o;}}return best;}
+// A bounded public-information defense checks one plausible response, not minimax.
+function evaluateToday(s,cards){
+ let sim=cp({...s,log:s.log.slice(-80)});
+ for(const c of cards){if(turn(sim)!=='M'||sim.phase!=='mm_cards')break;sim=applyCommand(sim,'M',{type:'place',card:c.card,target:c.target});}
+ for(let n=0;n<48&&!stopped(sim)&&sim.loop===s.loop&&sim.day===s.day;n++){
+  const seat=turn(sim),options=legalActions(sim,seat);if(!options.length)break;
+  let chosen;
+  if(seat==='M')chosen=bestByValue(sim,options);
+  else chosen=heroOptions(view(sim,seat),options)[0].o;
+  sim=applyCommand(sim,seat,chosen.command);
  }
- return mastermindWon(sim);
+ return mastermindValue(sim);
 }
 const outcomeMemo=new Map();
-const daySignature=s=>hash([s.script,s.loop,s.day,s.board,s.locations,s.usedCards,s.usage,s.suppressed,s.heroImmortal,s.patientFree]);
-function winsTodayMemo(s,signature,cards){
+const daySignature=s=>hash([s.script,s.loop,s.day,s.phase,s.placements,s.board,s.locations,s.usedCards,s.usage,s.suppressed,s.heroImmortal,s.patientFree,s.extraGauge,s.closedLocations,s.knownRoles,s.knownCulprits,s.knownPlots,s.occurred,s.loopFailed,s.loopRevealedRoles,s.extraCardLock]);
+function planValue(s,signature,cards){
  const key=signature+cards.map(c=>c.card+'>'+c.target).sort().join();
- if(!outcomeMemo.has(key)){if(outcomeMemo.size>4000)outcomeMemo.clear();outcomeMemo.set(key,winsToday(s,cards));}
+ if(!outcomeMemo.has(key)){if(outcomeMemo.size>256)outcomeMemo.clear();outcomeMemo.set(key,evaluateToday(s,cards));}
  return outcomeMemo.get(key);
 }
-// Heuristic priority picks the cards; a short search over the best few
-// combinations catches plans that end the loop today if left unanswered.
 function mastermindCard(s,options){
- const mine=s.placements.filter(p=>p.seat==='M').map(p=>({card:p.card,target:p.target})),need=3-mine.length;
- const scored=options.map((o,i)=>({o,score:mastermindPlacement(s,o.command)*(1+.15*dayNoise(s,i))})).sort((a,b)=>b.score-a.score);
- const top=scored.slice(0,6),signature=need>0?daySignature(s):'';let best=null;
+ const need=3-s.placements.filter(p=>p.seat==='M').length;
+ const scored=options.map((o,i)=>({o,score:mastermindPlacement(s,o.command)*(1+.08*dayNoise(s,i))})).sort((a,b)=>b.score-a.score);
+ // Add target/card variety so the top list can actually contain a legal trio.
+ const top=[];for(const x of scored){if(top.filter(y=>y.o.command.target===x.o.command.target).length>=2)continue;top.push(x);if(top.length===10)break;}
+ const plans=[];
  const search=(start,picked)=>{
-  if(picked.length===need){const sum=picked.reduce((n,x)=>n+x.score,0);if((!best||sum>best.sum)&&winsTodayMemo(s,signature,[...mine,...picked.map(x=>x.o.command)]))best={sum,first:picked[0]};return;}
+  if(picked.length===need){plans.push({sum:picked.reduce((n,x)=>n+x.score,0),picked});return;}
   for(let i=start;i<top.length;i++){const c=top[i].o.command;if(picked.some(x=>x.o.command.card===c.card||x.o.command.target===c.target))continue;search(i+1,[...picked,top[i]]);}
  };
- if(need>0)search(0,[]);
- return (best?best.first:scored[0]).o;
+ if(need>0)search(0,[]);plans.sort((a,b)=>b.sum-a.sum);
+ const signature=daySignature(s);let best;
+ for(const plan of plans.slice(0,2)){const value=planValue(s,signature,plan.picked.map(x=>x.o.command))+plan.sum*.1;if(!best||value>best.value)best={value,plan};}
+ return best?best.plan.picked[0].o:scored[0].o;
+}
+// Compact, legal candidate references for a model. The summary names only the
+// public effect for heroes, and never labels an uncertain line as a proven win.
+export function tacticalOptions(s,seat=turn(s),limit=3){
+ const options=legalActions(s,seat);if(!options.length)return [];
+ limit=Number.isInteger(limit)?Math.max(1,Math.min(5,limit)):3;
+ const v=view(s,seat),scored=seat==='M'?mastermindCandidates(s,options).map(o=>({o,score:o.command.type==='place'?mastermindPlacement(s,o.command):mastermindValue(applyCommand(s,seat,o.command))})).sort((a,b)=>b.score-a.score):heroOptions(v,options);
+ return scored.slice(0,limit).map(({o,score})=>({command:cp(o.command),score:Math.round(score*100)/100,summary:o.command.actor==='ai_character'&&eventType(v,v.script.incidents.find(e=>e.day===o.command.day))==='silver_bullet'?'提前结算轮回；仍须检查已知和未知的轮回末败北条件，能力也可能被拒绝。':o.command.type==='place'&&o.command.card.startsWith('move_')?'比较公开身份对应的移动前后危险；对方暗牌可能改变目的地。':seat==='M'?'按本局秘密目标估值的候选；对手仍可反制，不保证取胜。':'依据公开信息估值的候选；隐藏身份和后续选择可能改变效果。'}));
 }
 export function botCommand(s,seat=turn(s)){
  const options=legalActions(s,seat);if(!options.length)throw Error('NO_ACTION');
  if(options.length===1)return options[0].command;
  if(seat==='M')return (options[0].command.type==='place'?mastermindCard(s,options):bestByValue(s,options)).command;
- let best=options[0],score=-Infinity;
- const v=view(s,seat),history=revealedHistory(v);
- for(const [i,o] of options.entries()){const n=heroScore(v,o.command,history)*(o.command.type==='place'?1+.1*dayNoise(s,i):1)+(i%7)*.001;if(n>score){score=n;best=o;}}
- return best.command;
+ return heroOptions(view(s,seat),options)[0].o.command;
 }
