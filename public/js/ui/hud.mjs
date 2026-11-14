@@ -20,14 +20,14 @@ function tracks(v){
   return `<i class="${day<v.day?'past':day===v.day?'now':''}${event?' event':''}${happened?' happened':''}" title="第 ${day} 日${what?' · '+esc(what):''}">${day}</i>`;
  }).join('');
  return `<div class="track loops" title="第 ${v.loop} 轮回，共 ${v.script.loops} 轮回"><span>轮回</span>${loops}</div>
-  <div class="track days" title="第 ${v.day} 日，共 ${v.script.days} 日；红点表示当天有事件"><span>日期</span>${days}</div>
+  <div class="track days" title="第 ${v.day} 日，共 ${v.script.days} 日；带红点的日子有事件"><span>日期</span>${days}</div>
   <div class="leader" title="今天的领导者：主人公 ${esc(v.leader)}">${icon('crown')}<b>${esc(v.leader)}</b></div>`;
 }
 
 // ctx: {autoPlay, readOnly}
 export function hudHtml(v,ctx={}){
  const tools=ctx.readOnly?'':`<div class="hud-tools">
-   ${v.winner?'':`<label class="switch" title="对手自动行动"><input type="checkbox" id="autoplay"${ctx.autoPlay?' checked':''}><span class="switch-track"></span><span class="switch-label">对手自动</span></label>`}
+   ${v.winner?'':`<label class="switch" title="轮到对手时自动继续"><input type="checkbox" id="autoplay"${ctx.autoPlay?' checked':''}><span class="switch-track"></span><span class="switch-label">对手自动</span></label>`}
    ${iconBtn('help','guide','怎么玩')}${iconBtn('download','save-replay','导出回放')}${iconBtn('plus','new','新对局')}${iconBtn('panel','toggle-side','情报与推理','side-toggle')}
   </div>`;
  return `<div class="hud">

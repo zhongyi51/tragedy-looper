@@ -58,7 +58,7 @@ test('a failed loop says when it ended and what the table saw, without naming th
  let s=fresh();s.day=3;s.phase='hero_ability';s.board.girl_student.paranoia=3;s=act(s,{type:'pass'});
  let failed=s.log.at(-1);assert.equal(failed.when,'death');assert.deepEqual(failed.dead,['girl_student']);assert.match(failed.text,/^第 1 轮回失败：女学生死亡，轮回立即结束。$/);
  s=fresh();s.day=3;s.phase='end';s.loopFailed=true;s.locations.school=2;s.board.doctor.intrigue=1;s=act(s,{type:'pass'});
- failed=s.log.at(-1);assert.equal(failed.when,'end');assert.equal(failed.phase,'end');assert.deepEqual(failed.intrigue,{school:2,doctor:1});assert.match(failed.text,/最后一天结束时判定/);
+ failed=s.log.at(-1);assert.equal(failed.when,'end');assert.equal(failed.phase,'end');assert.deepEqual(failed.intrigue,{school:2,doctor:1});assert.match(failed.text,/最后一天结束时，失败条件成立/);
  s=fresh();s.phase='end';s.board.office_worker.intrigue=4;s=act(s,{type:'end_ability',actor:'office_worker',ability:'heroes'});
  assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.when]),[['death',undefined],['failed','heroes']]);
  // The entry names who died, never the role that made the death matter.

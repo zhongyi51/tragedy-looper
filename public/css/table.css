@@ -373,7 +373,7 @@ button.slot:hover{border-color:var(--faint)}
 .culprit-row .sure{color:var(--gold)}
 .clue-loop{margin:8px 0 3px;font-size:11px;letter-spacing:.1em;color:var(--gold-2)}
 .clue{display:flex;gap:8px;font-size:12.5px;line-height:1.5;color:var(--muted);padding:2px 0}
-.clue b{flex:none;width:84px;display:flex;gap:5px;font-weight:600;color:var(--faint);white-space:nowrap}
+.clue b{flex:none;width:102px;display:flex;gap:5px;font-weight:600;color:var(--faint);white-space:nowrap}
 .clue b i{font-style:normal;font-weight:400}
 .clue small{display:block;font-size:11.5px;color:var(--muted)}
 .clue.death,.clue.failed{color:#ffb7b5}
@@ -465,6 +465,7 @@ button.slot:hover{border-color:var(--faint)}
  .emblem{width:34px;height:34px;font-size:15px}
  .prompt-copy b{font-size:15px}
  .prompt-copy p{font-size:12px}
+ .beat{white-space:normal;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:2.7em}
  .hcard{width:66px;height:84px;gap:3px}
  .hcard .face{font-size:23px}
  .hcard-name{font-size:11px}
@@ -476,7 +477,6 @@ button.slot:hover{border-color:var(--faint)}
  .announce{font-size:16px;padding:12px 18px}
  .fx-stamp{font-size:13px;padding:2px 9px 2px 7px}
  .recap{font-size:12px}
- .clue b{width:76px}
  .outcome-mark{display:none}
 }
 @media (max-height:780px) and (min-width:821px){

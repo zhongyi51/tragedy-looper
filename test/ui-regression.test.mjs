@@ -8,12 +8,12 @@ import {cardsOn,boardHtml} from '../public/js/ui/board.mjs';
 import {incidentSchedule,sideTabsHtml,sideBodyHtml} from '../public/js/ui/side.mjs';
 import {dockHtml} from '../public/js/ui/dock.mjs';
 import {hudHtml} from '../public/js/ui/hud.mjs';
-import {turnGuidance,turnControl,choiceGroups} from '../public/js/guidance.mjs';
+import {turnGuidance,turnControl,choiceGroups,afterPlacing} from '../public/js/guidance.mjs';
 import {publicDraft,printableHtml} from '../public/js/exporters.mjs';
 import {createAnimator} from '../public/js/anim.mjs';
 import {analyze,emptyMarks,markRole,markPlot,markCulprit,clues,failure} from '../public/js/deduce.mjs';
 import {tableRegions} from '../public/js/ui/game.mjs';
-import {playStep,stepReport} from '../src/play.mjs';
+import {playStep,stepReport,project} from '../src/play.mjs';
 import {createSession,outcomeBanner} from '../public/js/session.mjs';
 import {bannerHtml} from '../public/js/ui/modals.mjs';
 import {parseDraft,blankDraft,roleNeeds,editDraft} from '../public/js/script-draft.mjs';
@@ -51,7 +51,7 @@ test('replay import accepts concealed schedules and rejects an unknown supplied 
 test('idle AI and revealed-card handoff give explicit actionable prompts',()=>{
  const v={mode:'heroes',turn:'M',phaseId:'cultist',phase:'翻牌结算',winner:null,actions:[{command:{type:'cultist'}}]};
  assert.equal(turnGuidance(v).title,'对手回合');assert.deepEqual({...turnControl(v)},{action:'auto',label:'继续',disabled:false,icon:'play'});
- v.mode='mastermind';assert.match(turnGuidance(v).title,/轮到你/);assert.match(turnGuidance(v).detail,/选择结算方式/);assert.notEqual(turnControl(v)?.action,'auto');
+ v.mode='mastermind';assert.match(turnGuidance(v).title,/轮到你/);assert.match(turnGuidance(v).detail,/是否无视暗跃禁止/);assert.notEqual(turnControl(v)?.action,'auto');
  const busy={working:true,auto:true,requestKind:'rules'};assert.match(turnGuidance(v,busy).title,/结算中/);assert.doesNotMatch(turnGuidance(v,busy).title,/AI/);
  assert.equal(turnControl({...v,mode:'heroes'},{auto:true,working:true}).label,'暂停');
  assert.equal(turnControl(v,{syncRequired:true}).action,'sync-state');
@@ -72,10 +72,10 @@ test('the table never leaks hidden roles into a protagonist or spectator view',(
  const client={sideTab:'intel',aiFeed:[],sheetTool:'no'};
  for(const seat of ['A','public']){
   const v=table(seat==='A'?'heroes':'observe',seat),html=['intel','log','sheet','ref'].map(sideTab=>Object.values(tableRegions(v,{...client,sideTab},{marks:emptyMarks()})).join('')).join('');
-  assert.doesNotMatch(html,/class="tag role/);assert.doesNotMatch(html,/真相 · 仅你可见/);assert.doesNotMatch(html,/tag culprit/);assert.match(html,/data-tab="sheet"/);
+  assert.doesNotMatch(html,/class="tag role/);assert.doesNotMatch(html,/真相 · 只有你知道/);assert.doesNotMatch(html,/tag culprit/);assert.match(html,/data-tab="sheet"/);
  }
  const mm=table('mastermind','M'),html=Object.values(tableRegions(mm,{...client,sideTab:'sheet'},{marks:emptyMarks()})).join('');
- assert.match(html,/class="tag role secret"/);assert.match(html,/tag culprit/);assert.match(html,/真相 · 仅你可见/);assert.doesNotMatch(html,/data-tab="sheet"/);
+ assert.match(html,/class="tag role secret"/);assert.match(html,/tag culprit/);assert.match(html,/真相 · 只有你知道/);assert.doesNotMatch(html,/data-tab="sheet"/);
 });
 test('legacy public replay names are stripped at import/export without changing full replay',()=>{
  const v=view(createGame(starter),'public');v.script.incidents=structuredClone(starter.incidents);v.log.push({type:'incident',day:2,text:'预告的「医院事件」没有发生。'});
@@ -153,7 +153,7 @@ test('a failed loop holds on its banner before the next loop is shown',async()=>
  const playing=a.animateTransition({...base,revision:5,log:[]},next,{},frames);await settle();
  assert.equal(stages.at(-1),'banner:第 1 轮回失败');assert.ok(stages.includes('shock:fail'));assert.ok(!stages.includes('changes:8'));
  const banner=a.state.banner;assert.deepEqual([banner.stamp,banner.cause,banner.detail],['第 3 日 · 事件','巫女死亡，轮回立即结束','']);
- assert.deepEqual(banner.recap.map(e=>e.text),['巫女死亡。']);assert.deepEqual(banner.lines,['原因不会公布，要靠线索推理。','还能重来 2 次']);
+ assert.deepEqual(banner.recap.map(e=>e.text),['巫女死亡。']);assert.deepEqual(banner.lines,['失败的原因不会公布，要靠线索推理。','还可以重来 2 次']);
  assert.match(bannerHtml(banner),/class="banner loop"[\s\S]*第 3 日 · 事件[\s\S]*巫女死亡，轮回立即结束[\s\S]*<li class="death"><i>事件<\/i><span>巫女死亡。/);
  a.state.banner=null;a.release();await playing;assert.ok(stages.includes('changes:8'));
  // The last loop of a lost game goes straight to the closing banner instead.
@@ -210,6 +210,59 @@ test('AI remarks are kept with the moment they were made and the outcome is anno
  assert.doesNotMatch(outcomeBanner({...base,mode:'observe'},{...base,mode:'observe',winner:'heroes'}).lines[0],/你/);
  assert.equal(outcomeBanner(base,{...base,phaseId:'between',log:[{n:1,type:'failed',text:'x'}]}),null);
 });
+test('the table predicted for the player\'s own card is the one the server then reports',()=>{
+ const seen=v=>({...v,actions:v.actions.map(o=>o.command)});
+ let s=createGame(starter);
+ for(const mode of ['mastermind','heroes'])for(let i=0;i<3;i++){
+  const v=project(mode,s),command=v.actions[i*5+2].command,guess=afterPlacing(v,command);
+  s=applyCommand(s,v.turn,command);
+  // Up to the last card the whole view is known; after it only that the card is down and the turn has gone.
+  if(i<2)assert.deepEqual(seen(guess),seen(project(mode,s)));
+  else{assert.deepEqual(guess.actions,[]);assert.deepEqual(guess.placements,project(mode,s).placements);assert.equal(guess.hand.find(c=>c.id===command.card).available,false);}
+ }
+ assert.equal(s.placements.length,6);
+});
+// A local server for the session: applies each command to a real game and answers when the test says so.
+function heroTable(){
+ let s=createGame(starter);for(let i=0;i<3;i++)s=applyCommand(s,'M',project('mastermind',s).actions[i*5+2].command);
+ const decorate=v=>({...v,id:'game',mode:'heroes',busy:false}),replies=[];
+ const answer=async data=>{
+  if(!data)return decorate(project('heroes',s));
+  if(data.revision!==s.revision)throw Object.assign(Error('局面已变化，请刷新'),{code:'STATE_CONFLICT'});
+  const {seat,frames}=await playStep({state:s,mode:'heroes',route:'command',command:data.command}),initial=s;s=frames.at(-1).state;
+  return {...decorate(project('heroes',s)),...stepReport({mode:'heroes',route:'command',seat,answer:null,initial,frames,decorate})};
+ };
+ return {start:decorate(project('heroes',s)),replies,api:(url,data)=>new Promise((resolve,reject)=>replies.push(error=>error?reject(error):resolve(answer(data)))),server:()=>s};
+}
+test('the player\'s own cards go down at once, are confirmed in order, and only the last waits for its result',async()=>{
+ const t=heroTable(),landed=[],played=[];
+ const c=session({state:{g:t.start},api:t.api,inject:{land(prev,next){landed.push(next.placements.length);},animate:async(prev,next,before,frames)=>{played.push([prev.log.length,...frames.map(f=>f.log.at(-1).type)]);}}});
+ const pick=()=>c.state.g.actions[4].command,first=pick();
+ c.state.selected=first.card;c.step(first);
+ assert.equal(c.state.working,false);assert.equal(c.state.selected,null);assert.equal(c.state.g.turn,'B');assert.equal(c.state.g.placements.at(-1).card,first.card);
+ assert.match(dockHtml(c.state.g,c.state),/class="hand"[^>]*aria-label="主人公 B的手牌"/);
+ c.step(pick());assert.equal(c.state.g.turn,'C');
+ const last=c.step(pick());assert.equal(c.state.working,true);assert.equal(c.state.g.placements.length,6);assert.deepEqual(landed,[4,5,6]);
+ // One request at a time, each for the revision the one before it produces.
+ await settle();assert.deepEqual(c.calls.map(x=>x.data.revision),[t.start.revision]);
+ t.replies[0]();await settle();assert.equal(c.state.g.placements.length,6);
+ t.replies[1]();await settle();assert.deepEqual(c.calls.map(x=>x.data.revision),[0,1,2].map(i=>t.start.revision+i));assert.deepEqual(played,[]);
+ t.replies[2]();await last;
+ assert.equal(c.state.working,false);assert.equal(c.state.g.revision,t.server().revision);assert.equal(c.state.g.phaseId,'mm_ability');
+ // What plays back starts after the card the player has already watched land.
+ assert.equal(played.length,1);assert.equal(played[0][0],t.start.log.length+3);assert.equal(played[0][1],'cards');assert.ok(!played[0].includes('placed'));
+});
+test('a card the server does not confirm comes back off the table, and nothing queued behind it is sent',async()=>{
+ const t=heroTable(),told=[],c=session({state:{g:t.start},api:t.api,inject:{toast:(text,kind)=>told.push(kind)}});
+ c.step(c.state.g.actions[4].command);c.step(c.state.g.actions[4].command);assert.equal(c.state.g.placements.length,5);
+ await settle();t.replies[0](Object.assign(Error('连接中断，请检查网络并同步局面。'),{code:'NETWORK',uncertain:true}));
+ await settle();assert.equal(c.state.working,true);t.replies[1]();await settle();
+ assert.deepEqual(c.calls.map(x=>x.url),['/games/game/command','/games/game']);
+ assert.equal(c.state.g.placements.length,3);assert.equal(c.state.g.turn,'A');assert.equal(c.state.working,false);assert.equal(c.state.syncRequired,false);
+ assert.match(c.state.actionError,/^连接中断，请检查网络并同步局面。局面没有变化，可以重试。$/);assert.deepEqual(told,['error']);
+ // The table is usable again and the next card is sent for the revision the server really has.
+ c.state.actionError='';c.step(c.state.g.actions[0].command);await settle();assert.equal(c.calls.at(-1).data.revision,t.start.revision);
+});
 test('final guess choices mark confirmed roles and the player\'s own deductions',()=>{
  const s=createGame(starter);s.script.ruleset='BTX';s.phase='guess';s.guessed={};s.knownRoles={office_worker:'killer'};
  const v=view(s,'A'),sheet=analyze(v,markRole(markRole(emptyMarks(),'doctor','brain','yes'),'doctor','cultist','no'));
@@ -250,15 +303,15 @@ test('the record and the clues say which phase each thing happened in, and a los
  assert.deepEqual(heads,['第 1 轮回 · 第 3 日','· 事件','第 1 轮回 · 第 1 日','· 日结束','· 剧作家能力','· 翻牌结算','· 剧作家出牌']);
  assert.deepEqual(clues(v)[0].items.map(e=>[e.day,e.phase,e.type]),[[1,'end','death'],[3,'incident','incident'],[3,'incident','death'],[3,'incident','failed']]);
  const a=analyze(v,emptyMarks()),sheet=sideBodyHtml(v,{tab:'sheet',analysis:a,tool:'no',aiFeed:[]});
- assert.match(sheet,/<p class="clue death"><b>D1<i>日结束<\/i><\/b><span>偶像死亡。/);assert.match(sheet,/<p class="clue failed"><b>D3<i>事件<\/i><\/b>/);
+ assert.match(sheet,/<p class="clue death"><b>第1日<i>日结束<\/i><\/b><span>偶像死亡。/);assert.match(sheet,/<p class="clue failed"><b>第3日<i>事件<\/i><\/b>/);
  // Only a key person's death ends a loop on the spot, so the sheet offers that as a lead.
- assert.deepEqual(a.hints.filter(h=>h.role==='key_person'),[{character:'girl_student',role:'key_person',text:'女学生一死轮回就结束，多半是关键人物'}]);
+ assert.deepEqual(a.hints.filter(h=>h.role==='key_person'),[{character:'girl_student',role:'key_person',text:'女学生一死，轮回就结束了，多半是关键人物'}]);
  assert.deepEqual(analyze(v,markRole(emptyMarks(),'girl_student','key_person','no')).hints.filter(h=>h.role==='key_person'),[]);
  assert.deepEqual(failure(v),{stamp:'第 3 日 · 事件',cause:'女学生死亡，轮回立即结束',detail:''});
  assert.match(dockHtml(v,{aiFeed:[]},a),/class="why"><b><i>第 3 日 · 事件<\/i>女学生死亡，轮回立即结束<\/b>/);assert.match(boardHtml(v),/class="board failed"/);
  // A loop lost at the end of its last day keeps the public counters that were on the table.
- s.log.push(at(11,3,'end','failed','第 1 轮回失败：最后一天结束时判定。',{when:'end',intrigue:{school:2,doctor:1}}));
- assert.deepEqual(failure(view(s,'A')),{stamp:'第 3 日 · 日结束',cause:'最后一天结束时判定失败',detail:'当时的暗跃：学校 2、医生 1'});
+ s.log.push(at(11,3,'end','failed','第 1 轮回失败：最后一天结束时，失败条件成立。',{when:'end',intrigue:{school:2,doctor:1}}));
+ assert.deepEqual(failure(view(s,'A')),{stamp:'第 3 日 · 日结束',cause:'最后一天结束时，失败条件成立',detail:'当时的暗跃：学校 2、医生 1'});
  assert.equal(failure({log:[{type:'failed',loop:1,text:'第 1 轮回失败。'}],loop:1}),null);
 });
 
@@ -301,7 +354,7 @@ test('refused and granted goodwill requests rule roles out on their own',()=>{
  const html=sideBodyHtml(v,{tab:'sheet',analysis:a,tool:'no',aiFeed:[]});
  assert.match(html,/data-do="sheet-tool" data-tool="no" aria-pressed="true"/);assert.match(html,/class="cell no auto"[^>]*title="拒绝过能力"/);assert.match(html,new RegExp(`data-sheet-culprit="${day}"`));assert.match(html,/还剩 9 种组合/);
  const board=boardHtml(v,{sheet:analyze(v,markCulprit(markRole(emptyMarks(),refuser,'killer','yes'),day,refuser))});
- assert.match(board,/class="tag role guess"[^>]*>杀手\?</);assert.match(board,new RegExp(`class="tag culprit guess"[^>]*>犯\\?D${day}<`));
+ assert.match(board,/class="tag role guess"[^>]*>杀手\?</);assert.match(board,new RegExp(`class="tag culprit guess"[^>]*>${day}日犯人\\?<`));
 });
 test('workshop form edits keep a script draft valid and report role quotas',()=>{
  let d=parseDraft(JSON.stringify(starter));assert.ok(roleNeeds(d).every(n=>n.ok));

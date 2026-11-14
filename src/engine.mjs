@@ -20,14 +20,14 @@ const beat=s=>cp({phase:s.phase,log:s.log.length,board:s.board,locations:s.locat
 function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,phase:s.phase,text,type,...extra});tracing?.push(beat(s));}
 // A revealed card that ends up doing nothing stays marked for the rest of the day.
 function strike(s,target,seat){const p=(s.dayRevealed||[]).find(p=>p.target===target&&p.seat===seat);if(p)p.void=true;}
-const FORBIDDEN={move:'移动',goodwill:'友好',paranoia:'不安',intrigue:'暗跃'};
+const FORBIDDEN={move:'移动',goodwill:'友好',paranoia:'不安',intrigue:'暗跃'},COUNTER_ZH={goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'};
 function forbid(s,target,what,hit,by){for(const p of hit)strike(s,target,p.seat);log(s,`${name(target)}的${FORBIDDEN[what]}被禁止。`,'blocked',{who:target,what,by:by.seat,hit:hit.map(p=>p.seat)});}
 // Older saves recorded the hidden name even when an incident did not happen.
 // Sanitize at the observation boundary too, including historical replay frames.
 function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
-function counter(s,id,type,n,by){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${{goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'}[type]} ${n>0?'+':''}${n}`,'counter',{who:id,...(by?{by}:{})});}
-function reveal(s,id){s.knownRoles[id]=currentRole(s,id);log(s,`${name(id)}的角色是「${name(currentRole(s,id))}」`,'reveal',{who:id});}
-function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e){s.knownCulprits[day]=e.culprit;log(s,`第${day}日事件犯人：${name(e.culprit)}`,'reveal',{who:e.culprit});}}
+function counter(s,id,type,n,by){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${COUNTER_ZH[type]} ${n>0?'+'+n:'−'+-n}`,'counter',{who:id,...(by?{by}:{})});}
+function reveal(s,id){s.knownRoles[id]=currentRole(s,id);log(s,`${name(id)}的角色是「${name(currentRole(s,id))}」。`,'reveal',{who:id});}
+function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e){s.knownCulprits[day]=e.culprit;log(s,`第 ${day} 日事件的犯人是${name(e.culprit)}。`,'reveal',{who:e.culprit});}}
 function addUsage(s,key,scope='day'){s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`]=true;}
 function used(s,key,scope='day'){return !!s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`];}
 function stopped(s){return ['between','guess','over'].includes(s.phase);}
@@ -46,11 +46,11 @@ function finishLoop(s,forced=false,cause={}){
  if(sc.mainPlot==='time_bomb'&&initial('witch').some(l=>s.locations[l]>=2))failed=true;
  if(sc.mainPlot==='change_future'&&s.occurred.some(day=>sc.incidents.find(e=>e.day===day)?.type==='butterfly'))failed=true;
  s.placements=[];s.pending=null;
- if(!failed){s.phase='over';s.winner='heroes';log(s,'成功跨越惨剧，主人公获胜。','victory',{phase:at});return;}
+ if(!failed){s.phase='over';s.winner='heroes';log(s,'主人公平安度过了这个轮回，获胜。','victory',{phase:at});return;}
  if(cause.dead)log(s,`第 ${s.loop} 轮回失败：${cause.dead.map(name).join('、')}死亡，轮回立即结束。`,'failed',{when:'death',dead:cause.dead});
  else if(cause.heroes)log(s,`第 ${s.loop} 轮回失败：主人公死亡。`,'failed',{when:'heroes'});
- else log(s,`第 ${s.loop} 轮回失败：最后一天结束时判定。`,'failed',{when:'end',intrigue:Object.fromEntries([...locs.map(l=>[l,s.locations[l]]),...Object.values(s.board).filter(c=>c.present).map(c=>[c.id,c.intrigue])].filter(([,n])=>n>0))});
- if(s.loop<sc.loops)s.phase='between';else if(sc.ruleset==='FS'){s.phase='over';s.winner='mastermind';log(s,'所有轮回失败，剧作家获胜。','defeat',{phase:at});}else enterGuess(s);
+ else log(s,`第 ${s.loop} 轮回失败：最后一天结束时，失败条件成立。`,'failed',{when:'end',intrigue:Object.fromEntries([...locs.map(l=>[l,s.locations[l]]),...Object.values(s.board).filter(c=>c.present).map(c=>[c.id,c.intrigue])].filter(([,n])=>n>0))});
+ if(s.loop<sc.loops)s.phase='between';else if(sc.ruleset==='FS'){s.phase='over';s.winner='mastermind';log(s,'轮回全部失败，剧作家获胜。','defeat',{phase:at});}else enterGuess(s);
 }
 function kill(s,ids){
  const died=[];for(const id of new Set(ids)){let c=person(s,id);if(!c?.alive||!c.present||hasRole(s,id,'time_traveler'))continue;if(c.guard>0){counter(s,id,'guard',-1);continue;}c.alive=false;died.push(id);log(s,`${name(id)}死亡。`,'death',{who:id});}
@@ -58,9 +58,9 @@ function kill(s,ids){
  for(const c of living(s)){if((hasRole(s,c.id,'lover')&&died.some(id=>hasRole(s,id,'loved_one')))||(hasRole(s,c.id,'loved_one')&&died.some(id=>hasRole(s,id,'lover'))))counter(s,c.id,'paranoia',6);}
  if(died.some(id=>hasRole(s,id,'key_person')))finishLoop(s,true,{dead:died});
 }
-function killHeroes(s){if(s.heroImmortal){log(s,'主人公的死亡被阻止。');return;}log(s,'主人公死亡。','death');finishLoop(s,true,{heroes:true});}
+function killHeroes(s){if(s.heroImmortal){log(s,'主人公受到保护，没有死亡。');return;}log(s,'主人公死亡。','death');finishLoop(s,true,{heroes:true});}
 function canMove(s,id,loc){return locs.includes(loc)&&(id==='patient'&&s.patientFree||!chars[id].forbiddenLocations.includes(loc));}
-function move(s,id,loc){let c=person(s,id);if(c.location===loc)return;if(!canMove(s,id,loc)){if(locs.includes(loc))log(s,`${name(id)}不能进入${name(loc)}。`,'blocked',{who:id,what:'enter'});return;}c.location=loc;log(s,`${name(id)}移动至${name(loc)}。`,'move',{who:id});}
+function move(s,id,loc){let c=person(s,id);if(c.location===loc)return;if(!canMove(s,id,loc)){if(locs.includes(loc))log(s,`${name(id)}不能进入${name(loc)}。`,'blocked',{who:id,what:'enter'});return;}c.location=loc;log(s,`${name(id)}移动到${name(loc)}。`,'move',{who:id});}
 function enterGuess(s){s.phase='guess';s.pending=null;s.guessed={};s.placements=[];s.dayRevealed=[];s.locations=Object.fromEntries(locs.map(l=>[l,0]));for(const c of Object.values(s.board))Object.assign(c,{goodwill:0,paranoia:0,intrigue:0,guard:0,alive:true,present:true,location:c.initial});log(s,'最后的战斗开始。','loop');}
 function startLoop(s){
  const old=s.board||{},fate=Object.values(old).filter(c=>c.goodwill>0).map(c=>c.id);
@@ -71,7 +71,7 @@ function startLoop(s){
  if(s.script.subPlots.includes('threads_fate'))for(const id of fate)counter(s,id,'paranoia',2);
  if(!s.board.henchman)startDay(s);
 }
-function startDay(s){s.phase='mm_cards';s.placements=[];s.dayRevealed=[];if(s.board.transfer_student&&s.day===s.script.settings.transferDay){s.board.transfer_student.present=true;log(s,'转学生到场。','notice',{phase:'dawn'});}log(s,`第 ${s.day} 日。`,'day');}
+function startDay(s){s.phase='mm_cards';s.placements=[];s.dayRevealed=[];if(s.board.transfer_student&&s.day===s.script.settings.transferDay){s.board.transfer_student.present=true;log(s,'转学生登场。','notice',{phase:'dawn'});}log(s,`第 ${s.day} 日。`,'day');}
 export function createGame(script){const v=validateScript(script);if(v.errors.length)throw Error(v.errors.map(e=>e.path+': '+e.message).join('\n'));const s={version:VERSION,visibilityPolicy:VISIBILITY_POLICY,contentHash,script:cp(script),revision:0,loop:1,leader:0,log:[],knownRoles:{},knownCulprits:{},knownPlots:[],usage:{},winner:null,notes:{A:'',B:'',C:'',M:''}};startLoop(s);return s;}
 export function turn(s){if(s.phase==='over')return null;if(['mm_cards','mm_ability','cultist','refusal','reveal_plot','setup','end_area','end'].includes(s.phase))return 'M';if(s.phase==='incident')return s.pending.chooser;return ['A','B','C'][(s.leader+(s.phase==='hero_cards'?s.placements.filter(p=>p.seat!=='M').length:0))%3];}
 export function deck(s,seat){const out=[];for(const d of catalog.actionDeckEntries.filter(d=>d.side===(seat==='M'?'mastermind':'protagonist')))for(let i=0;i<d.copiesPerHand;i++){const id=d.actionType+'#'+i;out.push({id,type:d.actionType,label:d.name_zh,once:d.oncePerLoop,available:!s.usedCards[seat].includes(id)&&!s.placements.some(p=>p.seat===seat&&p.card===id)});}return out;}
@@ -79,30 +79,30 @@ const option=(command,label)=>({command,label});
 export function legalActions(s,seat=turn(s)){
  if(!seat||turn(s)!==seat)return [];
  const out=[],add=(command,label)=>out.push(option(command,label));
- if(s.phase==='setup'){for(const l of locs)add({type:'setup',location:l},`手下初始地点：${name(l)}`);return out;}
- if(s.phase==='between'){add({type:'next_loop'},'开始下一轮回');if(s.script.ruleset==='BTX')add({type:'final_battle'},'共同放弃剩余轮回，进入最后的战斗');return out;}
+ if(s.phase==='setup'){for(const l of locs)add({type:'setup',location:l},`手下从${name(l)}登场`);return out;}
+ if(s.phase==='between'){add({type:'next_loop'},'开始下一轮回');if(s.script.ruleset==='BTX')add({type:'final_battle'},'放弃剩下的轮回，进入最后的战斗');return out;}
  if(s.phase==='guess'){for(const c of s.script.characters.filter(c=>!s.guessed[c]))for(const r of catalog.roles.filter(r=>r.sets.includes(s.script.ruleset)))add({type:'guess',character:c,role:r.id},`${name(c)} → ${name(r.id)}`);return out;}
- if(['mm_cards','hero_cards'].includes(s.phase)){const placed=s.placements.filter(p=>(p.seat==='M')===(seat==='M')).map(p=>p.target);for(const card of deck(s,seat).filter(c=>c.available))for(const target of [...living(s).map(c=>c.id),...locs].filter(t=>!placed.includes(t)))add({type:'place',card:card.id,target},`${card.label} → ${name(target)}${locationBluff(card.id,target)?'（佯动：地点上无效果）':''}`);return out;}
- if(s.phase==='cultist'){for(let mask=0;mask<2**s.cultists.length;mask++){const label=mask?'无视暗跃禁止：'+s.cultists.filter((_,i)=>mask&(1<<i)).map(name).join('、'):'按通常禁止效果结算';add({type:'cultist',mask},label);const boss=s.cultists.indexOf('boss');if(boss>=0&&(mask&(1<<boss))&&s.script.settings.bossTerritory!==s.board.boss.location)add({type:'cultist',mask,bossArea:'territory'},label+'（使用领地）');}return out;}
- if(s.phase==='end_area'){add({type:'end_area',territory:false},'按实际地点结算日结束强制能力');if(s.board.boss?.alive&&s.board.boss.present&&hasRole(s,'boss','serial_killer'))add({type:'end_area',territory:true},'大人物以领地位置使用日结束能力');return out;}
- if(s.phase==='refusal'){const a=s.pending.action,def=chars[a.actor].abilities[a.index],r=def.cannotRefuse?'none':roles[currentRole(s,a.actor)].goodwillRefusal;if(r!=='mandatory')add({type:'refusal',refuse:false},'接受友好能力');if(r!=='none')add({type:'refusal',refuse:true},'拒绝友好能力');return out;}
- if(s.phase==='reveal_plot'){for(const p of s.script.subPlots.filter(p=>p!==s.pending.exclude))add({type:'reveal_plot',plot:p},`公开${name(p)}`);return out;}
+ if(['mm_cards','hero_cards'].includes(s.phase)){const placed=s.placements.filter(p=>(p.seat==='M')===(seat==='M')).map(p=>p.target);for(const card of deck(s,seat).filter(c=>c.available))for(const target of [...living(s).map(c=>c.id),...locs].filter(t=>!placed.includes(t)))add({type:'place',card:card.id,target},`${card.label} → ${name(target)}${locationBluff(card.id,target)?'（虚招，对地点无效）':''}`);return out;}
+ if(s.phase==='cultist'){for(let mask=0;mask<2**s.cultists.length;mask++){const label=mask?'无视暗跃禁止：'+s.cultists.filter((_,i)=>mask&(1<<i)).map(name).join('、'):'暗跃禁止照常生效';add({type:'cultist',mask},label);const boss=s.cultists.indexOf('boss');if(boss>=0&&(mask&(1<<boss))&&s.script.settings.bossTerritory!==s.board.boss.location)add({type:'cultist',mask,bossArea:'territory'},label+'（大人物按领地算）');}return out;}
+ if(s.phase==='end_area'){add({type:'end_area',territory:false},'按人物所在的地点结算');if(s.board.boss?.alive&&s.board.boss.present&&hasRole(s,'boss','serial_killer'))add({type:'end_area',territory:true},'把大人物当作在领地内结算');return out;}
+ if(s.phase==='refusal'){const a=s.pending.action,def=chars[a.actor].abilities[a.index],r=def.cannotRefuse?'none':roles[currentRole(s,a.actor)].goodwillRefusal;if(r!=='mandatory')add({type:'refusal',refuse:false},'同意使用能力');if(r!=='none')add({type:'refusal',refuse:true},'拒绝使用能力');return out;}
+ if(s.phase==='reveal_plot'){for(const p of s.script.subPlots.filter(p=>p!==s.pending.exclude))add({type:'reveal_plot',plot:p},`公开「${name(p)}」`);return out;}
  if(s.phase==='incident')return incidentOptions(s);
  if(s.phase==='mm_ability'){
   for(const c of living(s)){
    const areas=[c.location];if(c.id==='boss')areas.push(s.script.settings.bossTerritory);
-   if(hasRole(s,c.id,'brain')&&!used(s,c.id+':brain'))for(const area of new Set(areas))for(const target of [...living(s).filter(t=>t.location===area).map(t=>t.id),area])add({type:'mm',actor:c.id,ability:'brain',target},`${name(c.id)}：暗跃+1 → ${name(target)}`);
-   if(hasRole(s,c.id,'misleader')&&!used(s,c.id+':misleader'))for(const t of living(s).filter(t=>areas.includes(t.location)))add({type:'mm',actor:c.id,ability:'misleader',target:t.id},`${name(c.id)}：不安+1 → ${name(t.id)}`);
-   if(c.id==='doctor'&&c.goodwill>=2&&roles[currentRole(s,c.id)].goodwillRefusal!=='none'&&!used(s,'doctor:mm'))for(const t of living(s).filter(t=>t.id!==c.id&&t.location===c.location))for(const amount of [-1,1])add({type:'mm',actor:c.id,ability:'doctor',target:t.id,amount},`医生：不安${amount>0?'+':''}${amount} → ${name(t.id)}`);
+   if(hasRole(s,c.id,'brain')&&!used(s,c.id+':brain'))for(const area of new Set(areas))for(const target of [...living(s).filter(t=>t.location===area).map(t=>t.id),area])add({type:'mm',actor:c.id,ability:'brain',target},`${name(c.id)}：暗跃 +1 → ${name(target)}`);
+   if(hasRole(s,c.id,'misleader')&&!used(s,c.id+':misleader'))for(const t of living(s).filter(t=>areas.includes(t.location)))add({type:'mm',actor:c.id,ability:'misleader',target:t.id},`${name(c.id)}：不安 +1 → ${name(t.id)}`);
+   if(c.id==='doctor'&&c.goodwill>=2&&roles[currentRole(s,c.id)].goodwillRefusal!=='none'&&!used(s,'doctor:mm'))for(const t of living(s).filter(t=>t.id!==c.id&&t.location===c.location))for(const amount of [-1,1])add({type:'mm',actor:c.id,ability:'doctor',target:t.id,amount},`医生：不安 ${amount>0?'+1':'−1'} → ${name(t.id)}`);
   }
-  if(s.script.subPlots.includes('unsettling_rumor')&&!used(s,'rumor','loop'))for(const l of locs)add({type:'mm',actor:'plot',ability:'rumor',target:l},`不安的传闻 → ${name(l)}暗跃+1`);
-  add({type:'pass'},'结束剧作家能力阶段');return out;
+  if(s.script.subPlots.includes('unsettling_rumor')&&!used(s,'rumor','loop'))for(const l of locs)add({type:'mm',actor:'plot',ability:'rumor',target:l},`不安的传闻：暗跃 +1 → ${name(l)}`);
+  add({type:'pass'},'结束能力阶段');return out;
  }
  if(s.phase==='hero_ability'){
   for(const c of living(s))for(const [i,a]of chars[c.id].abilities.entries()){
    if(c.goodwill<a.minGoodwill||s.loop<(a.minLoop||1)||used(s,`${c.id}:g${i}`,a.limit))continue;
    const same=living(s).filter(t=>t.location===c.location),other=same.filter(t=>t.id!==c.id),students=same.filter(t=>chars[t.id].tags.includes('student'));
-   const addG=(target='',extra={})=>add({type:'goodwill',actor:c.id,index:i,target,...extra},`${name(c.id)} · ${i+1}：${a.effect_zh} ${target?' → '+name(target):''}${extra.amount?' ('+extra.amount+')':''}`);
+   const addG=(target='',extra={})=>add({type:'goodwill',actor:c.id,index:i,target,...extra},`${name(c.id)}的能力 ${i+1}：${a.effect_zh}${target?' → '+name(target):''}${extra.amount?'（不安 '+(extra.amount>0?'+1':'−1')+'）':''}`);
    switch(c.id){
     case 'boy_student':case 'girl_student':students.filter(t=>t.id!==c.id).forEach(t=>addG(t.id));break;
     case 'rich_girl':if(['city','school'].includes(c.location))same.forEach(t=>addG(t.id));break;
@@ -125,7 +125,7 @@ export function legalActions(s,seat=turn(s)){
     case 'soldier':if(i===0)same.forEach(t=>addG(t.id));else addG();break;
    }
   }
-  add({type:'pass'},'结束主人公能力阶段');return out;
+  add({type:'pass'},'结束能力阶段');return out;
  }
  if(s.phase==='end'){
   for(const c of living(s)){
@@ -135,9 +135,9 @@ export function legalActions(s,seat=turn(s)){
     if(c.intrigue>=4&&!used(s,c.id+':heroes'))add({type:'end_ability',actor:c.id,ability:'heroes'},`${name(c.id)}杀死主人公`);
    }
    if(hasRole(s,c.id,'loved_one')&&c.paranoia>=3&&c.intrigue>=1&&!used(s,c.id+':heroes'))add({type:'end_ability',actor:c.id,ability:'heroes'},`${name(c.id)}杀死主人公`);
-   if(hasRole(s,c.id,'time_traveler')&&s.day===s.script.days&&c.goodwill<=2&&!used(s,c.id+':travel'))add({type:'end_ability',actor:c.id,ability:'travel'},'时间旅行者结束轮回并使主人公失败');
+   if(hasRole(s,c.id,'time_traveler')&&s.day===s.script.days&&c.goodwill<=2&&!used(s,c.id+':travel'))add({type:'end_ability',actor:c.id,ability:'travel'},`${name(c.id)}以时间旅行者的身份让主人公失败`);
   }
-  add({type:'pass'},'结束本日');return out;
+  add({type:'pass'},'结束这一天');return out;
  }
  return out;
 }
@@ -146,7 +146,7 @@ function resolveMovement(s){
  // Any action card may legally be placed on a location as a bluff (official
  // FAQ Ca02). Only Intrigue cards affect locations; never move the location or
  // a character merely because its portrait appears inside that location.
- for(const p of s.placements.filter(p=>locationBluff(p.card,p.target))){const card=deck(s,p.seat).find(c=>c.id===p.card);strike(s,p.target,p.seat);log(s,`${name(p.target)}上的「${card.label}」无效。`,'card_effect',{who:p.target,by:p.seat});}
+ for(const p of s.placements.filter(p=>locationBluff(p.card,p.target))){const card=deck(s,p.seat).find(c=>c.id===p.card);strike(s,p.target,p.seat);log(s,`对${name(p.target)}出的「${card.label}」没有效果。`,'card_effect',{who:p.target,by:p.seat});}
  for(const c of living(s)){
   const cards=s.placements.filter(p=>p.target===c.id),types=cards.map(p=>p.card.split('#')[0]),moves=cards.filter(p=>p.card.startsWith('move_'));
   if(types.includes('forbid_move')){if(moves.length)forbid(s,c.id,'move',moves,cards.find(p=>p.card.startsWith('forbid_move')));continue;}
@@ -192,9 +192,9 @@ function executeGoodwill(s,a){
   case 'shrine_maiden':if(i===0)counter(s,'shrine','intrigue',-1);else reveal(s,t);break;
   case 'police':if(i===0)revealCulprit(s,a.day);else counter(s,t,'guard',1);break;
   case 'office_worker':case 'irregular':reveal(s,id);break;
-  case 'informer':{const ps=s.script.subPlots.filter(p=>p!==t);if(ps.length===1){s.knownPlots.push(ps[0]);log(s,`副规则公开：${name(ps[0])}`,'reveal');}else if(ps.length>1){s.pending={exclude:t};s.phase='reveal_plot';}break;}
-  case 'doctor':if(i===0)counter(s,t,'paranoia',a.amount);else{s.patientFree=true;log(s,'住院患者本轮回可以自由移动。');}break;
-  case 'class_rep':{const seat=['A','B','C'][s.leader];s.usedCards[seat]=s.usedCards[seat].filter(c=>c!==a.card);log(s,'领导者收回一张一次性行动牌。');break;}
+  case 'informer':{const ps=s.script.subPlots.filter(p=>p!==t);if(ps.length===1){s.knownPlots.push(ps[0]);log(s,`公开副规则「${name(ps[0])}」。`,'reveal');}else if(ps.length>1){s.pending={exclude:t};s.phase='reveal_plot';}break;}
+  case 'doctor':if(i===0)counter(s,t,'paranoia',a.amount);else{s.patientFree=true;log(s,'本轮回住院患者可以进入任何地点。');}break;
+  case 'class_rep':{const seat=['A','B','C'][s.leader];s.usedCards[seat]=s.usedCards[seat].filter(c=>c!==a.card);log(s,'领导者收回了一张用过的牌。');break;}
   case 'alien':if(i===0)kill(s,[t]);else{s.board[t].alive=true;log(s,`${name(t)}复活。`);}break;
   case 'godly_being':if(i===0)revealCulprit(s,a.day);else counter(s,t,'intrigue',-1);break;
   case 'idol':counter(s,t,i===0?'paranoia':'goodwill',i===0?-1:1);break;
@@ -211,10 +211,10 @@ function executeGoodwill(s,a){
 function incidentOptions(s){const p=s.pending;if(!p)return [];const all=living(s),cul=s.board[p.culprit],out=[];const add=(args,label)=>out.push(option({type:'incident',...args},label));
  switch(p.incident){
  case 'murder':all.filter(c=>c.id!==cul.id&&c.location===cul.location).forEach(c=>add({target:c.id},`死亡 → ${name(c.id)}`));break;
- case 'unease':case 'spreading':for(const c of all)for(const d of all.filter(d=>d.id!==c.id))add({target:c.id,to:d.id},p.incident==='unease'?`${name(c.id)}不安+2；${name(d.id)}暗跃+1`:`${name(c.id)}友好−2；${name(d.id)}友好+2`);break;
+ case 'unease':case 'spreading':for(const c of all)for(const d of all.filter(d=>d.id!==c.id))add({target:c.id,to:d.id},p.incident==='unease'?`${name(c.id)}不安 +2，${name(d.id)}暗跃 +1`:`${name(c.id)}友好 −2，${name(d.id)}友好 +2`);break;
  case 'faraway_murder':all.filter(c=>c.intrigue>=2).forEach(c=>add({target:c.id},`死亡 → ${name(c.id)}`));break;
- case 'missing':locs.filter(l=>canMove(s,cul.id,l)).forEach(l=>add({target:l},`行踪不明 → ${name(l)}`));break;
- case 'butterfly':for(const c of all.filter(c=>c.location===cul.location))for(const counter of ['goodwill','paranoia','intrigue'])add({target:c.id,counter},`${name(c.id)} ${counter}+1`);break;
+ case 'missing':locs.filter(l=>canMove(s,cul.id,l)).forEach(l=>add({target:l},`移到${name(l)}`));break;
+ case 'butterfly':for(const c of all.filter(c=>c.location===cul.location))for(const counter of ['goodwill','paranoia','intrigue'])add({target:c.id,counter},`${name(c.id)}${COUNTER_ZH[counter]} +1`);break;
  }
  return out;
 }
@@ -250,14 +250,14 @@ function apply(s,seat,a){
  // protagonist notes once, preserving all board state and mastermind notes.
  if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
  switch(a.type){
-  case 'setup':s.board.henchman.location=a.location;s.board.henchman.initial=a.location;log(s,`手下在${name(a.location)}入场。`);startDay(s);break;
-  case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat}出牌：${name(a.target)}`,'placed',{who:a.target,by:seat});if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
+  case 'setup':s.board.henchman.location=a.location;s.board.henchman.initial=a.location;log(s,`手下在${name(a.location)}登场。`);startDay(s);break;
+  case 'place':s.placements.push({seat,card:a.card,target:a.target});log(s,`${seat==='M'?'剧作家':'主人公 '+seat+' '}出牌：${name(a.target)}`,'placed',{who:a.target,by:seat});if(seat==='M'&&s.placements.length===3)s.phase='hero_cards';if(s.placements.length===6)resolveMovement(s);break;
   case 'cultist':{s.cultists.forEach((id,i)=>{if(a.mask&(1<<i))s.ignoredAreas.push(id==='boss'&&a.bossArea==='territory'?s.script.settings.bossTerritory:s.board[id].location);});resolveCounters(s);break;}
   case 'end_area':resolveEnd(s,a.territory);break;
   case 'mm':addUsage(s,a.ability==='rumor'?'rumor':a.actor+':'+(a.ability==='doctor'?'mm':a.ability),a.ability==='rumor'?'loop':'day');counter(s,a.target,a.ability==='brain'||a.ability==='rumor'?'intrigue':'paranoia',a.amount??1);break;
-  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);log(s,`请求${name(a.actor)}的能力 ${a.index+1}。`,'ability',{who:a.actor,ability:a.index});s.phase='refusal';s.pending={action:a};break;}
+  case 'goodwill':{const def=chars[a.actor].abilities[a.index];addUsage(s,`${a.actor}:g${a.index}`,def.limit);log(s,`请求使用${name(a.actor)}的能力 ${a.index+1}。`,'ability',{who:a.actor,ability:a.index});s.phase='refusal';s.pending={action:a};break;}
   case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,`${name(pending.actor)}拒绝了请求。`,'refused',{who:pending.actor});else executeGoodwill(s,pending);break;}
-  case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`副规则公开：${name(a.plot)}`,'reveal');s.pending=null;s.phase='hero_ability';break;
+  case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`公开副规则「${name(a.plot)}」。`,'reveal');s.pending=null;s.phase='hero_ability';break;
   case 'incident':{const p=cp(s.pending);switch(p.incident){case 'murder':case 'faraway_murder':kill(s,[a.target]);break;case 'unease':counter(s,a.target,'paranoia',2);counter(s,a.to,'intrigue',1);break;case 'spreading':counter(s,a.target,'goodwill',-2);counter(s,a.to,'goodwill',2);break;case 'missing':move(s,p.culprit,a.target);counter(s,s.board[p.culprit].location,'intrigue',1);break;case 'butterfly':counter(s,a.target,a.counter,1);break;}afterIncident(s,p.simulated);break;}
   case 'end_ability':addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else{log(s,`第 ${s.day} 日结束。`,'dayend');finishLoop(s,true);}break;
   case 'pass':if(s.phase==='mm_ability')s.phase='hero_ability';else if(s.phase==='hero_ability')checkIncident(s);else if(s.phase==='end'){log(s,`第 ${s.day} 日结束。`,'dayend');if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;

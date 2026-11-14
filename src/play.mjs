@@ -27,10 +27,10 @@ export function saveSummary(row){
 // route does not match whoever controls the active seat.
 export async function playStep({state,mode,route,command,ai={}}){
  const seat=turn(state);
- if(!seat)throw new PlayError(400,'本局已结束','GAME_OVER');
+ if(!seat)throw new PlayError(400,'这一局已经结束','GAME_OVER');
  const human=humanControls(mode,seat);
- if(route==='command'&&!human)throw new PlayError(403,'当前由对手控制','NOT_YOUR_TURN');
- if(route==='ai-step'&&human)throw new PlayError(403,'当前为你的行动，可使用明确标识的练习机器人托管','HUMAN_TURN');
+ if(route==='command'&&!human)throw new PlayError(403,'现在轮到对手','NOT_YOUR_TURN');
+ if(route==='ai-step'&&human)throw new PlayError(403,'现在轮到你；想让机器人替你走，请点“代走”','HUMAN_TURN');
  const automatic={includeBetween:mode!=='heroes',trace:true};
  if(route==='advance')return {seat,frames:advanceAutomatic(state,automatic).steps,answer:null};
  let answer=null,commands;
