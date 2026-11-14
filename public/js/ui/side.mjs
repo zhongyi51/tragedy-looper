@@ -15,6 +15,9 @@ export function incidentSchedule(v){
 
 function intel(v,ctx){
  const known=Object.entries(v.knownRoles),flags=[];
+ if(Number.isInteger(v.extraGauge))flags.push('EX 计数：'+v.extraGauge);
+ for(const [id,until] of Object.entries(v.closedLocations||{}))if(until>=v.day)flags.push(name(id)+'封锁至第 '+until+' 日');
+ for(const c of Object.values(v.board))if(c.alive&&c.movementLockedDay>=v.day)flags.push(name(c.id)+'第 '+c.movementLockedDay+' 日不能移动');
  if(v.flags?.heroImmortal)flags.push('主人公不会死亡');
  if(v.flags?.patientFree)flags.push('住院患者可以进入任何地点');
  for(const id of v.flags?.suppressed||[])flags.push(name(id)+'不会引发事件');

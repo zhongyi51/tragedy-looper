@@ -15,6 +15,15 @@ export function validateReplay(data,catalog){
   if(!obj(v.board)||!obj(v.locations)||[...locs].some(l=>!num(v.locations[l])))fail();
   for(const [id,c] of Object.entries(v.board))if(!ids.has(id)||!obj(c)||c.id!==id||!locs.has(c.location)||typeof c.present!=='boolean'||typeof c.alive!=='boolean'||['goodwill','paranoia','intrigue','guard'].some(k=>!num(c[k])))fail();
   mappings(v.knownRoles,ids,roles);
+  // These public fields were added after the original replay format. Missing
+  // fields remain valid in older saves; supplied values must be usable data.
+  if(v.knownIncidentTypes!==undefined&&(!obj(v.knownIncidentTypes)||Object.entries(v.knownIncidentTypes).some(([day,type])=>!/^([1-9]\d*)$/.test(day)||+day>s.days||!events.has(type))))fail();
+  if(v.extraGauge!==undefined&&!num(v.extraGauge))fail();
+  if(v.closedLocations!==undefined&&(!obj(v.closedLocations)||Object.entries(v.closedLocations).some(([id,until])=>!locs.has(id)||!num(until)||until<1)))fail();
+  for(const c of Object.values(v.board)){
+   if(c.extra!==undefined&&typeof c.extra!=='boolean')fail();
+   if(c.movementLockedDay!==undefined&&c.movementLockedDay!==null&&(!num(c.movementLockedDay)||c.movementLockedDay<1))fail();
+  }
   if(!arr(v.log)||v.log.length>10000||!arr(v.placements))fail();v.placements.forEach(card);
   for(const e of v.log){if(!obj(e)||!str(e.text)||!str(e.type)||!num(e.loop)||!num(e.day))fail();if(e.cards!==undefined){if(!arr(e.cards))fail();e.cards.forEach(card);}}
   if(v.secret){mappings(v.secret.roles,ids,roles);if(!plots.has(v.secret.mainPlot)||!arr(v.secret.subPlots)||v.secret.subPlots.some(p=>!plots.has(p))||!arr(v.secret.incidents)||v.secret.incidents.some(e=>!num(e.day)||!ids.has(e.culprit)))fail();}

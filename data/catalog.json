@@ -1,7 +1,7 @@
 {
   "schemaVersion": "research-catalog-1",
   "status": "research_data_not_executable_rules",
-  "baseline": "JP5-FirstSteps-BasicTragedyX-MidnightZone",
+  "baseline": "JP5-FirstSteps-BasicTragedyX-MidnightZone-MysteryCircle",
   "verifiedDate": "2026-11-14",
   "translation": "项目工作译名，非官方中文译文",
   "source": "BakaFire Party 惨劇RoopeR 5th 主人公の書；惨劇コモンズ5th；来源见sources目录及08-sources.md",
@@ -43,6 +43,19 @@
         7
       ],
       "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "MC",
+      "name": "Mystery Circle",
+      "mainPlots": 1,
+      "subPlots": 2,
+      "finalGuess": true,
+      "usesExtraGauge": true,
+      "extraRules_zh": [
+        "每轮回开始时，EX 标尺归零并移除所有 EX 卡。",
+        "每次事件实际发生，EX 标尺通常增加 1；没有产生效果也计数。具体事件可改变增量。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
     }
   ],
   "locations": [
@@ -883,7 +896,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [],
       "sourceRef": "JP5:p26"
@@ -897,7 +911,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "此人死亡时，主人公失败，轮回立即结束。"
@@ -912,7 +927,8 @@
       "goodwillRefusal": "optional",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MC"
       ],
       "effects_zh": [
         "日结束时，可以杀死同一地点暗跃达到 2 的关键人物。",
@@ -929,7 +945,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）或所在地点暗跃 +1。"
@@ -961,7 +978,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "轮回结束时如果已经死亡，公开此角色，主人公失败。",
@@ -978,7 +996,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "剧作家能力阶段，可以让同一地点的一个人物（可以是自己）不安 +1。"
@@ -994,7 +1013,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "日结束时，如果同一地点恰好只有另一个活着的人物，那个人物死亡。"
@@ -1109,7 +1129,8 @@
       "maxCount": null,
       "goodwillRefusal": "mandatory",
       "sets": [
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effects_zh": [
         "必须被指定为至少一个事件的犯人。",
@@ -1163,6 +1184,104 @@
         "同一地点的其他人物作为犯人时，事件不会发生。"
       ],
       "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf"
+    },
+    {
+      "id": "poisoner",
+      "name_ja": "ドリッパー",
+      "name_zh_working": "滴毒者",
+      "maxCount": null,
+      "goodwillRefusal": "optional",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "日结束时，EX 标尺达到 2，必须杀死同一地点的一名人物（可以是自己），每轮回一次。",
+        "日结束时，EX 标尺达到 4，主人公死亡。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "fool",
+      "name_ja": "フール",
+      "name_zh_working": "愚者",
+      "maxCount": 1,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "必须被指定为至少一个事件的犯人。",
+        "自己作为犯人的事件结算后，移除自己或自己尸体上的全部不安。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "castingConstraints": [
+        "mustBeCulprit"
+      ]
+    },
+    {
+      "id": "paranoiac",
+      "name_ja": "パラノイア",
+      "name_zh_working": "偏执者",
+      "maxCount": null,
+      "goodwillRefusal": "mandatory",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "剧作家能力阶段，可以为自己放置 1 暗跃或 1 不安。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "therapist",
+      "name_ja": "セラピスト",
+      "name_zh_working": "治疗师",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "剧作家能力阶段，EX 标尺达到 1 时，必须移除同一地点另一名人物的 1 不安。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "twin",
+      "name_ja": "ツイン",
+      "name_zh_working": "双子",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "必须被指定为至少一个事件的犯人。",
+        "结算自己作为犯人的事件时，将自己视为位于原位置对角线上的地点。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "castingConstraints": [
+        "mustBeCulprit"
+      ]
+    },
+    {
+      "id": "private_investigator",
+      "name_ja": "メイタンテイ",
+      "name_zh_working": "私家侦探",
+      "maxCount": null,
+      "goodwillRefusal": "none",
+      "sets": [
+        "MC"
+      ],
+      "effects_zh": [
+        "不能被指定为事件犯人。",
+        "不会死亡。",
+        "事件阶段，EX 标尺为 0 时，同一地点仍存活的犯人无须满足不安条件即可引发事件；事件禁止仍然优先。"
+      ],
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "castingConstraints": [
+        "cannotBeCulprit"
+      ]
     }
   ],
   "plots": [
@@ -1173,7 +1292,8 @@
       "kind": "Y",
       "sets": [
         "FS",
-        "BTX"
+        "BTX",
+        "MC"
       ],
       "addedRoles": {
         "key_person": 1,
@@ -1579,6 +1699,171 @@
       "castingConstraints": [
         "incidents.include=suicide"
       ]
+    },
+    {
+      "id": "tightrope_plan",
+      "name_ja": "タイトロープ上の計画",
+      "name_zh_working": "钢丝上的计划",
+      "kind": "Y",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "brain": 1,
+        "killer": 1
+      },
+      "effect_zh": "轮回结束时，EX 标尺不超过 1，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "strychnine",
+      "name_ja": "ストリキニーネの雫",
+      "name_zh_working": "士的宁之滴",
+      "kind": "Y",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "key_person": 1,
+        "poisoner": 1,
+        "fool": 1
+      },
+      "effect_zh": "判断连续杀人或自杀事件是否发生时，将犯人的暗跃也计入不安。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "quilt_incidents",
+      "name_ja": "組み重なり事件キルト",
+      "name_zh_working": "层叠事件拼图",
+      "kind": "Y",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "misleader": 1,
+        "fool": 1
+      },
+      "effect_zh": "轮回结束时，EX 标尺达到 3，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "black_school",
+      "name_ja": "黒の学園",
+      "name_zh_working": "黑之学园",
+      "kind": "Y",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "brain": 1
+      },
+      "effect_zh": "轮回结束时，学校暗跃达到「当前轮回数 −1」，主人公失败；第一个轮回必定失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "hidden_freak",
+      "name_ja": "潜む殺人鬼",
+      "name_zh_working": "潜藏的杀人鬼",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "friend": 1,
+        "serial_killer": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "dance_fools",
+      "name_ja": "愚者のダンス",
+      "name_zh_working": "愚者之舞",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "fool": 1,
+        "friend": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "isolated_psycho",
+      "name_ja": "隔離病棟サイコ",
+      "name_zh_working": "隔离病栋",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "paranoiac": 1,
+        "therapist": 1,
+        "misleader": 1
+      },
+      "effect_zh": "第一个轮回之后，若前一轮回结束时 EX 标尺不超过 2，本轮回开始归零后再增加 1。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "absolute_will",
+      "name_ja": "絶対の意志",
+      "name_zh_working": "绝对意志",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "obstinate": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "tricky_twins",
+      "name_ja": "双子のトリック",
+      "name_zh_working": "双子的诡计",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "twin": 1,
+        "paranoiac": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "smell_gunpowder",
+      "name_ja": "火薬の香り",
+      "name_zh_working": "火药气味",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "serial_killer": 1
+      },
+      "effect_zh": "轮回结束时，所有存活人物的不安总和达到 12，主人公失败。",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "master_detective",
+      "name_ja": "私は名探偵",
+      "name_zh_working": "我是名侦探",
+      "kind": "X",
+      "sets": [
+        "MC"
+      ],
+      "addedRoles": {
+        "private_investigator": 1,
+        "misleader": 1,
+        "friend": 1
+      },
+      "effect_zh": "",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
     }
   ],
   "incidents": [
@@ -1601,7 +1886,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effect_zh": "任意一个人物不安 +2，再让另一个人物暗跃 +1。",
       "defaultChooser": "mastermind",
@@ -1614,7 +1900,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effect_zh": "犯人死亡。",
       "defaultChooser": "mastermind",
@@ -1627,7 +1914,8 @@
       "sets": [
         "FS",
         "BTX",
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effect_zh": "医院暗跃达到 1 时，医院里的所有人物死亡；达到 2 时，主人公也死亡。",
       "defaultChooser": "mastermind",
@@ -1697,7 +1985,8 @@
       "name_ja": "連続殺人",
       "name_zh_working": "连续杀人",
       "sets": [
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effect_zh": "与犯人同一地点的另一个人物死亡。同一人物可以是多个连续杀人事件的犯人。",
       "defaultChooser": "mastermind",
@@ -1754,7 +2043,8 @@
       "name_ja": "偽装自殺",
       "name_zh_working": "伪装自杀",
       "sets": [
-        "MZ"
+        "MZ",
+        "MC"
       ],
       "effect_zh": "为犯人设置 EX 卡。本轮回余下时间，主人公不能对任何带有 EX 卡的人物盖行动牌。",
       "defaultChooser": "mastermind",
@@ -1771,6 +2061,76 @@
       "defaultChooser": "mastermind",
       "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf",
       "allowsPublicType": true
+    },
+    {
+      "id": "portent",
+      "name_ja": "前兆",
+      "name_zh_working": "前兆",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "判定发生时，犯人的不安临界 −1。发生时，同一地点的任意一名人物不安 +1。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "paranoiaLimitModifier": -1
+    },
+    {
+      "id": "terrorism",
+      "name_ja": "テロリズム",
+      "name_zh_working": "恐怖袭击",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "都市暗跃达到 1 时，都市里的所有人物死亡；达到 2 时，主人公也死亡。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "bestial_murder",
+      "name_ja": "猟奇殺人",
+      "name_zh_working": "猎奇杀人",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "判定发生时，犯人的不安临界 +1。发生时依次结算连续杀人、不安扩大；本事件使 EX 标尺总计增加 2。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "paranoiaLimitModifier": 1,
+      "extraGaugeIncrement": 2
+    },
+    {
+      "id": "suspicious_letter",
+      "name_ja": "不審な手紙",
+      "name_zh_working": "可疑的信件",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "将犯人所在地点的一名人物移到任意可进入的地点。如果实际改变了地点，该人物在第二天不能移动。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "closed_circle",
+      "name_ja": "クローズドサークル",
+      "name_zh_working": "封闭之环",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "公开犯人所在地点。包括当日在内的三天，禁止任何人物移入或移出该地点。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf"
+    },
+    {
+      "id": "silver_bullet",
+      "name_ja": "銀の銃弾",
+      "name_zh_working": "银色子弹",
+      "sets": [
+        "MC"
+      ],
+      "effect_zh": "本事件不增加 EX 标尺；当前阶段结束时，提前结束轮回并检查所有轮回结束时的胜负条件。人工智能模拟此事件时，在主人公能力阶段结束时结算。",
+      "defaultChooser": "mastermind",
+      "sourceRef": "https://bakafire.main.jp/rooper/sp/pdf/summary_002.pdf",
+      "extraGaugeIncrement": 0
     }
   ],
   "actionDeckEntries": [

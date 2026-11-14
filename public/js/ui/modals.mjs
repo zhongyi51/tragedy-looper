@@ -19,7 +19,7 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
  const tile=(group,value,title,detail,checked,glyph='')=>`<label class="tile"><input type="radio" id="${group}-${value}" name="${group}" value="${value}"${checked?' checked':''}><span>${glyph?icon(glyph):''}<b>${title}</b><small>${detail}</small></span></label>`;
  return frame('新对局',`${head('新对局')}
   <h4>你扮演</h4><div class="tiles">${tile('new-mode','heroes','主人公','阻止惨剧',mode==='heroes','users')}${tile('new-mode','mastermind','剧作家','制造惨剧',mode==='mastermind','mask')}${tile('new-mode','observe','观战','看双方自动对局',mode==='observe','eye')}</div>
-  <h4>剧本</h4><div class="tiles">${tile('new-script','starter','起始剧本','3 天 × 3 轮回 · 推荐新手',script==='starter')}${tile('new-script','FS','随机 · FS','First Steps · 入门',script==='FS')}${tile('new-script','BTX','随机 · BTX','Basic Tragedy Χ · 进阶',script==='BTX')}${tile('new-script','MZ','随机 · MZ','Midnight Zone · 扩展',script==='MZ')}${editor.text.trim()?tile('new-script','editor','我的剧本','剧本工坊里的那份',script==='editor'):''}</div>
+  <h4>剧本</h4><div class="tiles">${tile('new-script','starter','起始剧本','3 天 × 3 轮回 · 推荐新手',script==='starter')}${tile('new-script','FS','随机 · FS','First Steps · 入门',script==='FS')}${tile('new-script','BTX','随机 · BTX','Basic Tragedy Χ · 进阶',script==='BTX')}${tile('new-script','MZ','随机 · MZ','Midnight Zone · 扩展',script==='MZ')}${tile('new-script','MC','随机 · MC','Mystery Circle · 扩展',script==='MC')}${editor.text.trim()?tile('new-script','editor','我的剧本','剧本工坊里的那份',script==='editor'):''}</div>
   <div class="fields">
    ${field('对手',select('new-opponent',[...(info.configured?[['ai','DeepSeek AI']]:[]),['bot','离线机器人']],setup.opponent||(info.configured?'ai':'bot')))}
    ${field('主人公讨论',select('new-talk',[['between_loops_only','只在轮回之间'],['allowed_during_loop','随时可以']],setup.communication))}
@@ -28,7 +28,7 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
   <details class="setup-options" id="new-advanced"${setup.advancedOpen?' open':''}>
    <summary>进阶自定义 <span>本场的规则与人物</span></summary>
    ${random?`<div class="fields">
-    ${field('惨剧集合',select('new-ruleset',[['FS','FS · First Steps'],['BTX','BTX · Basic Tragedy Χ'],['MZ','MZ · Midnight Zone']],setup.ruleset))}
+    ${field('惨剧集合',select('new-ruleset',[['FS','FS · First Steps'],['BTX','BTX · Basic Tragedy Χ'],['MZ','MZ · Midnight Zone'],['MC','MC · Mystery Circle']],setup.ruleset))}
     ${field('随机种子',number('new-seed',setup.seed,0,Number.MAX_SAFE_INTEGER))}
     ${field('每轮回天数',number('new-days',setup.days,1,10))}
     ${field('轮回数',number('new-loops',setup.loops,1,8))}
@@ -39,7 +39,8 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
    </div>
    <label class="setup-check"><input id="new-ai-character" type="checkbox"${setup.includeAI?' checked':''}><span>保证人工智能（AI）登场</span></label>
    <p class="hint">人物会从所选池中抽取。人工智能可模拟日程中的事件。</p>
-   <p class="hint">指定规则会缩小推理范围；想保留悬念请选“随机”。</p>`:'<p class="hint">这份剧本已有固定的规则、人物与日程。选择随机剧本即可在此定制，或在剧本工坊编辑。</p>'}
+   <p class="hint">指定规则会缩小推理范围；想保留悬念请选“随机”。</p>
+   ${setup.ruleset==='MC'?'<p class="hint">MC 的愚者、双子、绝对者须各自担任事件犯人；私家侦探不能担任犯人。请为所选规则留足事件数。</p>':''}`:'<p class="hint">这份剧本已有固定的规则、人物与日程。选择随机剧本即可在此定制，或在剧本工坊编辑。</p>'}
    <div class="fields">${field('事件日程',select('new-visibility',[['hidden','隐藏名称（本站默认）'],['public','公开名称（原版日程）']],setup.incidentVisibility),'wide')}</div>
    <p class="hint">已发生的事件会公开名称和结果；事件或能力明确要求时，才公开犯人身份。MZ 的伪装事件按其公开名称显示。人工智能主动模拟会公开所选日的名称，其他隐藏日程不变。</p>
   </details>
@@ -53,7 +54,7 @@ export function characterModal(id,v){
  return frame(name(id)+'详情',`${head(`${esc(name(id))} <small>${esc(c.name_ja)}</small>`)}
   <div class="detail"><img class="detail-card" src="/${c.card}" alt="${esc(name(id))}的人物卡"><div class="detail-copy">
    ${role?`<p class="detail-role">角色：<b>${esc(name(role))}</b>${v.secret?' · 只有你知道':v.script.ruleset==='MZ'?' · 已宣告':' · 已确认'}</p>`:''}
-   ${here?`<p class="detail-state">${stat('goodwill')}${stat('paranoia')}${stat('intrigue')}${here.guard?stat('guard'):''}${here.alive?'':'<span class="dead">已死亡</span>'}</p><p class="hint">位于${esc(name(here.location))}${here.present?'':'（未登场）'}</p>`:''}
+   ${here?`<p class="detail-state">${stat('goodwill')}${stat('paranoia')}${stat('intrigue')}${here.guard?stat('guard'):''}${here.alive?'':'<span class="dead">已死亡</span>'}</p><p class="hint">位于${esc(name(here.location))}${here.present?'':'（未登场）'}${here.alive&&here.movementLockedDay>=v.day?' · 第 '+here.movementLockedDay+' 日不能移动':''}</p>`:''}
    ${cards?`<div class="detail-cards"><span class="hint">今天的牌</span>${cards}</div>`:''}
    <p class="hint">初始地点：${esc(name(c.start))} · 不能进入：${c.forbiddenLocations.map(l=>esc(name(l))).join('、')||'无'} · 不安上限 ${c.paranoiaLimit}</p>
    ${c.abilities.map(a=>`<div class="ability"><b class="g">${icon('heart')}需要友好 ${a.minGoodwill}</b><i>${a.limit==='loop'?'每轮回一次':'每天一次'}</i><p>${esc(a.effect_zh)}</p></div>`).join('')}
@@ -65,7 +66,7 @@ export function guideModal(){
  const step=(title,text)=>`<li><b>${title}</b><p>${text}</p></li>`;
  return frame('玩法',`${head('怎么玩')}
   <ol class="guide-steps">
-   ${step('目标','只要有一个轮回从头到尾没有失败，主人公就赢。轮回全部失败后，FS 由剧作家获胜；BTX / MZ 还有最后的战斗，主人公可指认全部配役争取胜利。')}
+   ${step('目标','只要有一个轮回从头到尾没有失败，主人公就赢。轮回全部失败后，FS 由剧作家获胜；BTX / MZ / MC 还有最后的战斗，主人公可指认全部配役争取胜利。')}
    ${step('出牌','先选一张手牌，再点人物或地点。六张牌出齐后一起翻开。')}
    ${step('看计数',`<span class="p">${icon('unrest')}不安</span>满了，当天的犯人就会引发事件。<span class="i">${icon('intrigue')}暗跃</span>多了，轮回多半会失败。<span class="g">${icon('heart')}友好</span>够了，就能用人物的能力。`)}
    ${step('推理','留意剧作家总把牌出给谁。“推理”页会帮你排除不可能的角色和规则。')}

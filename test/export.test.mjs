@@ -16,7 +16,8 @@ test('offline replay runs on its own and never carries the answers of a public e
  const v=view(createGame(starter),'public');v.script.incidents=structuredClone(starter.incidents);
  const html=offlineReplayHtml({perspective:'public',script:structuredClone(starter),frames:[{view:v}]});
  for(const e of starter.incidents)assert.ok(!html.includes(e.type));
- const el=()=>({textContent:'',className:'',replaceChildren(){},append(){},insertRow(){return el();},insertCell(){return el();}}),nodes={range:{},phase:el(),board:el(),log:el()};
+ assert.match(html,/<p id="conditions"><\/p>/,'the standalone artifact contains the new conditions node');
+ const el=()=>({textContent:'',className:'',replaceChildren(){},append(){},insertRow(){return el();},insertCell(){return el();}}),nodes=Object.fromEntries([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,el()]));
  vm.runInNewContext(scriptOf(html),{document:{getElementById:id=>nodes[id],createElement:el}});
- assert.match(nodes.phase.textContent,new RegExp(starter.title));assert.equal(nodes.range.max,0);
+ assert.match(nodes.phase.textContent,new RegExp(starter.title));assert.equal(nodes.range.max,0);assert.equal(nodes.conditions.textContent,'');
 });

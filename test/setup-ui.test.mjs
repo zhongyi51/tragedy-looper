@@ -25,7 +25,7 @@ test('new games retain the compact layout and put advanced controls behind a clo
  assert.match(html,/value="hidden" selected/);
  assert.match(html,/固定的规则、人物与日程/);
  assert.doesNotMatch(html,/id="new-main"/);
- for(const set of ['FS','BTX','MZ']){
+ for(const set of ['FS','BTX','MZ','MC']){
   const advanced=newGameModal(state,'heroes',set,{advancedOpen:true,seed:14});
   assert.match(advanced,/<details class="setup-options" id="new-advanced" open>/);
   assert.equal((advanced.match(/id="new-sub-/g)||[]).length,set==='FS'?1:2);
@@ -110,7 +110,7 @@ test('AI counter warning uses all its counters while retaining individual counte
 
 
 test('the short guide distinguishes First Steps from sets with a final battle',()=>{
- const html=guideModal();assert.match(html,/FS 由剧作家获胜/);assert.match(html,/BTX \/ MZ 还有最后的战斗/);assert.match(html,/指认全部配役/);
+ const html=guideModal();assert.match(html,/FS 由剧作家获胜/);assert.match(html,/BTX \/ MZ \/ MC 还有最后的战斗/);assert.match(html,/指认全部配役/);
  assert.doesNotMatch(html,/每个轮回都失败，剧作家赢/);
 });
 

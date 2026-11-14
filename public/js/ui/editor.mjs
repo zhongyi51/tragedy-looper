@@ -4,14 +4,14 @@ import {parseDraft,roleNeeds} from '../script-draft.mjs';
 
 const option=(value,label,current)=>`<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;
 const select=(kind,key,options,current,label)=>`<select data-edit="${kind}" data-key="${esc(key)}" aria-label="${esc(label)}">${options.map(([v,l])=>option(v,l,current)).join('')}</select>`;
-const RULESETS=[['FS','FS · First Steps（入门）'],['BTX','BTX · Basic Tragedy Χ（进阶）'],['MZ','MZ · Midnight Zone（扩展）']];
+const RULESETS=[['FS','FS · First Steps（入门）'],['BTX','BTX · Basic Tragedy Χ（进阶）'],['MZ','MZ · Midnight Zone（扩展）'],['MC','MC · Mystery Circle（扩展）']];
 // Where a problem is, in the words the form uses: “角色 · 医生”, “事件 2”.
 const PARTS={title:'标题',ruleset:'惨剧集合',days:'天数',loops:'轮回数',communication:'主人公讨论',characters:'人物',mainPlot:'规则 Y',subPlots:'规则 X',roles:'角色',incidents:'事件',settings:'特殊人物',specialRules:'特殊规则',godlyLoop:'神格',transferDay:'转学生',bossTerritory:'大人物',culprit:'犯人',day:'日期',type:'事件',publicType:'公开名称',incidentVisibility:'事件日程',script:'剧本'};
 const place=path=>path.split('.').map(part=>PARTS[part]||(/^\d+$/.test(part)?String(Number(part)+1):name(part))).join(' · ').replace(/ · (\d+)/,' $1');
 const field=(label,control,cls='')=>`<label class="field ${cls}"><span>${label}</span>${control}</label>`;
 
 function form(d){
- const set=['FS','BTX','MZ'].includes(d.ruleset)?d.ruleset:'FS',cast=d.characters||[],roles=rolesFor(set).map(r=>[r.id,r.name_zh_working]);
+ const set=['FS','BTX','MZ','MC'].includes(d.ruleset)?d.ruleset:'FS',cast=d.characters||[],roles=rolesFor(set).map(r=>[r.id,r.name_zh_working]);
  const plotOptions=kind=>plotsFor(set,kind).map(p=>[p.id,p.name_zh_working+(plotRoles(p)?`（${plotRoles(p)}）`:'')]);
  const needs=roleNeeds({...d,ruleset:set});
  const castCard=c=>{
@@ -48,7 +48,7 @@ function form(d){
   </div>
   <div class="needs" aria-label="需要的角色">${needs.length?needs.map(n=>`<span class="need${n.ok?' ok':' bad'}">${esc(name(n.role))} <b>${n.count}</b>/${n.min===n.max?n.max:n.min+'–'+n.max}</span>`).join(''):'<span class="hint">这些规则不要求特定的角色。</span>'}</div></section>
   <section class="form-block"><h3>人物 <small>${cast.length} 人 · 点头像加入或移出</small></h3><div class="cast-grid">${cat().characters.map(castCard).join('')}</div></section>
-  <section class="form-block"><h3>事件 <small>每天最多一个，每个人物只能当一次犯人</small></h3><div class="day-rows">${Array.from({length:Math.max(1,Math.min(10,d.days||1))},(_,i)=>dayRow(i+1)).join('')}</div></section>
+  <section class="form-block"><h3>事件 <small>每天最多一个；同一犯人可用于多个连续杀人，不能与其他事件混用</small></h3>${set==='MC'?'<p class="hint">愚者、双子、绝对者须各自担任事件犯人；私家侦探不能担任犯人。</p>':''}<div class="day-rows">${Array.from({length:Math.max(1,Math.min(10,d.days||1))},(_,i)=>dayRow(i+1)).join('')}</div></section>
   ${specials.length?`<section class="form-block"><h3>特殊人物</h3><div class="fields">${specials.join('')}</div></section>`:''}
  </div>`;
 }

@@ -2,7 +2,7 @@
 // structurally coherent (no roles for absent characters, no incidents past the last day…).
 import {cat,rolesFor,plotsFor,incidentsFor} from './lookup.mjs';
 
-const SUB_PLOTS={FS:1,BTX:2,MZ:2};
+const SUB_PLOTS={FS:1,BTX:2,MZ:2,MC:2};
 const SPECIAL_DEFAULTS={godly_being:['godlyLoop',1],transfer_student:['transferDay',1],boss:['bossTerritory','city']};
 const NUMERIC_SETTINGS=['godlyLoop','transferDay'];
 
@@ -51,7 +51,8 @@ function toggleCast(d,id){
 function setIncident(d,day,type){
  const rest=d.incidents.filter(e=>e.day!==day),existing=d.incidents.find(e=>e.day===day);
  if(!type)return {...d,incidents:rest};
- const taken=new Set(rest.map(e=>e.culprit)),culprit=existing?.culprit||d.characters.find(c=>!taken.has(c))||'';
+ const taken=new Set(rest.map(e=>e.culprit)),repeat=type==='serial_murder'?d.characters.find(c=>rest.some(e=>e.culprit===c)&&rest.filter(e=>e.culprit===c).every(e=>e.type==='serial_murder')):null;
+ const culprit=existing?.culprit||d.characters.find(c=>!taken.has(c))||repeat||'';
  return {...d,incidents:[...rest,{day,type,culprit,...(type==='fake_incident'&&existing?.publicType?{publicType:existing.publicType}:{})}].sort((a,b)=>a.day-b.day)};
 }
 

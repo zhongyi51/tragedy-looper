@@ -57,7 +57,7 @@ function navHtml(){
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
   <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'没有配置 DeepSeek 密钥，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
-const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
+const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ + MC</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
 const replayView=()=>state.replay.data?.frames[state.replay.at].view;
 const tableView=()=>state.page==='game'?state.transitionView||state.g:state.page==='replay'?replayView():null;

@@ -1,7 +1,7 @@
 // The deduction sheet's logic: what the player's marks and the public record still leave possible.
 import {char,name,phaseLabel,rolesFor,plotsFor,plotRoles} from './lookup.mjs';
 
-const SUB_PLOTS={FS:1,BTX:2,MZ:2};
+const SUB_PLOTS={FS:1,BTX:2,MZ:2,MC:2};
 export const MARKS={no:'✗',yes:'✓',maybe:'?'};
 // Results worth reading back: at the end of a day, and loop by loop on the sheet.
 export const NOTABLE=['death','incident','reveal','refused','ignored'];

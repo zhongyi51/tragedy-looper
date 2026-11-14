@@ -16,3 +16,5 @@
 API：DeepSeek 官方服务。采用 `deepseek-flash`，官方当前对应 DeepSeek V4.1 Flash。密钥不包含在本软件与分发包内。
 
 Midnight Zone 规则依据原作者[官方速览表](https://bakafire.main.jp/rooper/sp/pdf/summary_007.pdf)，并参照英文 Midnight Circle 规则说明。规则 X / Y 术语参照[官方 FAQ](https://main-bakafire.ssl-lolipop.jp/rooper/sr_game_02_rule.htm)。事件发生公开名称及人工智能的目标声明时序参照[第 5 版主人公规则书](https://main-bakafire.ssl-lolipop.jp/rooper/10th/dl/protagonist_rulebook.pdf)印刷第 24、40 页。
+
+Mystery Circle 依据原作者[MC 官方速览](https://bakafire.main.jp/rooper/pdf/summary_002.pdf)及[官方通用 FAQ](https://main-bakafire.ssl-lolipop.jp/rooper/sr_game_02_rule.htm)整理；与英文 Midnight Circle 玩家手册比对，产品标记 MC，具体机制按上述公开速览与现行裁定；官方目录的集合名为 Mystery Circle Χ，而速览标题为 Mystery Circle。英文资料中黑之学园、伪装自杀和猎奇杀人 EX 时序存在措辞差异，本实现统一按上述原作者规则处理。
