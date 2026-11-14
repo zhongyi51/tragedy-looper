@@ -17,7 +17,7 @@ function selectedAnswer(request,index=0){
 const response=(answer,usage={prompt_tokens:1000,prompt_cache_hit_tokens:800,prompt_cache_miss_tokens:200,completion_tokens:100})=>new Response(JSON.stringify({model:'author-test',id:'author-mock',choices:[{finish_reason:'stop',message:{content:typeof answer==='string'?answer:JSON.stringify(answer)}}],usage}),{status:200});
 async function withProvider(fn,body){
  const original=globalThis.fetch,requests=[];
- globalThis.fetch=async(url,init)=>{const request=JSON.parse(init.body);requests.push(request);const result=await fn(request,requests,url,init);return result instanceof Response?result:response(result??(request.user_id.endsWith('_plan')?{plan:planFor(initialInput(request).dictionary.set.id)}:selectedAnswer(request)));};
+ globalThis.fetch=async(url,init)=>{const request=JSON.parse(init.body);requests.push(request);const result=await fn(request,requests,url,init);return result instanceof Response?result:response(result??(request.user_id.endsWith('_caption')?{title:initialInput(request).theme+'的余音',intro:'关于'+initialInput(request).theme+'的记忆，在四条街道之间反复回响。'}:request.user_id.endsWith('_plan')?{plan:planFor(initialInput(request).dictionary.set.id)}:selectedAnswer(request)));};
  try{return await body(requests);}finally{globalThis.fetch=original;}
 }
 
@@ -195,11 +195,79 @@ test('a repeated invalid design fails after one repair without exposing model te
  assert.equal(selections,2);
 });
 
-test('the same public seed and stage never expose model-selected secret rules through captions',async()=>{
- const a=planFor('FS'),b={...a,mainPlot:'murder_plan'};const results=[];
- for(const [plan,theme]of [[a,'SECRET_AVENGER_THEME'],[b,'SECRET_MURDER_THEME']])results.push(await withProvider(request=>request.user_id.endsWith('_plan')?{plan}:undefined,()=>generateWithAi({...base,theme})));
- assert.notEqual(results[0].mainPlot,results[1].mainPlot);assert.equal(results[0].title,results[1].title);assert.equal(results[0].intro,results[1].intro);assert.doesNotMatch(results[0].title+results[0].intro,/SECRET|杀人计划|复仇者/);
+test('the same theme yields a secret-independent public caption request under different hidden plans',async()=>{
+ const a=planFor('FS'),b={...a,mainPlot:'murder_plan'},theme='雨夜的末班电车',results=[],captions=[];
+ for(const plan of [a,b])results.push(await withProvider(request=>{if(request.user_id.endsWith('_caption'))captions.push(request.messages);return request.user_id.endsWith('_plan')?{plan}:undefined;},()=>generateWithAi({...base,theme,mainPlot:plan.mainPlot})));
+ assert.notEqual(results[0].mainPlot,results[1].mainPlot);assert.deepEqual(captions[0],captions[1]);
+ assert.equal(results[0].title,results[1].title);assert.equal(results[0].intro,results[1].intro);assert.match(results[0].intro,/雨夜的末班电车/);
+ assert.doesNotMatch(JSON.stringify(captions),/avenger|murder_plan|roles|culprit|privateDesign|candidate|scriptHash/);
+ assert.deepEqual(JSON.parse(captions[0][1].content),{theme,locations:catalog.locations.map(location=>location.name_zh)});
  const result=await withProvider(()=>{},()=>generateWithAi({...base,title:'  用户的题名  '}));assert.equal(result.title,'用户的题名');assert.equal(result.generation.scriptHash,authoredScriptHash(result));
+});
+
+test('an explicit theme changes visible prose, is accounted once, and reaches planning and selection',async()=>{
+ const results=[];
+ for(const theme of ['雨夜的末班电车','雪落在空剧场'])results.push(await withProvider(()=>{},async requests=>{
+  const script=await generateWithAi({...base,theme});
+  assert.deepEqual(requests.map(request=>request.user_id.split('_').at(-1)),['caption','plan','select']);
+  assert.equal(requests[0].thinking.type,'disabled');assert.equal(requests[0].max_tokens,700);
+  assert.equal(initialInput(requests[1]).theme,theme);assert.equal(initialInput(requests[2]).theme,theme);
+  assert.equal(script.generation.theme,theme);assert.equal(script.generation.captionSource,'public-theme-model');
+  assert.equal(script.generation.captionAttempts,1);assert.equal(script.generation.usage.requests,3);assert.equal(script.generation.attempts,3);
+  assert.equal(script.generation.scriptHash,authoredScriptHash(script));assert.deepEqual(validateScript(script).errors,[]);
+  assert.match(publicScript(script).intro,new RegExp(theme));assert.equal(publicScript(script).generation,undefined);
+  return script;
+ }));
+ assert.notEqual(results[0].title,results[1].title);assert.notEqual(results[0].intro,results[1].intro);
+});
+
+test('blank themes add no request and explicit titles still override themed titles',async()=>{
+ await withProvider(()=>{},async requests=>{
+  const script=await generateWithAi({...base,theme:'   '});assert.equal(requests.length,2);
+  assert.equal(script.generation.captionAttempts,0);assert.equal(script.generation.captionSource,'neutral-template');
+  assert.equal(script.generation.theme,'');assert.equal(script.title,generatedTitle(base.seed));
+ });
+ const themed=await withProvider(()=>{},()=>generateWithAi({...base,theme:'春日远信',title:'  用户的题名  '}));
+ assert.equal(themed.title,'用户的题名');assert.match(themed.intro,/春日远信/);assert.equal(themed.generation.scriptHash,authoredScriptHash(themed));
+});
+
+test('complete fixed plans compile before paid theme copy and preserve mechanics after captioning',async()=>{
+ const plan=planFor('MC'),config={ruleset:'MC',...plan,includeAI:true,seed:42};
+ const plain=await withProvider(()=>{},()=>generateWithAi(config));
+ const themed=await withProvider(()=>{},async requests=>{
+  const script=await generateWithAi({...config,theme:'窗外的纸风车'});
+  assert.deepEqual(requests.map(request=>request.user_id.split('_').at(-1)),['caption','select']);return script;
+ });
+ assert.deepEqual(themed.generation.plan,plan);assert.equal(themed.generation.planAttempts,0);
+ for(const key of ['ruleset','days','loops','characters','mainPlot','subPlots','roles','incidents','settings'])assert.deepEqual(themed[key],plain[key]);
+ assert.equal(themed.generation.scriptHash,authoredScriptHash(themed));assert.match(themed.intro,/窗外的纸风车/);
+ const invalid=planFor('BTX');invalid.mainPlot='contract';invalid.characters=['boy_student','police','office_worker','doctor','informer','soldier'];
+ await withProvider(()=>{throw Error('An impossible fixed plan must fail before the caption request');},()=>assert.rejects(generateWithAi({ruleset:'BTX',...invalid,theme:'窗外的纸风车',seed:42}),error=>error.code==='INVALID_SETUP'));
+});
+
+test('theme copy errors fail explicitly without retrying or silently discarding the theme',async()=>{
+ for(const answer of ['{unfinished',{title:'',intro:'主题'},{title:'主题',intro:''},{title:'主题',intro:'氛围',roles:{doctor:'killer'}}]){
+  await withProvider(()=>answer,async requests=>{await assert.rejects(generateWithAi({...base,theme:'雨后的回声'}),error=>error.code==='AUTHOR_COPY');assert.equal(requests.length,1);});
+ }
+ const used=[];await withProvider(()=>{throw Error('disconnect');},async requests=>{
+  await assert.rejects(generateWithAi({...base,theme:'雨后的回声'},{onUsage:entry=>used.push(entry)}),error=>error.code==='NETWORK');assert.equal(requests.length,1);
+ });
+ assert.equal(used.length,1);assert.equal(used[0].status,'unknown');
+});
+
+test('theme copy shares the total budget and only adds one request to the bounded repair flow',async()=>{
+ await withProvider(()=>response({title:'雨后的回声',intro:'窗边有一封未拆开的信。'},{prompt_tokens:0,prompt_cache_miss_tokens:0,completion_tokens:20000}),async requests=>{
+  await assert.rejects(generateWithAi({...base,theme:'雨后的回声'},{authorBudget:.03}),error=>error.code==='AUTHOR_BUDGET');assert.equal(requests.length,1);
+ });
+ let plans=0,selections=0;
+ await withProvider(request=>{
+  if(request.user_id.endsWith('_plan')){const plan=planFor('FS');if(!plans++)plan.days++;return {plan};}
+  if(request.user_id.endsWith('_select')&&!selections++)return {candidateId:'missing',design:{}};
+ },async requests=>{
+  const script=await generateWithAi({...base,days:4,theme:'雨后的回声'});
+  assert.equal(requests.length,5);assert.equal(script.generation.usage.requests,5);
+  assert.equal(script.generation.captionAttempts,1);assert.equal(script.generation.planAttempts,2);assert.equal(script.generation.selectionAttempts,2);
+ });
 });
 
 test('failed authoring emits bounded findings without the rejected model content',async()=>{

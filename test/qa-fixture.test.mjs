@@ -75,3 +75,48 @@ test('fixture editing closes for AI-authored scripts, model ledger entries, and 
   const state=(await f.request('/api/qa/games/'+game.id)).data;assert.equal(state.revision,0);assert.equal(state.busy,false);
  }
 });
+
+test('bounded fixture batches preserve exact history and reject an invalid suffix atomically',async t=>{
+ const f=fixture();t.after(()=>f.sql.close());const spec=silverBulletFixture();
+ const game=(await f.request('/api/qa/games',{mode:'observe',script:spec.script})).data,path='/api/qa/games/'+game.id+'/fixture-step';
+ const commands=spec.commands.map(x=>x.command);
+ const failed=await f.request(path,{revision:0,commands:[...commands,{type:'invented'}]});
+ assert.equal(failed.status,400);assert.equal((await f.request('/api/qa/games/'+game.id)).data.revision,0);
+ assert.equal(f.sql.prepare('SELECT count(*) n FROM frames WHERE game=?').get(game.id).n,1);
+ for(const invalid of [[],Array(81).fill(commands[0])])assert.equal((await f.request(path,{revision:0,commands:invalid})).data.code,'INVALID_FIXTURE_BATCH');
+ assert.equal((await f.request(path,{revision:0,command:commands[0],commands})).data.code,'INVALID_FIXTURE_BATCH');
+ const body={revision:0,commandId:'complete-fixture',commands};
+ const done=await f.request(path,body);assert.equal(done.status,200);assert.equal(done.data.revision,commands.length);
+ assert.equal((await f.request(path,body)).data.revision,commands.length);
+ assert.equal(hash(JSON.parse(f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state)),hash(spec.state));
+});
+
+test('decision diagnostics are restricted to isolated service QA games',async t=>{
+ const f=fixture();t.after(()=>f.sql.close());f.env.DEEPSEEK_API_KEY='unit-test-not-real';
+ t.mock.method(globalThis,'fetch',async()=>new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:20},choices:[{finish_reason:'stop',message:{content:JSON.stringify({choice:0,reason:'Test choice'})}}]})));
+ for(const qa of [false,true]){
+  const path=qa?'/api/qa/games':'/api/games',owner=qa?{}:{owner:'owner-1'};
+  const opened=(await f.request(path,{mode:'observe'},owner)).data;
+  const played=await f.request(path+'/'+opened.id+'/ai-step',{revision:0,commandId:'diagnostic-check'},owner);
+  assert.equal(played.status,200);
+  if(qa){assert.equal(played.data.qaDecision.commands.length,1);assert.equal(played.data.qaDecision.reason,'Test choice');assert.ok(played.data.qaDecision.spentEstimate>0);assert.equal(played.data.qaDecision.usage.length,1);assert.equal(played.data.qaDecision.usage[0].usage.completion_tokens,20);assert.deepEqual(played.data.qaDecision.repairCauses,[]);}
+  else assert.equal(played.data.qaDecision,undefined);
+ }
+});
+
+test('only isolated QA can force first-request truncation, then use one model-selected intact plan',async t=>{
+ const f=fixture();t.after(()=>f.sql.close());f.env.DEEPSEEK_API_KEY='unit-test-not-real';const requests=[];
+ t.mock.method(globalThis,'fetch',async(_url,init)=>{
+  const body=JSON.parse(init.body);requests.push(body);assert.match(JSON.stringify(body.messages),/json/i);
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:body.max_tokens===1?1:30},choices:[{finish_reason:body.max_tokens===1?'length':'stop',message:{content:body.max_tokens===1?'':JSON.stringify({plan:0,reason:'完整方案'})}}]}));
+ });
+ const normal=(await f.request('/api/games',{mode:'observe'},{owner:'normal-owner'})).data;
+ const denied=await f.request('/api/games/'+normal.id+'/ai-step',{revision:0,qaFirstMaxTokens:1},{owner:'normal-owner'});
+ assert.equal(denied.data.code,'INVALID_QA_LIMIT');assert.equal(requests.length,0);
+ const game=(await f.request('/api/qa/games',{mode:'observe'})).data,path='/api/qa/games/'+game.id+'/ai-step';
+ assert.equal((await f.request(path,{revision:0,qaFirstMaxTokens:999})).data.code,'INVALID_QA_LIMIT');
+ const done=await f.request(path,{revision:0,commandId:'forced-truncation',qaFirstMaxTokens:1});
+ assert.equal(done.status,200);assert.equal(requests.length,2);assert.deepEqual(requests.map(r=>r.max_tokens),[1,1200]);
+ assert.equal(done.data.qaDecision.repairMode,'compiled-plan');assert.deepEqual(done.data.qaDecision.repairCauses,['TRUNCATED']);assert.equal(done.data.qaDecision.commands.length,3);
+ assert.equal(done.data.qaDecision.usage.length,2);assert.equal(f.sql.prepare('SELECT count(*) n FROM calls WHERE game=?').get(game.id).n,2);
+});

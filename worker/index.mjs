@@ -1,6 +1,6 @@
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
 import {createGame,view,hash,VERSION,applyCommand,turn} from '../src/engine.mjs';
-import {generateWithAi,polishWithAi,model,rates} from '../src/ai.mjs';
+import {generateWithAi,polishWithAi,model,rates,AI_DECISION_VERSION} from '../src/ai.mjs';
 import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
 import {AUTHOR_BUDGET,prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from '../src/game-services.mjs';
 import {listCuratedScripts} from '../src/script-library.mjs';
@@ -28,7 +28,7 @@ async function createStored(db,owner,mode,state,budget,id=crypto.randomUUID()){a
  statement(db,'INSERT INTO frames(game,revision,command,state,hash) VALUES(?,?,?,?,?)',id,0,'null',JSON.stringify(state),hash(state))
 ]);return getGame(db,id,owner);}
 async function exportReplay(db,g,full){const records=await rows(db,'SELECT state,hash FROM frames WHERE game=? ORDER BY revision',g.id);return {format:'tragedy-replay-1',engineVersion:VERSION,contentHash,perspective:full?'M':'public',script:full?g.state.script:publicScript(g.state.script),frames:records.map((r,index)=>({index,view:view(JSON.parse(r.state),full?'M':'public'),...(full?{stateHash:r.hash}:{})})),note:'公开视角的回放：不含密钥。'};}
-function usageHooks(db,g,token){let callId;return {
+function usageHooks(db,g,token,diagnostics){let callId;return {
  async onReserve(amount){
   const reserved=await one(db,'UPDATE games SET spent=spent+? WHERE id=? AND owner=? AND lock_token=? AND spent+?<=budget RETURNING id',amount,g.id,g.owner,token,amount);
   if(!reserved)fail(409,'AI 花费已到上限，或这一步已经过期；没有发送请求。');callId=crypto.randomUUID();
@@ -38,11 +38,11 @@ function usageHooks(db,g,token){let callId;return {
  async onUsage(data){await db.batch([
   statement(db,'UPDATE games SET spent=spent+? WHERE id=? AND owner=?',data.estimatedCost-data.reserved,g.id,g.owner),
   statement(db,'UPDATE calls SET status=?,data=? WHERE id=?',data.status,JSON.stringify(data),callId)
- ]);}
+ ]);diagnostics?.push({status:data.status,thinking:data.thinking,reasoningEffort:data.reasoningEffort,usage:data.usage,estimatedCost:data.estimatedCost,latencyMs:data.latencyMs});}
 };}
 export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储还没准备好');const u=new URL(req.url),p=u.pathname;
- if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true,authorBudget:AUTHOR_BUDGET,authorVersion:AUTHOR_VERSION});
+ if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true,authorBudget:AUTHOR_BUDGET,authorVersion:AUTHOR_VERSION,aiVersion:AI_DECISION_VERSION});
  if(p==='/api/catalog')return reply(catalog);
  if(p==='/api/scripts/library')return reply({scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
@@ -96,21 +96,31 @@ export async function handleApi(req,env,owner){
  if(!locked)fail(409,'局面已经变了，或还在处理上一步，请先同步','STATE_CONFLICT');
  try{
   g=await getGame(db,id,owner);
-  let outcome;
+  let outcome;const qaUsage=owner===QA_OWNER&&route==='ai-step'&&env.SITES_QA_ENABLED==='true'?[]:undefined;
+  if(b.qaFirstMaxTokens!==undefined&&(!qaUsage||![1,64,128].includes(b.qaFirstMaxTokens)))fail(400,'仅隔离测试可限制首个请求以验证截断恢复','INVALID_QA_LIMIT');
   if(route==='fixture-step'){
-   // Isolated QA only: reproduce a legal fixture one command at a time, before
+   // Isolated QA only: reproduce a bounded legal history atomically, before
    // any model request. Never change ordinary player control permissions.
    if(g.state.script.source==='ai'||g.state.script.generation?.source==='ai'||g.spent>0||await one(db,'SELECT id FROM calls WHERE game=? LIMIT 1',id))fail(409,'已有模型调用的测试对局不能再铺设局面','FIXTURE_ALREADY_PLAYED');
-   const seat=turn(g.state);if(!seat)fail(400,'这一局已经结束','GAME_OVER');
-   const beats=[],next=applyCommand(g.state,seat,b.command,beats);
-   outcome={seat,frames:[{seat,command:b.command,state:next,beats}],answer:null};
-  }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')}});
+   const commands=b.commands===undefined?[b.command]:b.commands;
+   if(!Array.isArray(commands)||commands.length<1||commands.length>80||(b.commands!==undefined&&b.command!==undefined))fail(400,'测试历史须包含 1–80 个合法操作','INVALID_FIXTURE_BATCH');
+   let current=g.state;const frames=[];
+   for(const command of commands){
+    const seat=turn(current);if(!seat)fail(400,'这一局已经结束','GAME_OVER');
+    const beats=[];current=applyCommand(current,seat,command,beats);frames.push({seat,command,state:current,beats});
+   }
+   outcome={seat:frames[0].seat,frames,answer:null};
+  }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token,qaUsage),...(qaUsage&&b.qaFirstMaxTokens!==undefined?{maxTokens:b.qaFirstMaxTokens}:{}),userId:'g_'+id.replaceAll('-','')}});
   const {seat,frames,answer}=outcome;
   const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
   const results=await db.batch(queries);if(results.at(-1).meta.changes!==1)fail(409,'这一步已经过期，局面没有变化');
-  return reply({...projection(await getGame(db,id,owner),env),...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,env,v)})});
+  const saved=await getGame(db,id,owner);
+  return reply({...projection(saved,env),...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,env,v)}),
+   // Only the isolated, temporarily enabled service test namespace can inspect
+   // its own fixture decision. Ordinary players never receive these fields.
+   ...(qaUsage?{qaDecision:{commands:answer?.commands||[],reason:answer?.reason||'',automatic:!!answer?.automatic,repairAttempts:answer?.repairAttempts||0,repairCauses:answer?.repairCauses||[],repairMode:answer?.repairMode||null,usage:qaUsage,spentEstimate:saved.spent}}:{})});
  }finally{await run(db,'UPDATE games SET lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',id,token);}
 }
 // Temporarily enabled owner-private Sites API verification. Sites consumes the
