@@ -1,0 +1,54 @@
+{
+  "title": "晚风初起的脚步声",
+  "intro": "街道在同一刻重新醒来。8 位人物，3 天的日程，2 次轮回；每次重来，都可能发现新的线索。",
+  "ruleset": "MC",
+  "days": 3,
+  "loops": 2,
+  "communication": "between_loops_only",
+  "characters": [
+    "ai_character",
+    "police",
+    "doctor",
+    "shrine_maiden",
+    "teacher",
+    "class_rep",
+    "girl_student",
+    "nurse"
+  ],
+  "mainPlot": "quilt_incidents",
+  "subPlots": [
+    "absolute_will",
+    "tricky_twins"
+  ],
+  "roles": {
+    "girl_student": "person",
+    "doctor": "person",
+    "teacher": "person",
+    "shrine_maiden": "paranoiac",
+    "nurse": "twin",
+    "class_rep": "obstinate",
+    "ai_character": "fool",
+    "police": "misleader"
+  },
+  "incidents": [
+    {
+      "day": 1,
+      "type": "portent",
+      "culprit": "nurse"
+    },
+    {
+      "day": 2,
+      "type": "silver_bullet",
+      "culprit": "ai_character"
+    },
+    {
+      "day": 3,
+      "type": "serial_murder",
+      "culprit": "class_rep"
+    }
+  ],
+  "settings": {
+    "incidentVisibility": "public"
+  },
+  "specialRules": []
+}

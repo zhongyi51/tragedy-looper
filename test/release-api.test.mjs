@@ -7,6 +7,8 @@ import {getCuratedScript} from '../src/script-library.mjs';
 import {createGame} from '../src/engine.mjs';
 import {plots} from '../src/content.mjs';
 import {creationIdentity,checkCreationReceipt,prepareGameScript} from '../src/game-services.mjs';
+import {compileDesign} from '../src/script-design.mjs';
+import {AUTHOR_VERSION,authoredScriptHash} from '../src/author.mjs';
 
 function fixture(t){
  const sql=new DatabaseSync(':memory:');t.after(()=>sql.close());
@@ -20,6 +22,37 @@ function fixture(t){
  };
  return {sql,env,request};
 }
+
+test('API identifies the current author pipeline independently of the rules engine',async t=>{
+ const {request}=fixture(t),info=await request('/api/info');
+ assert.equal(info.status,200);assert.equal(info.data.authorVersion,AUTHOR_VERSION);
+});
+
+test('grounded terminal review recompiles references and keeps generation trials private before the end',async t=>{
+ const {request,sql}=fixture(t),script=getCuratedScript('curated-last-ward');
+ const {grounding}=compileDesign(script);
+ script.source='ai';script.privateDesign={threatPlan:'STALE SECRET PROSE'};
+ script.generation={source:'ai',scriptHash:authoredScriptHash(script),designGrounding:grounding,probe:{version:'engine-probe-1',status:'limited',commands:400,traces:[{},{}],observations:{completedTraces:1}}};
+ const opened=await request('/api/games',{script});assert.equal(opened.status,201);
+ assert.equal(opened.data.script.generation,undefined);assert.equal(opened.data.script.privateDesign,undefined);
+ assert.equal((await request('/api/games/'+opened.data.id+'/review')).status,403);
+ const state=JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(opened.data.id).state);state.phase='over';state.winner='heroes';
+ sql.prepare('UPDATE games SET state=? WHERE id=?').run(JSON.stringify(state),opened.data.id);
+ const review=(await request('/api/games/'+opened.data.id+'/review')).data;
+ assert.equal(review.designGrounded,true);assert.doesNotMatch(JSON.stringify(review),/STALE SECRET PROSE/);
+ assert.deepEqual(review.design,compileDesign(script,grounding.selection).design);
+ assert.deepEqual(review.generationTrial,{status:'limited',traces:2,completed:1,commands:400});
+ state.script.days++;
+ sql.prepare('UPDATE games SET state=? WHERE id=?').run(JSON.stringify(state),opened.data.id);
+ const changed=(await request('/api/games/'+opened.data.id+'/review')).data;
+ assert.equal(changed.designGrounded,true);assert.equal(changed.generationTrial,undefined);
+ assert.match(changed.note,/原试跑记录与本稿不符/);
+ state.script.generation.designGrounding.selection.counterplay=['ability:missing:0'];
+ sql.prepare('UPDATE games SET state=? WHERE id=?').run(JSON.stringify(state),opened.data.id);
+ const edited=(await request('/api/games/'+opened.data.id+'/review')).data;
+ assert.equal(edited.designGrounded,false);assert.equal(edited.generationTrial,undefined);
+ assert.doesNotMatch(JSON.stringify(edited),/STALE SECRET PROSE/);assert.match(edited.note,/引用已失效/);
+});
 
 test('curated library has safe summaries for every supported set and blind opening',async t=>{
  const {request}=fixture(t),library=(await request('/api/scripts/library')).data.scripts;

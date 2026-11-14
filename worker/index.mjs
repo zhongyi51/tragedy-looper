@@ -4,6 +4,7 @@ import {generateWithAi,polishWithAi,model,rates} from '../src/ai.mjs';
 import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
 import {AUTHOR_BUDGET,prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from '../src/game-services.mjs';
 import {listCuratedScripts} from '../src/script-library.mjs';
+import {AUTHOR_VERSION} from '../src/author.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
@@ -41,7 +42,7 @@ function usageHooks(db,g,token){let callId;return {
 };}
 export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储还没准备好');const u=new URL(req.url),p=u.pathname;
- if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true,authorBudget:AUTHOR_BUDGET});
+ if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true,authorBudget:AUTHOR_BUDGET,authorVersion:AUTHOR_VERSION});
  if(p==='/api/catalog')return reply(catalog);
  if(p==='/api/scripts/library')return reply({scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));

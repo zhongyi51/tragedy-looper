@@ -1,422 +1,259 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {authorPrompt,generateWithAi,polishWithAi,authoredScriptHash,AUTHOR_VERSION} from '../src/author.mjs';
+import {authorPrompt,validateAuthorPlan,buildAuthorCandidates,generateWithAi,polishWithAi,authoredScriptHash,AUTHOR_VERSION} from '../src/author.mjs';
 import {configureKey,reserveFor} from '../src/model-provider.mjs';
-import {starter,catalog,validateScript,publicScript,generatedTitle} from '../src/content.mjs';
+import {catalog,validateScript,publicScript,generatedTitle} from '../src/content.mjs';
 import {listCuratedScripts,getCuratedScript} from '../src/script-library.mjs';
 
 configureKey('author_mock_key_not_a_real_secret');
-const design=()=>({premise:'校园里两条危险路线交错，需要逐轮辨别真正的保护目标。',threatPlan:'剧作家可以推动女学生自杀，也可用独处的连环杀手制造第二条危险路线。',counterplay:'主人公可以积累学生的友好降低不安，并通过移动拆开危险的独处组合。',cluePlan:'公开死亡时点与不安牌分配提供线索，友好能力有助于进一步核对配役。',loopPlan:'首轮观察危险来源，后续轮回保留不安减少和移动资源阻止关键一天。',intendedDifficulty:'standard',intentionalExceptions:[]});
-function draft(){
- const {title,ruleset,days,loops,communication,characters,mainPlot,subPlots,roles,incidents}=structuredClone(starter);
- return {script:{title:'雨后的第七封信',intro:'雨停以后，教室里多出了一封没有署名的信。',ruleset,days,loops,communication,characters,mainPlot,subPlots,roles,incidents,settings:{incidentVisibility:'public'},specialRules:[]},design:design()};
+const base={ruleset:'FS',seed:143211,difficulty:'standard'};
+const sourceFor=ruleset=>getCuratedScript(listCuratedScripts().find(script=>script.ruleset===ruleset).id);
+const planFor=ruleset=>{const s=sourceFor(ruleset);return {mainPlot:s.mainPlot,subPlots:s.subPlots,characters:s.characters,days:s.days,loops:s.loops,incidentCount:s.incidents.length,settings:s.settings};};
+const initialInput=request=>JSON.parse(request.messages.find(message=>message.role==='user').content);
+function selectedAnswer(request,index=0){
+ const candidate=initialInput(request).candidates[index],o=candidate.designOptions;
+ return {candidateId:candidate.id,design:{focus:o.focuses[0].id,...Object.fromEntries(['threats','counterplay','clues','loopFacts'].map(section=>[section,o.facts.filter(fact=>fact.sections.includes(section)).slice(0,section==='loopFacts'?2:3).map(fact=>fact.id)]))}};
 }
 const response=(answer,usage={prompt_tokens:1000,prompt_cache_hit_tokens:800,prompt_cache_miss_tokens:200,completion_tokens:100})=>new Response(JSON.stringify({model:'author-test',id:'author-mock',choices:[{finish_reason:'stop',message:{content:typeof answer==='string'?answer:JSON.stringify(answer)}}],usage}),{status:200});
-// Most tests control author drafts; echo a valid design for the independent
-// review unless the test explicitly exercises that separate provider call.
-async function withFetch(fn,body,{autoReview=true}={}){const original=globalThis.fetch;globalThis.fetch=async(url,init)=>{
- const request=JSON.parse(init.body);
- if(autoReview&&request.user_id.endsWith('_review'))return response({design:JSON.parse(request.messages.at(-1).content).submittedDesign});
- return fn(url,init);
-};try{return await body();}finally{globalThis.fetch=original;}}
-const base={ruleset:'FS',seed:143211,days:3,loops:3,incidentCount:1,difficulty:'standard'};
+async function withProvider(fn,body){
+ const original=globalThis.fetch,requests=[];
+ globalThis.fetch=async(url,init)=>{const request=JSON.parse(init.body);requests.push(request);const result=await fn(request,requests,url,init);return result instanceof Response?result:response(result??(request.user_id.endsWith('_plan')?{plan:planFor(initialInput(request).dictionary.set.id)}:selectedAnswer(request)));};
+ try{return await body(requests);}finally{globalThis.fetch=original;}
+}
 
-test('author prompt asks for full mechanics and only the selected set dictionary',()=>{
- const {messages,configuration}=authorPrompt({...base,mainPlot:'murder_plan',subPlots:[''],theme:'窗边的空座位'});
- const body=JSON.parse(messages[1].content);
- assert.deepEqual(body.dictionary.plots.map(p=>p.id),catalog.plots.filter(p=>p.sets.includes('FS')).map(p=>p.id));
- assert.ok(body.dictionary.roles.every(x=>x.sets.includes('FS')));
- assert.ok(body.dictionary.incidents.every(x=>x.sets.includes('FS')));
- assert.equal(body.constraints.mainPlot,'murder_plan');
- assert.equal(body.schema.script.roles['人物ID'],'角色ID');
- assert.equal(body.schema.script.incidents[0].culprit,'出演人物ID');
- assert.equal(body.draft,undefined);
- assert.equal(configuration.constraints.incidentVisibility,'public');
- assert.equal(body.theme,'窗边的空座位');
- assert.match(messages[0].content,/maxCount:null 表示无额外人数上限/);
- assert.match(messages[0].content,/配额为 0/);
- assert.match(messages[0].content,/AI 人物不能是 person，且必须占用现有非 person 配额/);
- assert.match(messages[0].content,/普通事件发生不会自动公开犯人或角色/);
- assert.match(messages[0].content,/告白 confession 的效果公开犯人及其角色/);
- assert.match(messages[0].content,/封闭之环 closed_circle 只公开犯人所在地点/);
- assert.match(messages[0].content,/不能按职业或人物名称脑补能力/);
- assert.match(messages[0].content,/医生没有查角色的能力/);
+test('planning input contains the selected ruleset, exact constraints and one labelled original example',()=>{
+ const {messages,configuration:c}=authorPrompt({ruleset:'BTX',mainPlot:'contract',subPlots:['','threads_fate'],theme:'窗边的空座位',seed:1});
+ const input=JSON.parse(messages[1].content);
+ assert.ok(input.dictionary.plots.every(plot=>plot.sets.includes('BTX')));
+ assert.ok(input.dictionary.roles.every(role=>role.sets.includes('BTX')));
+ assert.deepEqual(input.constraints.subPlots,['','threads_fate']);
+ assert.equal(input.schema.plan.roles,undefined);assert.equal(input.schema.plan.incidents,undefined);
+ assert.equal(input.theme,'窗边的空座位');assert.equal(c.constraints.incidentVisibility,'public');
+ assert.match(input.example.origin,/原创/);assert.notEqual(input.example.plan.mainPlot,'contract');
+ assert.match(messages[0].content,/subPlots 的每个非空索引都已固定/);
+ assert.match(messages[0].content,/FS 没有最后的战斗/);
+ assert.match(messages[0].content,/事件名称和日期从开局公开/);
 });
 
-test('author constrains default cast size while respecting an explicit character list',async()=>{
- for(const [ruleset,min,max] of [['FS',5,7],['BTX',6,9],['MZ',7,10],['MC',7,10]])assert.deepEqual(JSON.parse(authorPrompt({ruleset}).messages[1].content).constraints.characterCount,{min,max});
- const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset==='BTX').id);
- const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
- const compact={script,design:source.privateDesign},crowded=structuredClone(compact);
- for(const id of ['rich_girl','patient','class_rep','alien','journalist','nurse','teacher']){crowded.script.characters.push(id);crowded.script.roles[id]='person';}
- assert.equal(crowded.script.characters.length,15);
- assert.equal(validateScript(crowded.script).errors.length,0);
- const requests=[];
- const result=await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?crowded:compact);},()=>generateWithAi({ruleset:'BTX',seed:42}));
- assert.equal(result.characters.length,8);
- assert.match(requests[1].messages.at(-1).content,/出演人数须为 6–9 人/);
- const config={ruleset:'BTX',characters:crowded.script.characters,seed:42};
- assert.equal(JSON.parse(authorPrompt(config).messages[1].content).constraints.characterCount,undefined);
- const explicit=await withFetch(async()=>response(crowded),()=>generateWithAi(config));
- assert.deepEqual(explicit.characters,crowded.script.characters);
+test('plan validation preserves explicit X indexes and rejects unsupported mechanics fields',()=>{
+ const p=planFor('BTX'),c=authorPrompt({ruleset:'BTX',subPlots:['',p.subPlots[1]],seed:1}).configuration;
+ assert.deepEqual(validateAuthorPlan({plan:p},c).subPlots,p.subPlots);
+ const swapped={...p,subPlots:[p.subPlots[1],p.subPlots[0]]};
+ assert.throws(()=>validateAuthorPlan({plan:swapped},c),e=>e.issues.some(issue=>issue.includes('索引')));
+ for(const extra of [{roles:{doctor:'brain'}},{incidents:[]},{specialRules:['new rule']},{title:'SECRET'}])assert.throws(()=>validateAuthorPlan({plan:{...p,...extra}},c),e=>e.issues.some(issue=>issue.includes('未支持')));
+ assert.throws(()=>validateAuthorPlan({plan:p,design:'free prose'},c),e=>e.issues.length>0);
 });
 
-test('author repairs the observed event-auto-reveal hallucination',async()=>{
- for(const text of ['首日不安扩大公开犯人记者，次日杀人公开犯人女学生，二者日程与地点可交叉验证。','事件发生后犯人身份会自动公开，主人公据此就能推导出真正的关键人物。']){
-  const bad=draft();bad.design.cluePlan=text;const requests=[];
-  await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?bad:draft());},()=>generateWithAi(base));
-  assert.equal(requests.length,2);
-  assert.match(requests[1].messages.at(-1).content,/design\.cluePlan: 普通事件不会自动公开犯人/);
+test('all explicit plan constraints, allowed cast and default cast bounds are enforced',()=>{
+ for(const [ruleset,min,max]of [['FS',5,7],['BTX',6,9],['MZ',7,10],['MC',7,10]])assert.deepEqual(authorPrompt({ruleset}).configuration.constraints.characterCount,{min,max});
+ const p=planFor('MZ'),c=authorPrompt({ruleset:'MZ',...p,includeAI:true,seed:1}).configuration;
+ assert.deepEqual(validateAuthorPlan({plan:p},c),p);
+ for(const mutate of [p=>p.days++,p=>p.loops++,p=>p.incidentCount--,p=>p.characters.pop(),p=>p.mainPlot='male_confrontation',p=>p.subPlots.reverse(),p=>p.settings.incidentVisibility='hidden']){
+  const bad=structuredClone(p);mutate(bad);assert.throws(()=>validateAuthorPlan({plan:bad},c));
+ }
+ const restricted=authorPrompt({ruleset:'FS',seed:1}).configuration,bad=planFor('FS');bad.characters.push('black_cat');
+ assert.throws(()=>validateAuthorPlan({plan:bad},restricted),e=>e.issues.some(issue=>issue.includes('人物池')));
+ const crowded=planFor('BTX');crowded.characters=['boy_student','girl_student','rich_girl','shrine_maiden','police','office_worker','informer','doctor','patient','class_rep','alien','idol'];
+ assert.throws(()=>validateAuthorPlan({plan:crowded},authorPrompt({ruleset:'BTX'}).configuration),e=>e.issues.some(issue=>issue.includes('6–9')));
+ assert.deepEqual(validateAuthorPlan({plan:crowded},authorPrompt({ruleset:'BTX',characters:crowded.characters}).configuration).characters,crowded.characters);
+});
+
+test('compiled candidates vary mechanics while preserving the complete plan and public caption',()=>{
+ const c=authorPrompt({...base,mainPlot:'avenger'}).configuration,p=validateAuthorPlan({plan:planFor('FS')},c),before=structuredClone(p),pool=buildAuthorCandidates(p,c);
+ assert.equal(pool.attemptedCount,24);assert.ok(pool.candidates.length>=2&&pool.candidates.length<=6);
+ assert.equal(new Set(pool.candidates.map(candidate=>candidate.fingerprint)).size,pool.candidates.length);
+ for(const candidate of pool.candidates){
+  const s=candidate.script;assert.deepEqual(validateScript(s).errors,[]);assert.equal(s.mainPlot,p.mainPlot);assert.deepEqual(s.subPlots,p.subPlots);assert.deepEqual(s.characters,p.characters);
+  assert.equal(s.days,p.days);assert.equal(s.loops,p.loops);assert.equal(s.incidents.length,p.incidentCount);
+  assert.equal(s.title,generatedTitle(base.seed));assert.equal(s.settings.incidentVisibility,'public');
+  assert.ok(['limited','completed'].includes(candidate.probe.status));assert.ok(candidate.probe.commands<=400);assert.equal(candidate.probe.scope,'private');
+ }
+ assert.deepEqual(p,before);
+});
+
+test('normal authoring uses planning then legal candidate selection and stores private provenance and usage',async()=>{
+ let chosen,stage;
+ const used=[];
+ const result=await withProvider(request=>{
+  if(request.user_id.endsWith('_select')){const input=initialInput(request);chosen=input.candidates.at(-1);stage=input.stage;return selectedAnswer(request,input.candidates.length-1);}
+ },requests=>generateWithAi(base,{onUsage:entry=>used.push(entry)}));
+ assert.equal(result.source,'ai');assert.equal(result.generation.version,AUTHOR_VERSION);assert.equal(result.generation.pipeline,'plan-compile-select');
+ assert.equal(result.generation.planSource,'model');assert.equal(result.generation.planAttempts,1);assert.equal(result.generation.selectionAttempts,1);
+ assert.equal(result.generation.chosenId,chosen.id);assert.deepEqual(result.roles,chosen.roles);assert.deepEqual(result.incidents,chosen.incidents);
+ assert.deepEqual(stage.plan,planFor('FS'));assert.equal(stage.ruleset,'FS');assert.equal(stage.communication,result.communication);
+ assert.deepEqual(new Set(stage.characters.map(character=>character.id)),new Set(result.characters));
+ for(const character of stage.characters){const original=catalog.characters.find(value=>value.id===character.id);for(const key of ['start','paranoiaLimit','forbiddenLocations','tags','traits_zh'])assert.deepEqual(character[key],original[key]);}
+ assert.equal(result.generation.scriptHash,authoredScriptHash(result));assert.equal(result.generation.designGrounding.version,'catalog-design-1');
+ assert.equal(result.generation.usage.requests,2);assert.equal(result.generation.usage.estimatedCost,used.reduce((sum,entry)=>sum+entry.estimatedCost,0));assert.equal(result.generation.usage.promptTokens,2000);
+ assert.deepEqual(validateScript(result).errors,[]);assert.match(result.privateDesign.premise,/实际配役与规则目录/);
+ const visible=publicScript(result);for(const key of ['roles','mainPlot','privateDesign','generation','seed'])assert.equal(visible[key],undefined);
+ assert.ok(visible.incidents.every(event=>!Object.hasOwn(event,'culprit')));assert.ok(!visible.id.includes(String(base.seed)));
+});
+
+test('a fully specified user plan skips model planning without bypassing compilation or selection',async()=>{
+ const plan=planFor('MC'),config={ruleset:'MC',...plan,includeAI:true,seed:42};let calls=0;
+ const result=await withProvider(request=>{calls++;assert.ok(request.user_id.endsWith('_select'));},()=>generateWithAi(config));
+ assert.equal(calls,1);assert.equal(result.generation.planSource,'user');assert.equal(result.generation.planAttempts,0);assert.deepEqual(result.generation.plan,plan);
+ assert.equal(result.generation.usage.requests,1);assert.notEqual(result.roles.ai_character,'person');
+});
+
+test('all four rulesets compile selected model plans including A.I. and expansion requirements',async()=>{
+ for(const ruleset of ['FS','BTX','MZ','MC']){
+  const result=await withProvider(()=>{},()=>generateWithAi({ruleset,includeAI:['MZ','MC'].includes(ruleset),seed:42}));
+  assert.equal(result.ruleset,ruleset);assert.deepEqual(validateScript(result).errors,[]);assert.equal(result.incidents.length,planFor(ruleset).incidentCount);
+  if(['MZ','MC'].includes(ruleset))assert.notEqual(result.roles.ai_character,'person');
+  assert.equal(result.generation.usage.requests,2);
  }
 });
 
-test('culprit clue guard permits police investigation and explicit negations',async()=>{
- for(const cluePlan of ['事件不会自动公开犯人，需由警察在友好达到四点后查询本轮已发生事件的犯人。','警察友好四点能力可以公开本轮已发生事件的犯人，必须先积累友好并等待事件发生。','不应误以为首日不安扩大公开犯人；主人公只能依据可见结果提出并验证假说。']){
-  const answer=draft();answer.design.cluePlan=cluePlan;let calls=0;
-  await withFetch(async()=>{calls++;return response(answer);},()=>generateWithAi(base));
-  assert.equal(calls,1);
+test('the first request of each stage can think while a repair is bounded and non-thinking',async()=>{
+ let planCalls=0,selectCalls=0;
+ const result=await withProvider(request=>{
+  if(request.user_id.endsWith('_plan')){planCalls++;const plan=planFor('FS');if(planCalls===1)plan.days++;return {plan};}
+  selectCalls++;if(selectCalls===1)return {candidateId:'not-a-candidate',design:{}};
+ },async requests=>{const result=await generateWithAi({...base,days:4});assert.equal(requests.length,4);assert.deepEqual(requests.map(r=>r.thinking.type),['enabled','disabled','enabled','disabled']);assert.deepEqual(requests.map(r=>r.max_tokens),[8192,4096,8192,4096]);assert.equal(requests[0].reasoning_effort,'low');assert.equal(requests[1].reasoning_effort,undefined);return result;});
+ assert.equal(result.generation.usage.requests,4);assert.equal(result.generation.planAttempts,2);assert.equal(result.generation.selectionAttempts,2);
+});
+
+test('malformed JSON and truncation get at most one fast repair per stage',async()=>{
+ for(const stage of ['_plan','_select'])for(const type of ['json','truncated']){
+  let failures=0;
+  await withProvider(request=>{
+   if(request.user_id.endsWith(stage)&&failures++===0)return type==='json'?response('{unfinished'):new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:'{}'}}],usage:{completion_tokens:50}}));
+  },async requests=>{await generateWithAi(base);assert.equal(requests.length,3);assert.equal(requests.filter(r=>r.thinking.type==='disabled').length,1);});
  }
 });
 
-test('culprit clue guard respects confession identity and closed-circle location effects',async()=>{
- for(const [ruleset,cluePlan] of [['MZ','告白发生时公开犯人及其角色，忍者仍可按能力谎报角色，因此需与其他线索交叉验证。'],['MC','封闭之环公开犯人所在地点，主人公结合当日移动记录缩小候选，不能直接确定犯人身份。'],['MC','封闭之环发生后犯人所在地点被公开，可利用这个地点线索安排后续调查。']]){
-  const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset===ruleset).id);
-  const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
-  const answer={script,design:{...source.privateDesign,cluePlan}};let calls=0;
-  await withFetch(async()=>{calls++;return response(answer);},()=>generateWithAi({ruleset,characters:script.characters,seed:42}));
-  assert.equal(calls,1);
- }
- const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset==='MC').id);
- const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
- const answer={script,design:{...source.privateDesign,cluePlan:'封闭之环发生后公开犯人及其角色，主人公因此可以准确得知全部危险人物身份。'}};
- await withFetch(async()=>response(answer),()=>assert.rejects(generateWithAi({ruleset:'MC',characters:script.characters,seed:42}),error=>error.code==='AUTHOR_QUALITY'&&/普通事件不会自动公开犯人/.test(error.message)));
-});
-
-test('author preserves the model-designed mechanics, freezes provenance, and hides the design',async()=>{
- const chosen=draft(),initial=structuredClone(chosen);let sent;
- const result=await withFetch(async(_url,init)=>{sent=JSON.parse(init.body);return response(chosen);},()=>generateWithAi(base));
- assert.deepEqual(result.roles,chosen.script.roles);
- assert.deepEqual(result.incidents,chosen.script.incidents);
- assert.equal(result.title,generatedTitle(base.seed));
- assert.match(result.intro,new RegExp(`${chosen.script.characters.length} 位人物`));
- assert.deepEqual(result.privateDesign,chosen.design);
- assert.deepEqual(chosen,initial);
- assert.equal(result.generation.source,'ai');
- assert.equal(result.source,'ai');
- assert.equal(result.difficulty,'standard');
- assert.equal(result.generation.version,AUTHOR_VERSION);
- assert.equal(result.generation.scriptHash,authoredScriptHash(result));
- assert.equal(result.generation.attempts,1);
- assert.deepEqual(result.generation.quality,{review:'static'});
- assert.equal(validateScript(result).errors.length,0);
- const visible=publicScript(result);
- assert.equal(visible.privateDesign,undefined);
- assert.equal(visible.roles,undefined);
- assert.equal(visible.mainPlot,undefined);
- assert.equal(visible.incidents[0].culprit,undefined);
- assert.equal(visible.source,'ai');
- assert.equal(visible.seed,undefined);
- assert.ok(!visible.id.includes(String(base.seed)));
- assert.equal(sent.thinking.type,'disabled');
- assert.equal(sent.reasoning_effort,undefined);
- assert.match(sent.messages[0].content,/50–150/);
- assert.ok(sent.max_tokens>=4000);
-});
-
-test('public author captions are independent of secret mechanics, model prose, and theme',async()=>{
- const first=draft();first.script.title='雨停旧街的契约';first.script.intro='和我缔结契约吧。六人中的女学生是关键人物，真正犯人就是她。';
- const second=draft();second.script.mainPlot='protect_place';second.script.roles.office_worker='person';second.script.roles.doctor='cultist';
- second.script.title='关键人物的身份';second.script.intro='SECRET_MODEL_CAPTION'.repeat(100);
- assert.equal(validateScript(second.script).errors.length,0);
- const results=[];
- for(const [answer,theme] of [[first,'contract 杀人计划 关键人物'],[second,'保护神社的暗跃秘密']]){
-  let calls=0;
-  results.push(await withFetch(async()=>{calls++;return response(answer);},()=>generateWithAi({...base,theme})));
-  assert.equal(calls,1,'Ignored private draft prose must not cause an author repair');
- }
- assert.notEqual(results[0].mainPlot,results[1].mainPlot);
- assert.deepEqual(publicScript(results[0]).incidents,publicScript(results[1]).incidents);
- assert.equal(results[0].title,results[1].title);
- assert.equal(results[0].intro,results[1].intro);
- assert.equal(results[0].title,generatedTitle(base.seed));
- const caption=results[0].title+' '+results[0].intro;
- assert.doesNotMatch(caption,/契约|缔结|contract|SECRET_MODEL_CAPTION|女学生|暗跃秘密/);
- for(const rule of [...catalog.roles,...catalog.plots])for(const label of [rule.id,rule.name_zh_working,rule.name_ja].filter(Boolean))assert.equal(caption.includes(label),false,`Caption exposed ${label}`);
- assert.match(results[0].intro,/6 位人物，3 天的日程，3 次轮回/);
- assert.deepEqual(results[0].privateDesign,first.design);
- assert.deepEqual(results[1].privateDesign,second.design);
-});
-
-test('explicit user title is retained even when the model ignores it',async()=>{
- const answer=draft();answer.script.title='模型私密标题';answer.script.intro={secret:'bad prose is never used'};
- let calls=0;
- const result=await withFetch(async()=>{calls++;return response(answer);},()=>generateWithAi({...base,title:'  用户指定的题名  ',theme:'不得写进公开文案的主题'}));
- assert.equal(result.title,'用户指定的题名');
- assert.doesNotMatch(result.intro,/模型|secret|主题/);
- assert.equal(calls,1);
- assert.equal(result.generation.scriptHash,authoredScriptHash(result));
-});
-
-test('a wrong explicit constraint gets one repair with the actual validator errors',async()=>{
- const wrong=draft();wrong.script.days=4;const good=draft();let requests=[];
- const result=await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?wrong:good);},()=>generateWithAi(base));
- assert.equal(result.days,3);
- assert.equal(result.generation.attempts,2);
- assert.equal(requests.length,2);
- assert.match(requests[1].messages.at(-1).content,/days.*指定值/);
-});
-
-test('count repair freezes valid context and permits at most two structural revisions plus review',async()=>{
- const bad=draft();bad.script.roles.idol='person';
- const changed=draft();changed.script.days=4;
- const requests=[];let drafts=0;
- const result=await withFetch(async(_url,init)=>{
-  const request=JSON.parse(init.body);requests.push(request);
-  if(request.user_id.endsWith('_review'))return response({design:design()});
-  return response([bad,changed,draft()][drafts++]);
- },()=>generateWithAi(base),{autoReview:false});
- assert.equal(requests.length,4);
- assert.equal(result.generation.attempts,3);
- assert.equal(result.days,3);
- const repair=JSON.parse(requests[1].messages.at(-1).content);
- assert.deepEqual(repair.repairContext.fixed,{ruleset:bad.script.ruleset,mainPlot:bad.script.mainPlot,subPlots:bad.script.subPlots,characters:bad.script.characters,days:3,loops:3,communication:bad.script.communication});
- assert.deepEqual(repair.repairContext.allowedDays,[1,2,3]);
- assert.equal(repair.repairContext.incidentCount,1);
- assert.equal(repair.repairContext.requiredRoleSlots.filter(role=>role==='misleader').length,1);
- assert.deepEqual(repair.roleQuotas.roles.misleader,{min:1,max:1,actual:0});
- assert.ok(JSON.parse(requests[2].messages.at(-1).content).issues.some(issue=>issue.includes('结构修订必须保留已合法的固定配置')));
- assert.equal(requests[3].max_tokens,4096);
-});
-
-test('duplicate-date repair supplies exact allowed days without changing valid rules',async()=>{
- const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset==='BTX').id);
- const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
- const good={script,design:source.privateDesign},bad=structuredClone(good);bad.script.incidents[1].day=bad.script.incidents[0].day;
- const requests=[];
- await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?bad:good);},()=>generateWithAi({ruleset:'BTX',seed:42}));
- const {repairContext}=JSON.parse(requests[1].messages.at(-1).content);
- assert.deepEqual(repairContext.allowedDays,Array.from({length:script.days},(_,i)=>i+1));
- assert.equal(repairContext.fixed.mainPlot,script.mainPlot);
- assert.deepEqual(repairContext.fixed.subPlots,script.subPlots);
- assert.equal(repairContext.incidentCount,script.incidents.length);
-});
-
-test('unrepaired role-count failures stop after three drafts and expose only bounded counts',async()=>{
- const bad=draft();bad.script.roles.idol='person';let calls=0;
- await withFetch(async()=>{calls++;return response(bad);},()=>assert.rejects(generateWithAi(base),error=>{
-  assert.equal(error.code,'AUTHOR_QUALITY');
-  assert.match(error.message,/roles\.misleader: min=1 max=1 actual=0/);
-  assert.doesNotMatch(error.message,/雨后的第七封信|校园里两条危险/);
-  return true;
- }));
- assert.equal(calls,3);
-});
-
-test('independent review receives only selected dictionaries and cannot change script hash',async()=>{
- const chosen=draft(),original=structuredClone(chosen.script),reviewed={...design(),counterplay:'主人公可使用医生友好二点能力调整同地点另一人的不安，不能用医生查询角色。'};
- const requests=[];
- const result=await withFetch(async(_url,init)=>{const request=JSON.parse(init.body);requests.push(request);return response(request.user_id.endsWith('_review')?{design:reviewed}:chosen);},()=>generateWithAi(base),{autoReview:false});
- assert.equal(requests.length,2);
- const reviewRequest=requests[1],input=JSON.parse(reviewRequest.messages[1].content);
- assert.equal(reviewRequest.thinking.type,'disabled');assert.equal(reviewRequest.max_tokens,4096);
- assert.deepEqual(input.script,{...original,title:result.title,intro:result.intro});
- assert.deepEqual(input.dictionary.characters.map(x=>x.id).sort(),original.characters.toSorted());
- assert.deepEqual(input.dictionary.roles.map(x=>x.id).sort(),[...new Set(Object.values(original.roles))].sort());
- assert.deepEqual(input.dictionary.plots.map(x=>x.id).sort(),[original.mainPlot,...original.subPlots].sort());
- assert.deepEqual(input.dictionary.incidents.map(x=>x.id).sort(),[...new Set(original.incidents.map(e=>e.type))].sort());
- assert.ok(input.dictionary.plots.length<catalog.plots.filter(p=>p.sets.includes('FS')).length);
- assert.equal(result.generation.scriptHash,authoredScriptHash(input.script));
- assert.equal(authoredScriptHash(result),authoredScriptHash(input.script));
- assert.deepEqual(result.privateDesign,reviewed);
- assert.equal(result.generation.designReview,'catalog-grounded-1');
- assert.deepEqual(chosen.script,original);
-});
-
-test('grounded-review format, semantic guard, and network failures never return a game script',async()=>{
- for(const mode of ['rewrite','invalid-design','network']){
-  let calls=0;
-  await withFetch(async(_url,init)=>{
-   calls++;const request=JSON.parse(init.body);if(!request.user_id.endsWith('_review'))return response(draft());
-   if(mode==='network')throw Error('review disconnected');
-   if(mode==='rewrite')return response({design:design(),script:{...draft().script,days:4}});
-   return response({design:{...design(),cluePlan:'不安扩大公开犯人记者，主人公通过这个公开身份就能排除全部其他嫌疑。'}});
-  },()=>assert.rejects(generateWithAi(base),error=>error.code===(mode==='network'?'NETWORK':'AUTHOR_REVIEW')),{autoReview:false});
-  assert.equal(calls,2);
+test('invalid plans cannot silently become unrelated random scripts',async()=>{
+ for(const answer of [{title:'story only'},{plan:{...planFor('FS'),subPlots:7}},{plan:{...planFor('FS'),characters:['doctor']}},{plan:{...planFor('FS'),mainPlot:'invented'}}]){
+  let calls=0;await withProvider(()=>{calls++;return answer;},()=>assert.rejects(generateWithAi(base),error=>error.code==='AUTHOR_QUALITY'));assert.equal(calls,2);
  }
 });
 
-test('grounded design review shares the same total author budget',async()=>{
- let calls=0;const usage=[];
- await withFetch(async()=>{calls++;return response(draft(),{prompt_tokens:0,prompt_cache_miss_tokens:0,completion_tokens:95000});},()=>assert.rejects(generateWithAi(base,{onUsage:entry=>usage.push(entry)}),error=>error.code==='AUTHOR_BUDGET'),{autoReview:false});
- assert.equal(calls,1);
- assert.equal(usage.length,1);
- assert.ok(usage[0].estimatedCost<.12);
-});
-
-test('full authored responses support all four sets including expansion characters and aliases',async()=>{
- for(const entry of listCuratedScripts()){
-  const source=getCuratedScript(entry.id),script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
-  const answer={script,design:source.privateDesign};
-  const config={ruleset:source.ruleset,characterPool:'all',characters:source.characters,includeAI:source.characters.includes('ai_character'),days:source.days,loops:source.loops,incidentCount:source.incidents.length,difficulty:source.difficulty,seed:42};
-  const result=await withFetch(async()=>response(answer),()=>generateWithAi(config));
-  assert.equal(result.ruleset,source.ruleset);
-  assert.deepEqual(result.roles,source.roles);
-  assert.deepEqual(result.incidents,source.incidents);
-  assert.equal(validateScript(result).errors.length,0);
-  const publicView=publicScript(result);
-  assert.ok(publicView.incidents.every(e=>!Object.hasOwn(e,'culprit')));
-  assert.equal(publicView.privateDesign,undefined);
-  if(source.ruleset==='MZ')assert.equal(publicView.incidents[0].type,source.incidents[0].publicType);
- }
-});
-
-test('MZ repair supplies exact quotas when AI invents an unselected immortal role',async()=>{
- const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset==='MZ').id);
- const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
- assert.ok(!script.subPlots.includes('showtime_death'));
- const good={script,design:source.privateDesign},bad=structuredClone(good);bad.script.roles.ai_character='immortal';
- assert.ok(validateScript(bad.script).errors.some(e=>e.path==='roles.immortal'));
- const requests=[];
- const result=await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?bad:good);},()=>generateWithAi({ruleset:'MZ',characterPool:'all',includeAI:true,seed:42}));
- assert.equal(result.roles.ai_character,'brain');
- assert.equal(validateScript(result).errors.length,0);
- const feedback=JSON.parse(requests[1].messages.at(-1).content);
- assert.deepEqual(feedback.roleQuotas.selectedPlots,[script.mainPlot,...script.subPlots]);
- assert.deepEqual(feedback.roleQuotas.roles.immortal,{min:0,max:0,actual:1});
- assert.deepEqual(feedback.roleQuotas.roles.brain,{min:1,max:1,actual:0});
- assert.match(feedback.instruction,/配额为 0 的角色不可给普通出演人物或 AI/);
- assert.ok(feedback.issues.some(x=>x.startsWith('roles.immortal:')));
- assert.equal(requests.length,2);
-});
-
-test('role quota repair excludes the irregular extra role from normal casting counts',async()=>{
- const source=getCuratedScript(listCuratedScripts().find(s=>s.ruleset==='MZ').id);
- const script=Object.fromEntries(['title','intro','ruleset','days','loops','communication','characters','mainPlot','subPlots','roles','incidents','settings','specialRules'].filter(k=>source[k]!==undefined).map(k=>[k,source[k]]));
- script.characters.push('irregular');script.roles.irregular='immortal';
- assert.equal(validateScript(script).errors.length,0);
- const good={script,design:source.privateDesign},bad=structuredClone(good);bad.script.days=6;
- const requests=[];
- await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(requests.length===1?bad:good);},()=>generateWithAi({ruleset:'MZ',days:5,characterPool:'all',includeAI:true,seed:42}));
- const feedback=JSON.parse(requests[1].messages.at(-1).content);
- assert.deepEqual(feedback.roleQuotas.roles.immortal,{min:0,max:0,actual:0});
- assert.deepEqual(feedback.roleQuotas.roles.brain,{min:1,max:1,actual:1});
- assert.match(feedback.roleQuotas.irregularRule,/不占以上配额/);
-});
-
-test('missing model mechanics cannot silently become a random script',async()=>{
- let calls=0;
- await withFetch(async()=>{calls++;return response({title:'只有标题',intro:'只有故事'});},async()=>{
-  await assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_QUALITY');
+test('incompatible compiled plans receive concrete repair findings without changing fixed rules',async()=>{
+ const good=planFor('BTX');good.mainPlot='contract';good.characters=['boy_student','girl_student','police','office_worker','doctor','informer','soldier'];
+ const bad={...good,characters:good.characters.filter(id=>id!=='girl_student')};let plans=0;
+ const result=await withProvider(request=>{if(request.user_id.endsWith('_plan'))return {plan:++plans===1?bad:good};},async requests=>{
+  const result=await generateWithAi({ruleset:'BTX',mainPlot:'contract',seed:27});assert.equal(requests.length,3);assert.match(requests[1].messages.at(-1).content,/少女/);return result;
  });
- assert.equal(calls,2);
+ assert.equal(result.mainPlot,'contract');assert.deepEqual(result.characters,good.characters);
 });
 
-test('malformed partial plot data remains repairable rather than throwing a TypeError',async()=>{
- let calls=0;const bad=draft();bad.script.subPlots=7;
- await withFetch(async()=>{calls++;return response(calls===1?bad:draft());},async()=>{
-  const result=await generateWithAi({...base,subPlots:['ripper_shadow']});
-  assert.deepEqual(result.subPlots,['ripper_shadow']);
- });
- assert.equal(calls,2);
+test('an impossible fully specified user plan fails before any paid model call',async()=>{
+ const plan=planFor('BTX');plan.mainPlot='contract';plan.characters=['boy_student','police','office_worker','doctor','informer','soldier'];let calls=0;
+ await withProvider(()=>{calls++;},()=>assert.rejects(generateWithAi({ruleset:'BTX',...plan,seed:42}),e=>e.code==='INVALID_SETUP'&&/少女/.test(e.message)));
+ assert.equal(calls,0);
 });
 
-test('author rejects invented fields and unsupported special rules',async()=>{
- for(const change of [s=>{s.script.roles.girl_student='invented_role';},s=>{s.script.settings.privateDesign='SECRET';},s=>{s.script.specialRules=['任何人可以穿墙'];}]){
-  const bad=draft();change(bad);let calls=0;
-  await withFetch(async()=>{calls++;return response(bad);},async()=>{await assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_QUALITY');});
-  assert.equal(calls,2);
+test('selection cannot alter a candidate or inject natural-language design claims',async()=>{
+ for(const modify of [answer=>({...answer,script:{roles:{doctor:'brain'}}}),answer=>({...answer,design:{...answer.design,counterplay:['invented:doctor:reveal']}}),answer=>({...answer,design:{...answer.design,explanation:'医生可以揭露角色'}}),answer=>({...answer,design:{...answer.design,clues:answer.design.threats}})]){
+  let selections=0;await withProvider(request=>{if(request.user_id.endsWith('_select')){selections++;return modify(selectedAnswer(request));}},()=>assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_QUALITY'));
+  assert.equal(selections,2);
  }
 });
 
-test('author cannot bypass explicit cast, plot, AI, incident count, or settings constraints',async()=>{
- const configurations=[{characters:['boy_student','girl_student','shrine_maiden','office_worker','idol','patient']},{mainPlot:'protect_place'},{includeAI:true},{incidentCount:2},{settings:{bossTerritory:'city'}}];
- for(const overrides of configurations){let calls=0;await withFetch(async()=>{calls++;return response(draft());},async()=>{await assert.rejects(generateWithAi({...base,...overrides}),e=>e.code==='AUTHOR_QUALITY');});assert.equal(calls,2);}
+test('selection supplies exact grouped IDs and repairs wrong clue references with only that candidate choices',async()=>{
+ let selections=0,chosen,repair;
+ const result=await withProvider(request=>{
+  if(!request.user_id.endsWith('_select'))return;
+  selections++;
+  const input=initialInput(request);
+  for(const candidate of input.candidates){
+   assert.deepEqual(candidate.designChoices.focus,candidate.designOptions.focuses.map(focus=>focus.id));
+   for(const section of ['threats','counterplay','clues','loopFacts'])assert.deepEqual(candidate.designChoices[section],candidate.designOptions.facts.filter(fact=>fact.sections.includes(section)).map(fact=>fact.id));
+   assert.deepEqual(candidate.designLimits.clues,{type:'array',min:1,max:4,unique:true});
+   assert.deepEqual(candidate.designLimits.loopFacts,{type:'array',min:0,max:3,unique:true});
+  }
+  const index=input.candidates.length-1,answer=selectedAnswer(request,index);
+  if(selections===1){chosen=input.candidates[index];answer.design.clues=['UNKNOWN_SECRET_MODEL_CLUE'];return answer;}
+  const last=JSON.parse(request.messages.at(-1).content);repair=last.issues.find(issue=>issue.selectionRepair).selectionRepair;
+  assert.deepEqual(repair.invalidFields,['clues']);assert.equal(repair.candidateId,chosen.id);
+  assert.deepEqual(repair.designChoices,chosen.designChoices);assert.deepEqual(repair.designLimits,chosen.designLimits);
+  assert.ok(repair.designChoices.clues.includes('public:schedule'));
+  assert.doesNotMatch(JSON.stringify(request.messages),/UNKNOWN_SECRET_MODEL_CLUE/);
+  assert.match(last.issues[0],/clues.*1–4/);
+  answer.design.clues=repair.designChoices.clues.slice(0,3);return answer;
+ },async requests=>{const result=await generateWithAi({ruleset:'BTX',seed:847});assert.equal(requests.length,3);assert.equal(requests.at(-1).thinking.type,'disabled');return result;});
+ assert.equal(selections,2);assert.equal(result.generation.chosenId,chosen.id);assert.deepEqual(result.generation.designGrounding.selection.clues,repair.designChoices.clues.slice(0,3));
+ assert.equal(result.generation.selectionAttempts,2);
 });
 
-test('structurally valid but poor designs are rejected by the independent quality screen',async()=>{
- const poor=draft();Object.assign(poor.script,{days:1,loops:1,characters:['black_cat','girl_student','rich_girl','doctor','patient','idol'],roles:{black_cat:'person',girl_student:'key_person',rich_girl:'serial_killer',doctor:'brain',patient:'killer',idol:'misleader'},incidents:[{day:1,type:'suicide',culprit:'black_cat'}]});
- assert.equal(validateScript(poor.script).errors.length,0);
- let requests=[];
- await withFetch(async(_url,init)=>{requests.push(JSON.parse(init.body));return response(poor);},async()=>{
-  await assert.rejects(generateWithAi({ruleset:'FS',characterPool:'all',seed:1}),e=>e.code==='AUTHOR_QUALITY');
- });
- assert.equal(requests.length,2);
- assert.match(requests[1].messages.at(-1).content,/BLACK_CAT_NO_EFFECT|SHORT_DISCOVERY_WINDOW/);
-});
-
-test('failed authoring reports only the last three bounded validator findings',async()=>{
- const first=draft(),last=draft();first.script.days=4;
- last.design={premise:design().premise+'PRIVATE_DESIGN_SENTINEL',intendedDifficulty:'hard'};
- let calls=0;
- await withFetch(async()=>response(++calls===1?first:last),async()=>{
+test('a repeated invalid design fails after one repair without exposing model text or private reference choices',async()=>{
+ let selections=0;
+ await withProvider(request=>{
+  if(!request.user_id.endsWith('_select'))return;
+  selections++;
+  const answer=selectedAnswer(request);answer.design.clues=['PRIVATE_UNKNOWN_MODEL_ID'];answer.design.explanation='PRIVATE_MODEL_PROSE';return answer;
+ },async requests=>{
   await assert.rejects(generateWithAi(base),error=>{
-   assert.equal(error.code,'AUTHOR_QUALITY');
-   assert.match(error.message,/design\.cluePlan/);
-   assert.match(error.message,/design\.loopPlan/);
-   assert.match(error.message,/design\.intendedDifficulty/);
-   assert.doesNotMatch(error.message,/design\.threatPlan|days|PRIVATE_DESIGN_SENTINEL|雨后的第七封信/);
-   assert.ok(error.message.length<=240);
-   assert.equal(Object.hasOwn(error,'script'),false);
-   assert.equal(Object.hasOwn(error,'design'),false);
-   return true;
+   assert.equal(error.code,'AUTHOR_QUALITY');assert.match(error.message,/clues/);
+   assert.doesNotMatch(error.message,/PRIVATE_UNKNOWN_MODEL_ID|PRIVATE_MODEL_PROSE|public:schedule|candidate-|ability:/);
+   assert.equal(error.selectionRepair,undefined);assert.ok(error.message.length<270);return true;
   });
+  assert.equal(requests.length,3);assert.doesNotMatch(requests.at(-1).messages.at(-1).content,/PRIVATE_UNKNOWN_MODEL_ID|PRIVATE_MODEL_PROSE/);
  });
- assert.equal(calls,2);
+ assert.equal(selections,2);
 });
 
-test('invalid author setup is rejected before a paid request',async()=>{
- let calls=0;
- await withFetch(async()=>{calls++;return response(draft());},async()=>{
+test('the same public seed and stage never expose model-selected secret rules through captions',async()=>{
+ const a=planFor('FS'),b={...a,mainPlot:'murder_plan'};const results=[];
+ for(const [plan,theme]of [[a,'SECRET_AVENGER_THEME'],[b,'SECRET_MURDER_THEME']])results.push(await withProvider(request=>request.user_id.endsWith('_plan')?{plan}:undefined,()=>generateWithAi({...base,theme})));
+ assert.notEqual(results[0].mainPlot,results[1].mainPlot);assert.equal(results[0].title,results[1].title);assert.equal(results[0].intro,results[1].intro);assert.doesNotMatch(results[0].title+results[0].intro,/SECRET|杀人计划|复仇者/);
+ const result=await withProvider(()=>{},()=>generateWithAi({...base,title:'  用户的题名  '}));assert.equal(result.title,'用户的题名');assert.equal(result.generation.scriptHash,authoredScriptHash(result));
+});
+
+test('failed authoring emits bounded findings without the rejected model content',async()=>{
+ await withProvider(()=>({plan:{mainPlot:'SECRET_MODEL_BODY',subPlots:['missing'],characters:[],days:99,loops:99,incidentCount:99,settings:{privateText:'PRIVATE_SENTINEL'}}}),()=>assert.rejects(generateWithAi(base),error=>{
+  assert.equal(error.code,'AUTHOR_QUALITY');assert.ok(error.message.length<270);assert.doesNotMatch(error.message,/SECRET_MODEL_BODY|PRIVATE_SENTINEL/);assert.equal(error.script,undefined);return true;
+ }));
+});
+
+test('invalid configuration is rejected before a paid request',async()=>{
+ let calls=0;await withProvider(()=>{calls++;},async()=>{
   for(const bad of [null,[],{ruleset:'UNKNOWN'},{days:'5'},{days:3,incidentCount:4},{subPlots:['ripper_shadow','ripper_shadow']},{characters:['boy_student']},{incidentVisibility:'hidden'},{settings:{bossTerritory:['city']}},{includeAI:'yes'},{lengthPreset:'short'}])await assert.rejects(generateWithAi(bad),e=>e.code==='INVALID_SETUP');
- });
- assert.equal(calls,0);
+ });assert.equal(calls,0);
 });
 
-test('author budget reserves before sending and network uncertainty never triggers a second request',async()=>{
- let calls=0;
- await withFetch(async()=>{calls++;return response(draft());},async()=>{await assert.rejects(generateWithAi({...base,authorBudget:.01}),e=>e.code==='AUTHOR_BUDGET');});
- assert.equal(calls,0);
- let accounted=[];
- await withFetch(async()=>{calls++;throw Error('network failure');},async()=>{await assert.rejects(generateWithAi(base,{onUsage:x=>accounted.push(x)}),e=>e.code==='NETWORK');});
- assert.equal(calls,1);
- assert.equal(accounted.length,1);
- assert.equal(accounted[0].status,'unknown');
- assert.equal(accounted[0].estimatedCost,accounted[0].reserved);
+test('the shared budget reserves before calls and includes preceding plan usage',async()=>{
+ let calls=0;await withProvider(()=>{calls++;},()=>assert.rejects(generateWithAi({...base,authorBudget:.01}),e=>e.code==='AUTHOR_BUDGET'));assert.equal(calls,0);
+ const usage=[];
+ await withProvider(request=>{calls++;return response({plan:planFor('FS')},{prompt_tokens:0,prompt_cache_miss_tokens:0,completion_tokens:20000});},()=>assert.rejects(generateWithAi(base,{authorBudget:.03,onUsage:entry=>usage.push(entry)}),e=>e.code==='AUTHOR_BUDGET'));
+ assert.equal(calls,1);assert.equal(usage.length,1);assert.equal(usage[0].estimatedCost,.024);
+ assert.ok(reserveFor(authorPrompt(base).messages,8192)<.03);
 });
 
-test('author accounts first attempt cost against the same repair budget',async()=>{
- const reservation=reserveFor(authorPrompt(base).messages,8192),budget=Math.max(.02,reservation*1.5);let calls=0,accounted=0;
- const wrong=draft();wrong.script.days=4;
- await withFetch(async()=>{calls++;return response(wrong,{prompt_tokens:0,prompt_cache_miss_tokens:0,completion_tokens:Math.ceil(budget*.8/1.2*1e6)});},async()=>{
-  await assert.rejects(generateWithAi(base,{authorBudget:budget,onUsage:x=>{accounted+=x.estimatedCost;}}),e=>e.code==='AUTHOR_BUDGET');
- });
- assert.equal(calls,1);assert.ok(accounted>0);
+test('network uncertainty in either stage is accounted and never retried',async()=>{
+ for(const suffix of ['_plan','_select']){let calls=0;const usage=[];
+  await withProvider(request=>{calls++;if(request.user_id.endsWith(suffix))throw Error('disconnect');},()=>assert.rejects(generateWithAi(base,{onUsage:entry=>usage.push(entry)}),e=>e.code==='NETWORK'));
+  assert.equal(calls,suffix==='_plan'?1:2);assert.equal(usage.at(-1).status,'unknown');assert.equal(usage.at(-1).estimatedCost,usage.at(-1).reserved);
+ }
 });
 
-test('author deadline prevents another paid review after the total wait budget expires',async t=>{
+test('the total author deadline prevents compilation and the next paid request',async t=>{
  let clock=0,calls=0;t.mock.method(Date,'now',()=>clock);
- await withFetch(async()=>{calls++;clock=180001;return response(draft());},async()=>{
-  await assert.rejects(generateWithAi(base),error=>error.code==='AUTHOR_TIMEOUT');
- },{autoReview:false});
+ await withProvider(()=>{calls++;clock=180001;return {plan:planFor('FS')};},()=>assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_TIMEOUT'));
  assert.equal(calls,1);
 });
 
-test('AI polish only changes public prose and never sends the original truth',async()=>{
- const original={...draft().script,privateDesign:{premise:'AUTHOR_PRIVATE_SENTINEL'},generation:{source:'ai',version:AUTHOR_VERSION},title:'ORIGINAL_TITLE_SENTINEL'};
- const before=structuredClone(original);let sent;
- const result=await withFetch(async(_url,init)=>{sent=JSON.parse(init.body);return response({title:'雨后的站台',intro:'末班车驶过之后，站台上还留着一把伞。'});},()=>polishWithAi({script:original,theme:'雨夜'}));
- assert.equal(result.title,'雨后的站台');assert.deepEqual(original,before);
- for(const key of ['roles','mainPlot','subPlots','incidents','days','loops','characters','settings','privateDesign'])assert.deepEqual(result[key],before[key]);
- const input=JSON.stringify(sent.messages);
- assert.ok(!input.includes('AUTHOR_PRIVATE_SENTINEL'));
- assert.ok(!input.includes('ORIGINAL_TITLE_SENTINEL'));
- assert.ok(!input.includes('murder_plan'));
- assert.ok(!input.includes('culprit'));
- assert.equal(result.generation.scriptHash,authoredScriptHash(result));
+test('AI polish changes only public prose and receives no original private data',async()=>{
+ const original={...sourceFor('FS'),generation:{version:AUTHOR_VERSION,source:'ai'},title:'ORIGINAL_TITLE_SENTINEL',privateDesign:{premise:'PRIVATE_SENTINEL'}},before=structuredClone(original);let sent;
+ const result=await withProvider(request=>{sent=request;return {title:'雨后的站台',intro:'末班车驶过以后，站台上还留着一把伞。'};},()=>polishWithAi({script:original,theme:'雨夜'}));
+ assert.deepEqual(original,before);for(const key of ['roles','mainPlot','subPlots','incidents','days','loops','characters','settings','privateDesign'])assert.deepEqual(result[key],before[key]);
+ assert.doesNotMatch(JSON.stringify(sent.messages),/PRIVATE_SENTINEL|ORIGINAL_TITLE_SENTINEL|avenger|culprit/);assert.equal(result.generation.scriptHash,authoredScriptHash(result));
 });
 
-test('polish rejects a response that tries to change mechanics',async()=>{
- await withFetch(async()=>response({title:'新标题',intro:'新故事',roles:{girl_student:'person'}}),async()=>{
-  await assert.rejects(polishWithAi({script:draft().script}),e=>e.code==='AUTHOR_COPY');
- });
+test('AI polish rejects attempts to change mechanics',async()=>{
+ await withProvider(()=>({title:'新标题',intro:'新故事',roles:{doctor:'brain'}}),()=>assert.rejects(polishWithAi({script:sourceFor('FS')}),e=>e.code==='AUTHOR_COPY'));
+});
+
+test('polishing preserves only trial evidence that still matches the supplied script',async()=>{
+ const original=sourceFor('FS');
+ original.generation={scriptHash:authoredScriptHash(original),probe:{version:'engine-probe-1',commands:10}};
+ const unchanged=await withProvider(()=>({title:'雨后的站台',intro:'街道再次醒来。'}),()=>polishWithAi({script:original}));
+ assert.deepEqual(unchanged.generation.probe,original.generation.probe);
+ assert.equal(unchanged.generation.scriptHash,authoredScriptHash(unchanged));
+ original.days++;
+ const edited=await withProvider(()=>({title:'改变的日程',intro:'街道再次醒来。'}),()=>polishWithAi({script:original}));
+ assert.equal(edited.generation.probe,undefined);
+ assert.equal(original.generation.probe.commands,10);
 });

@@ -97,3 +97,11 @@ test('AI review puts authoritative rule effects before explicitly labeled model 
  const escaped=reviewModal({ruleEffects:[{name:'<img src=x>',effect:'<script>rule</script>'}]},{script:starter,winner:'heroes'});
  assert.match(escaped,/&lt;img src=x&gt;/);assert.doesNotMatch(escaped,/<img src=x>|<script>/);
 });
+
+test('grounded design review distinguishes limited trials from a balance assessment',()=>{
+ const html=reviewModal({source:'ai',designGrounded:true,design:{counterplay:'按实际能力条件观察'},generationTrial:{status:'limited',traces:2,completed:1,commands:400},note:'有限试跑不证明平衡'},{script:starter,winner:'heroes'});
+ assert.match(html,/本稿的设计依据/);assert.match(html,/反制资源与条件/);
+ assert.match(html,/2 条有限策略试跑，1 条到达终局，共 400 次行动/);
+ assert.match(html,/部分路径达到试跑上限/);assert.match(html,/这不是平衡性评分/);
+ assert.doesNotMatch(html,/AI 创作设想|可行反制/);
+});

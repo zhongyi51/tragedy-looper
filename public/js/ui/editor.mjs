@@ -78,7 +78,7 @@ export function editorHtml(state){
     ${btn(gen.lockSeed?'按种子生成':'随机生成 · 换一份','generate','primary',working?'disabled':'')}
     ${btn(icon('bot')+'AI 编剧','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
     ${btn('润色标题与简介','ai-polish','',working||!info.configured||!draft?'disabled':'')}
-    <p class="hint">AI 编剧会设计规则、配役和事件；试作剧本尚需试玩，每次上限 $0.12。润色只改标题与简介。</p>
+    <p class="hint">AI 编剧会策划规则与人物，再从试跑候选中选稿；试作剧本尚需试玩，每次上限 $0.12。润色只改标题与简介。</p>
     ${btn('载入起始剧本','starter-editor')}
     <label class="btn file">导入<input type="file" id="script-file" accept=".json,application/json"></label>
    </aside>
