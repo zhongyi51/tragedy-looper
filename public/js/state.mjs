@@ -2,7 +2,7 @@
 const stored=(key,fallback)=>{try{return localStorage.getItem(key)??fallback;}catch{return fallback;}};
 
 export const state={
- catalog:null,info:null,saves:[],
+ catalog:null,info:null,saves:[],library:[],review:null,feedback:{},creationAttempt:null,
  page:'home',modal:'',
  g:null,transitionView:null,playback:null,selected:null,peekSeat:null,
  working:false,requestKind:'',auto:false,creating:false,
@@ -13,6 +13,6 @@ export const state={
  autoPlay:stored('tl-autoplay','on')!=='off',
  speed:stored('tl-speed','1')==='2'?2:1,
  rulesTab:'basics',
- editor:{text:'',report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:''}},
+ editor:{text:'',report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:'',lockSeed:false,lengthPreset:'standard',difficulty:'standard'}},
  replay:{data:null,at:0,gameId:null,playing:false,full:false}
 };

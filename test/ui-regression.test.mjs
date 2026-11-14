@@ -33,14 +33,14 @@ test('own face-down cards are readable to their owner only',()=>{
  assert.match(mine,/class="mini mm own/);assert.match(mine,/对手看不到/);assert.match(theirs,/未翻开/);assert.doesNotMatch(theirs,/不安/);
 });
 test('public schedule hides event names even when an imported old snapshot carries type',()=>{
- const v=view(createGame(starter),'public');v.script.incidents=structuredClone(starter.incidents);
+ const v=view(createGame(starter),'public');v.script.settings={incidentVisibility:'hidden'};v.script.incidents=structuredClone(starter.incidents);
  const html=incidentSchedule(v);assert.match(html,/事件未公开/);for(const e of starter.incidents)assert.ok(!html.includes(name(e.type)));
  v.seat='M';assert.ok(incidentSchedule(v).includes(name(starter.incidents[0].type)));
 });
-test('public exports and printouts contain dates without event types or culprits',()=>{
- const exported=publicDraft(starter);assert.ok(exported.incidents.every(e=>Object.keys(e).length===1&&'day'in e));assert.ok(!('roles'in exported)&&!('mainPlot'in exported));
- let output=printableHtml(starter,false);assert.match(output,/事件未公开/);
- for(const e of starter.incidents){assert.ok(!output.includes(name(e.type)));assert.ok(!output.split('<h2>事件日程</h2>')[1].includes(name(e.culprit)));}
+test('standard public exports and printouts contain event names but never culprits',()=>{
+ const exported=publicDraft(starter);assert.ok(exported.incidents.every(e=>'day'in e&&'type'in e&&!('culprit'in e)));assert.ok(!('roles'in exported)&&!('mainPlot'in exported));
+ let output=printableHtml(starter,false);assert.doesNotMatch(output,/事件未公开/);
+ for(const e of starter.incidents){assert.ok(output.includes(name(e.type)));assert.ok(!output.split('<h2>事件日程</h2>')[1].includes(name(e.culprit)));}
  output=printableHtml(starter,true);assert.ok(output.includes(name(starter.incidents[0].type)));assert.ok(output.split('<h2>事件日程</h2>')[1].includes(name(starter.incidents[0].culprit)));
 });
 test('replay import accepts concealed schedules and rejects an unknown supplied event type',()=>{
@@ -78,8 +78,8 @@ test('the table never leaks hidden roles into a protagonist or spectator view',(
  assert.match(html,/class="tag role secret"/);assert.match(html,/tag culprit/);assert.match(html,/真相 · 只有你知道/);assert.doesNotMatch(html,/data-tab="sheet"/);
 });
 test('legacy public replay names are stripped at import/export without changing full replay',()=>{
- const v=view(createGame(starter),'public');v.script.incidents=structuredClone(starter.incidents);v.log.push({type:'incident',day:2,text:'预告的「医院事件」没有发生。'});
- const data={perspective:'public',script:structuredClone(starter),frames:[{view:v}]},clean=sanitizePublicReplay(data);
+ const v=view(createGame(starter),'public');v.script.settings={incidentVisibility:'hidden'};v.script.incidents=structuredClone(starter.incidents);v.log.push({type:'incident',day:2,text:'预告的「医院事件」没有发生。'});
+ const data={perspective:'public',script:{...structuredClone(starter),settings:{incidentVisibility:'hidden'}},frames:[{view:v}]},clean=sanitizePublicReplay(data);
  assert.ok(clean.script.incidents.every(e=>Object.keys(e).length===1));assert.ok(clean.frames[0].view.script.incidents.every(e=>Object.keys(e).length===1));assert.equal(clean.frames[0].view.log.at(-1).text,'第 2 日预告的事件没有发生。');assert.equal(data.frames[0].view.log.at(-1).text,'预告的「医院事件」没有发生。');
  const full={perspective:'M',script:structuredClone(starter),frames:[{view:view(createGame(starter),'M')}]};assert.deepEqual(sanitizePublicReplay(full),full);
 });

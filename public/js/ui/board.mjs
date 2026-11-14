@@ -35,28 +35,30 @@ function token(v,c,ctx){
  const d=char(c.id),limit=d.paranoiaLimit,label=name(c.id);
  const secretRole=v.secret?.roles?.[c.id],knownRole=v.knownRoles[c.id],role=secretRole&&secretRole!=='person'?secretRole:knownRole;
  const culpritDays=(v.secret?.incidents||[]).filter(e=>e.culprit===c.id).map(e=>e.day).concat(v.secret?[]:Object.entries(v.knownCulprits||{}).filter(([,id])=>id===c.id).map(([day])=>+day));
- const danger=c.alive&&limit>0&&c.paranoia>=limit,warn=c.alive&&!danger&&limit>1&&c.paranoia===limit-1;
+ const effectiveParanoia=c.id==='ai_character'?c.goodwill+c.paranoia+c.intrigue+(c.guard||0):c.paranoia;
+ const danger=c.alive&&limit>0&&effectiveParanoia>=limit,warn=c.alive&&!danger&&limit>1&&effectiveParanoia===limit-1;
  const targetable=ctx.targets?.has(c.id),preview=targetable?cardPreview(ctx.selected,c.id,v):'';
  const guess=role?null:ctx.sheet?.rows.find(r=>r.id===c.id)?.pick,suspectDays=(ctx.sheet?.culprits||[]).filter(e=>!e.known&&e.guess===c.id).map(e=>e.day);
- const pips=Array.from({length:Math.max(limit,c.paranoia)},(_,i)=>`<i class="${i<c.paranoia?'on':''}${i>=limit?' over':''}"></i>`).join('');
- const title=`${label}：友好 ${c.goodwill} · 不安 ${c.paranoia}/${limit} · 暗跃 ${c.intrigue}${c.guard?' · 护卫 '+c.guard:''}${danger?' · 不安已满':''}${c.alive?'':' · 已死亡'}`;
+ const movementLock=c.alive&&c.movementLockedDay>=v.day?(c.movementLockedDay===v.day?'今日不能移动':'第 '+c.movementLockedDay+' 日不能移动'):'';
+ const pips=Array.from({length:Math.max(limit,effectiveParanoia)},(_,i)=>`<i class="${i<effectiveParanoia?'on':''}${i>=limit?' over':''}"></i>`).join('');
+ const title=`${label}：友好 ${c.goodwill} · 不安 ${c.paranoia}/${limit} · 暗跃 ${c.intrigue}${c.guard?' · 护卫 '+c.guard:''}${c.extra?' · EX 卡':''}${movementLock?' · '+movementLock:''}${c.id==='ai_character'?' · 事件判定不安 '+effectiveParanoia:''}${danger?' · 不安已满':''}${c.alive?'':' · 已死亡'}`;
  const cls=['tok',!c.alive&&'dead',danger&&'danger',warn&&'warn',targetable&&'targetable',ctx.selected&&!targetable&&'muted',ctx.spot?.who===c.id&&'spot'].filter(Boolean).join(' ');
  const stat=(key,n,suffix='')=>`<span class="st ${key}${n?'':' zero'}">${icon(key==='g'?'heart':key==='p'?'unrest':'intrigue')}<b>${n}</b>${suffix}</span>`;
  return `<button type="button" class="${cls}" data-character="${c.id}" title="${esc(title)}">
   <span class="tok-art"><img src="/${d.portrait}" alt="" loading="lazy" draggable="false"></span>
-  <span class="tok-tags">${role?`<span class="tag role ${knownRole?'known':'secret'}">${esc(name(role))}</span>`:guess?`<span class="tag role guess" title="你的推理">${esc(name(guess))}?</span>`:''}${culpritDays.map(day=>`<span class="tag culprit" title="第 ${day} 日事件的犯人">${day}日犯人</span>`).join('')}${suspectDays.map(day=>`<span class="tag culprit guess" title="你的推理：第 ${day} 日事件的犯人">${day}日犯人?</span>`).join('')}${c.guard?`<span class="tag guard" title="护卫">${icon('shield')}${c.guard}</span>`:''}</span>
+  <span class="tok-tags">${role?`<span class="tag role ${knownRole?'known':'secret'}">${esc(name(role))}</span>`:guess?`<span class="tag role guess" title="你的推理">${esc(name(guess))}?</span>`:''}${culpritDays.map(day=>`<span class="tag culprit" title="第 ${day} 日事件的犯人">${day}日犯人</span>`).join('')}${suspectDays.map(day=>`<span class="tag culprit guess" title="你的推理：第 ${day} 日事件的犯人">${day}日犯人?</span>`).join('')}${c.extra?'<span class="tag extra" title="EX 卡">EX</span>':''}${movementLock?`<span class="tag extra" title="${esc(movementLock)}">${c.movementLockedDay===v.day?'移动禁止':c.movementLockedDay+'日禁移动'}</span>`:''}${c.guard?`<span class="tag guard" title="护卫">${icon('shield')}${c.guard}</span>`:''}</span>
   <span class="tok-cards">${cardsOn(v,c.id,ctx.spot)}</span>
   ${preview?`<span class="tok-preview">${esc(preview)}</span>`:''}
   ${c.alive?'':`<span class="tok-dead">${icon('skull')}死亡</span>`}
   <span class="tok-body"><strong>${esc(label)}</strong>
-   <span class="pips" aria-label="不安 ${c.paranoia}，临界 ${limit}">${pips}</span>
+   <span class="pips" aria-label="${c.id==='ai_character'?'事件判定不安':'不安'} ${effectiveParanoia}，临界 ${limit}">${pips}</span>
    <span class="tok-stats">${stat('g',c.goodwill)}${stat('p',c.paranoia,`<small>/${limit}</small>`)}${stat('i',c.intrigue)}</span>
   </span>
  </button>`;
 }
 
 function zone(v,loc,ctx){
- const people=Object.values(v.board).filter(c=>c.present&&c.location===loc.id),n=v.locations[loc.id];
+ const people=Object.values(v.board).filter(c=>c.present&&c.location===loc.id),n=v.locations[loc.id],closedUntil=v.closedLocations?.[loc.id],closed=closedUntil>=v.day;
  const targetable=ctx.targets?.has(loc.id),preview=targetable?cardPreview(ctx.selected,loc.id,v):'';
  // Rows the cast is laid out in, for a wide zone (desktop) and a narrow one (phone); the CSS sizes tokens to fit.
  const count=people.length,wideRows=count<=5?1:count<=10?2:3,narrowRows=count<=2?1:count<=6?2:count<=9?3:4;
@@ -64,6 +66,7 @@ function zone(v,loc,ctx){
  return `<section class="zone zone-${loc.id}${targetable?' targetable':''}${preview==='无效'?' bluff':''}${ctx.spot?.who===loc.id?' spot':''}" data-zone="${loc.id}" data-mark="${ZONES[loc.id].mark}">
   <header class="zone-head">
    <button type="button" class="zone-name" data-target="${loc.id}" aria-label="地点 ${esc(loc.name_zh)}，暗跃 ${n}">${esc(loc.name_zh)}<small>${ZONES[loc.id].latin}</small></button>
+   ${closed?`<span class="tag extra" title="封锁至第 ${closedUntil} 日">封锁 · ${closedUntil}日</span>`:''}
    <span class="zone-cards">${cardsOn(v,loc.id,ctx.spot)}</span>
    ${preview?`<span class="zone-preview">${esc(preview)}</span>`:''}
    <span class="zone-intrigue${n?' has':''}" title="地点暗跃 ${n}">${icon('intrigue')}<b>${n}</b></span>

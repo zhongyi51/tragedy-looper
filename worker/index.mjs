@@ -1,7 +1,9 @@
-import {catalog,starter,generateScript,validateScript,publicScript,contentHash} from '../src/content.mjs';
-import {createGame,view,hash,VERSION} from '../src/engine.mjs';
-import {generateWithAi,model,rates} from '../src/ai.mjs';
+import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
+import {createGame,view,hash,VERSION,applyCommand,turn} from '../src/engine.mjs';
+import {generateWithAi,polishWithAi,model,rates} from '../src/ai.mjs';
 import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
+import {AUTHOR_BUDGET,prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from '../src/game-services.mjs';
+import {listCuratedScripts} from '../src/script-library.mjs';
 // Deployed behind the owner-only Sites gate. Identity is supplied by Sites.
 const security={'Content-Security-Policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...security,'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'}});
@@ -20,7 +22,7 @@ async function readBody(req){
 async function getGame(db,id,owner){const g=await one(db,'SELECT * FROM games WHERE id=? AND owner=?',id,owner);if(!g)fail(404,'对局不存在');return {...g,state:JSON.parse(g.state)};}
 const decorate=(g,env,v)=>({...v,id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:!!env.DEEPSEEK_API_KEY,model,busy:g.locked_until>Date.now()});
 const projection=(g,env)=>decorate(g,env,project(g.mode,g.state));
-async function createStored(db,owner,mode,state,budget){const id=crypto.randomUUID();await db.batch([
+async function createStored(db,owner,mode,state,budget,id=crypto.randomUUID()){await db.batch([
  statement(db,'INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)',id,owner,mode,JSON.stringify(state),budget,new Date().toISOString()),
  statement(db,'INSERT INTO frames(game,revision,command,state,hash) VALUES(?,?,?,?,?)',id,0,'null',JSON.stringify(state),hash(state))
 ]);return getGame(db,id,owner);}
@@ -39,22 +41,45 @@ function usageHooks(db,g,token){let callId;return {
 };}
 export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储还没准备好');const u=new URL(req.url),p=u.pathname;
- if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true});
+ if(p==='/api/info')return reply({version:VERSION,configured:!!env.DEEPSEEK_API_KEY,model,rates,contentHash,hosted:true,authorBudget:AUTHOR_BUDGET});
  if(p==='/api/catalog')return reply(catalog);
+ if(p==='/api/scripts/library')return reply({scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await readBody(req),budget=Number(b.budget??.5);if(!Number.isFinite(budget)||budget<.01||budget>10)fail(400,'花费上限须在 $0.01–$10 之间');
-  const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(b.script||starter),budget);return reply(projection(g,env),201);
+  const identity=creationIdentity(b),id=crypto.randomUUID();
+  if(identity){
+   const inserted=await one(db,'INSERT INTO game_creation(owner,request_id,request_hash,game,status,created) VALUES(?,?,?,?,?,?) ON CONFLICT(owner,request_id) DO NOTHING RETURNING request_id',owner,identity.requestId,identity.requestHash,id,'processing',new Date().toISOString());
+   if(!inserted){const receipt=await one(db,'SELECT * FROM game_creation WHERE owner=? AND request_id=?',owner,identity.requestId);
+    if(receipt.request_hash===identity.requestHash&&await one(db,'SELECT id FROM games WHERE id=? AND owner=?',receipt.game,owner))return reply(projection(await getGame(db,receipt.game,owner),env));
+    checkCreationReceipt(receipt,identity);
+   }
+  }
+  try{
+   const script=await prepareGameScript(b,{apiKey:env.DEEPSEEK_API_KEY,onUsage:async data=>{await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',crypto.randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});
+   const g=await createStored(db,owner,MODES.includes(b.mode)?b.mode:'heroes',createGame(script),budget,id);
+   if(identity)await run(db,"UPDATE game_creation SET status='complete' WHERE owner=? AND request_id=?",owner,identity.requestId);
+   return reply(projection(g,env),201);
+  }catch(error){if(identity)await run(db,"UPDATE game_creation SET status='failed',error=? WHERE owner=? AND request_id=?",creationFailure(error),owner,identity.requestId);throw error;}
  }
  if(p==='/api/scripts/starter')return reply(starter);
  if(p.startsWith('/api/scripts/')&&req.method==='POST'){
   const b=await readBody(req);
   if(p.endsWith('/validate'))return reply(validateScript(b));
   if(p.endsWith('/generate'))return reply(generateScript(b));
-  if(p.endsWith('/ai-generate')){let cost=0;const script=await generateWithAi(b,{apiKey:env.DEEPSEEK_API_KEY,onReserve:n=>{if(n>.03)fail(400,'生成剧本的花费上限不能超过 $0.03');},onUsage:async data=>{cost+=data.estimatedCost;await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',crypto.randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return reply({script,estimatedCost:cost});}
+  if(p.endsWith('/ai-generate')||p.endsWith('/ai-polish')){let cost=0;const script=await (p.endsWith('/ai-polish')?polishWithAi:generateWithAi)(b,{apiKey:env.DEEPSEEK_API_KEY,authorBudget:AUTHOR_BUDGET,onUsage:async data=>{cost+=data.estimatedCost;await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',crypto.randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return reply({script,estimatedCost:cost});}
  }
- const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|branch))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;let g=await getGame(db,id,owner);
+ const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|fixture-step|replay|script|usage|branch|review|feedback))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;
+ if(route==='fixture-step'&&(owner!==QA_OWNER||env.SITES_QA_ENABLED!=='true'))fail(404,'接口不存在');
+ let g=await getGame(db,id,owner);
+ if(route==='fixture-step'&&g.mode!=='observe')fail(404,'测试接口不存在');
  if(!route&&req.method==='GET')return reply(projection(g,env));
+ if(route==='review'&&req.method==='GET')return reply(gameReview(g.state,await one(db,'SELECT rating,updated FROM script_feedback WHERE game=? AND owner=?',id,owner)));
+ if(route==='feedback'&&req.method==='POST'){
+  const feedback=validateFeedback(g.state,await readBody(req));
+  await run(db,'INSERT INTO script_feedback(game,owner,script_hash,source,rating,updated) VALUES(?,?,?,?,?,?) ON CONFLICT(game) DO UPDATE SET rating=excluded.rating,updated=excluded.updated',id,owner,feedback.scriptHash,feedback.source,feedback.rating,feedback.updated);
+  return reply({rating:feedback.rating,updated:feedback.updated});
+ }
  if(['replay','script'].includes(route)&&req.method==='GET'){const full=u.searchParams.get('full')==='1';if(full&&g.mode!=='mastermind'&&g.state.phase!=='over')fail(403,'对局结束后才能查看真相');return reply(route==='replay'?await exportReplay(db,g,full):full?g.state.script:publicScript(g.state.script));}
  if(route==='usage'&&req.method==='GET'){if(g.state.phase!=='over')fail(403,'用量明细在对局结束后才能查看');return reply((await rows(db,'SELECT data FROM calls WHERE game=?',id)).map(r=>JSON.parse(r.data)));}
  if(req.method!=='POST')fail(405,'这个接口只接受 POST');const b=await readBody(req);
@@ -62,7 +87,7 @@ export async function handleApi(req,env,owner){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')fail(403,'对局结束后才能从回放里重玩');
   const f=await one(db,'SELECT state FROM frames WHERE game=? AND revision=?',id,b.revision);if(!f)fail(400,'找不到回放里的这一步');const state=JSON.parse(f.state);state.revision=0;return reply(projection(await createStored(db,owner,g.mode,state,g.budget),env),201);
  }
- if(!STEP_ROUTES.includes(route))fail(404,'接口不存在');
+ if(!STEP_ROUTES.includes(route)&&route!=='fixture-step')fail(404,'接口不存在');
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))fail(400,'提交标识无效');
  if(b.commandId&&await one(db,'SELECT revision FROM receipts WHERE game=? AND command_id=?',id,b.commandId))return reply(projection(await getGame(db,id,owner),env));
  if(!Number.isInteger(b.revision))fail(400,'需要局面版本');const token=crypto.randomUUID();
@@ -70,7 +95,16 @@ export async function handleApi(req,env,owner){
  if(!locked)fail(409,'局面已经变了，或还在处理上一步，请先同步','STATE_CONFLICT');
  try{
   g=await getGame(db,id,owner);
-  const {seat,frames,answer}=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')}});
+  let outcome;
+  if(route==='fixture-step'){
+   // Isolated QA only: reproduce a legal fixture one command at a time, before
+   // any model request. Never change ordinary player control permissions.
+   if(g.state.script.source==='ai'||g.state.script.generation?.source==='ai'||g.spent>0||await one(db,'SELECT id FROM calls WHERE game=? LIMIT 1',id))fail(409,'已有模型调用的测试对局不能再铺设局面','FIXTURE_ALREADY_PLAYED');
+   const seat=turn(g.state);if(!seat)fail(400,'这一局已经结束','GAME_OVER');
+   const beats=[],next=applyCommand(g.state,seat,b.command,beats);
+   outcome={seat,frames:[{seat,command:b.command,state:next,beats}],answer:null};
+  }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{apiKey:env.DEEPSEEK_API_KEY,...usageHooks(db,g,token),userId:'g_'+id.replaceAll('-','')}});
+  const {seat,frames,answer}=outcome;
   const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
   queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
@@ -85,8 +119,8 @@ const QA_OWNER='service:sites-qa';
 function qaRequest(req){
  const u=new URL(req.url);u.pathname=u.pathname.replace(/^\/api\/qa\//,'/api/');
  const game='/api/games/[a-f0-9-]+';
- const allowed=req.method==='GET'&&(u.pathname==='/api/info'||new RegExp('^'+game+'(?:/(?:replay|usage))?$').test(u.pathname))
-  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step|advance)$').test(u.pathname));
+ const allowed=req.method==='GET'&&(['/api/info','/api/scripts/library'].includes(u.pathname)||new RegExp('^'+game+'(?:/(?:replay|usage|review))?$').test(u.pathname))
+  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step|advance|fixture-step|feedback)$').test(u.pathname));
  if(!allowed)fail(404,'测试接口不存在');
  return new Request(u,req);
 }

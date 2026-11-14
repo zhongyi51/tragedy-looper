@@ -4,10 +4,11 @@ import {catalog,starter,generateScript,publicScript,locs,name} from '../src/cont
 import {createGame,applyCommand,legalActions,view,turn,hash,VERSION,VISIBILITY_POLICY} from '../src/engine.mjs';
 
 const fresh=()=>createGame(starter);
+const hiddenFresh=()=>{const script=structuredClone(starter);script.settings.incidentVisibility='hidden';return createGame(script);};
 const act=(s,a)=>applyCommand(s,turn(s),a);
 const place=(s,card,target)=>act(s,{type:'place',card:card+'#0',target});
 
-test('new games identify the hidden-incident visibility policy and preserve current notes',()=>{
+test('new games identify the current visibility policy and preserve current notes',()=>{
  let s=fresh();assert.equal(s.visibilityPolicy,VISIBILITY_POLICY);
  s.notes={A:'observed A',B:'observed B',C:'observed C',M:'secret M'};
  const next=place(s,'move_h','hospital');
@@ -35,8 +36,8 @@ test('old saves discard contaminated protagonist AI notes exactly once on a lega
  assert.equal(next.notes.M,'保留剧作家秘密');
 });
 
-test('incident names are absent from every protagonist/public schedule but retained for mastermind',()=>{
- const s=fresh();
+test('explicit hidden incident names are absent from protagonist/public schedules but retained for mastermind',()=>{
+ const s=hiddenFresh();
  for(const seat of ['A','B','C','public']){
   const v=view(s,seat);
   assert.deepEqual(v.script.incidents,[{day:3}]);
@@ -45,7 +46,7 @@ test('incident names are absent from every protagonist/public schedule but retai
  assert.deepEqual(publicScript(s.script).incidents,[{day:3}]);
  assert.deepEqual(view(s,'M').script.incidents,[{day:3,type:'suicide'}]);
  assert.deepEqual(view(s,'M').secret.incidents,s.script.incidents);
- const t=fresh();t.script.incidents[0].type='murder';
+ const t=hiddenFresh();t.script.incidents[0].type='murder';
  assert.deepEqual(view(s,'A'),view(t,'A'));
 });
 
@@ -55,8 +56,8 @@ test('public script projections do not retain mutable references into secret sta
  assert.equal(hash(s),before);
 });
 
-test('an untriggered incident does not disclose its name, including old saved replay logs',()=>{
- let s=fresh();s.phase='hero_ability';s.day=3;
+test('an untriggered hidden incident does not disclose its name, including old saved replay logs',()=>{
+ let s=hiddenFresh();s.phase='hero_ability';s.day=3;
  s=act(s,{type:'pass'});
  assert.equal(s.phase,'end_area');
  assert.match(view(s,'A').log.at(-1).text,/没有发生/);
@@ -68,8 +69,8 @@ test('an untriggered incident does not disclose its name, including old saved re
  assert.equal(hash(s),before);
 });
 
-test('an occurred incident exposes its observed result without revealing future schedule names',()=>{
- let s=fresh();s.phase='hero_ability';s.day=3;s.board.girl_student.paranoia=3;
+test('an occurred hidden incident exposes its observed result without revealing future schedule names',()=>{
+ let s=hiddenFresh();s.phase='hero_ability';s.day=3;s.board.girl_student.paranoia=3;
  s=act(s,{type:'pass'});
  const v=view(s,'A');
  assert.ok(v.log.some(e=>e.text===`「${name('suicide')}」发生。`));

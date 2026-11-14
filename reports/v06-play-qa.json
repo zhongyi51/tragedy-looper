@@ -1,0 +1,302 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "e5fee064-2c32-4590-97c1-a5bf8822bc8b",
+  "potentialProviderCalls": 132,
+  "httpRequests": 114,
+  "author": {
+    "FS": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 TRUNCATED: 模型的回答太长被截断了，这一步没有执行。"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "FS",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111400
+        },
+        "requestId": "41be2abb-f746-4e73-8d2a-6f70808416f7"
+      },
+      "creationSent": true,
+      "gameId": "fbc03df1-9a77-4d02-8b51-fd80d3641757",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停旧街的两次告别",
+      "ruleset": "FS",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "murder"
+        }
+      ]
+    },
+    "BTX": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 TRUNCATED: 模型的回答太长被截断了，这一步没有执行。"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "BTX",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111401
+        },
+        "requestId": "a8dc130c-2226-4208-9e9f-aabb063ed517"
+      },
+      "creationSent": true,
+      "gameId": "1ad09d5e-4284-4c57-a337-363ea55866b5",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停之后的旧街",
+      "ruleset": "BTX",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "murder"
+        }
+      ]
+    },
+    "MZ": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "409 CREATION_PENDING: 这次编剧仍在处理，可稍后继续恢复。"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MZ",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111402
+        },
+        "requestId": "550b7eaa-7511-453c-88b1-f516df0d7d79"
+      },
+      "creationSent": true,
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局；可重试或选择精选剧本。"
+    },
+    "MC": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 TRUNCATED: 模型的回答太长被截断了，这一步没有执行。"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MC",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 3,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111403
+        },
+        "requestId": "c0a0cf71-117d-49be-839e-53390532cc09"
+      },
+      "creationSent": true,
+      "gameId": "5f1194a2-fc18-4fb5-897a-caaf12837d4a",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停旧街的三日谜局",
+      "ruleset": "MC",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "serial_murder"
+        },
+        {
+          "day": 3,
+          "type": "suicide"
+        }
+      ]
+    }
+  },
+  "play": {
+    "FS": {
+      "gameId": "fbc03df1-9a77-4d02-8b51-fd80d3641757",
+      "controller": "ai",
+      "steps": 34,
+      "transitionFrames": 94,
+      "maximumGauge": 0,
+      "winner": "mastermind",
+      "providerCalls": 38,
+      "spentEstimate": 0.12386152800000001,
+      "replayFrames": 66,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 6,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 2,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "以“应守护的地点”为主规则，学校暗跃到2即败；副规则“不安的传闻”每轮回给任意地点+1暗跃，构成仅需关键人物与邪教徒的完整压力结构。关键人物女学生与邪教徒大小姐同校，第一日不安扩大由神社巫女制造暗跃，第二日杀人的犯人为大小姐。",
+        "threatPlan": "剧作家先用副规则给学校+1暗跃，再以巫女的不安扩大把学校推到2；若主人公阻断则改推神社暗跃。大小姐作为邪教徒可在学校无视暗跃禁止，持续施压。角色总数与两规则叠加一致：关键人物1、邪教徒1、误导者1，其余为普通人。",
+        "counterplay": "主人公可用巫女在神社降低神社暗跃、护士控制上限、警察调查第一日犯人锁定巫女。只要在一个轮回内让学校暗跃低于2且关键人物存活，即可活过轮回；第二轮回可依据公开地点与两人在场关系推出大小姐是第二日犯人。",
+        "cluePlan": "第一日不安扩大的犯人是巫女，公开日程与仅她能到的神社位置形成可核验线索；第二日杀人犯人大学生可借第一日地点移动与学校在场者排除。误导者巫女的不安+1会被护士与医生能力抵消，误导不依赖隐藏日程。",
+        "loopPlan": "第一轮回短，观察不安扩大后学校暗跃增长，学习巫女与大小姐的嫌疑；第二轮回利用巫女降神社暗跃、护士控制上限，重点阻断学校暗跃与第二日杀人。3日2轮回足以验证反制。"
+      }
+    },
+    "BTX": {
+      "gameId": "1ad09d5e-4284-4c57-a337-363ea55866b5",
+      "controller": "bot",
+      "steps": 26,
+      "transitionFrames": 47,
+      "maximumGauge": 0,
+      "winner": "mastermind",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 31,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "qualitySummary": {
+        "accepted": true,
+        "score": 92,
+        "issues": [
+          {
+            "code": "SPARSE_ROLES",
+            "message": "普通人超过七成，角色互动可能稀疏。",
+            "severity": "warning",
+            "penalty": 8
+          }
+        ],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 15,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 5,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "以「杀人计划」为核心：少年是关键人物、女学生是杀手、情报商是幕后黑手。两起公开事件先制造不安扩大，再由杀手执行杀人，配合「不安的传闻」把地点暗跃推向临界，形成三日两轮回的紧凑推理。",
+        "threatPlan": "剧作家可用「不安的传闻」每轮回给学校或医院加暗跃，配合妄想扩大病毒把不安3的普通人临时变为连环杀手；若主人公固守一处，杀手可在暗跃2时杀关键人物。备用路线是让记者作为误导者抬高不安，掩护真正犯人。",
+        "counterplay": "主人公可借巫女降低神社暗跃、警察护卫关键人物、教师或医生确认学生角色；活过第一轮回后，利用轮回间交流锁定女学生与情报商。最终战需从可见线索推导全部配役，尤其是杀手的实际行动与关键人物身份。",
+        "cluePlan": "首日不安扩大公开犯人记者，次日杀人公开犯人女学生，二者日程与地点可交叉验证；妄想扩大病毒使不安3者可能变杀手，与记者制造的不安形成可辨误导。护士和医生可稳定不安，警察能力可核对已发生事件的犯人。",
+        "loopPlan": "第一轮回用于熟悉日程、保护少年并观察女学生的移动；第二轮回利用轮回间交流提前布防，并尝试最终战。三天两轮回足以让两起事件都发生，又保留反制窗口，符合快速节奏。"
+      }
+    },
+    "MC": {
+      "gameId": "5f1194a2-fc18-4fb5-897a-caaf12837d4a",
+      "controller": "ai",
+      "steps": 32,
+      "transitionFrames": 64,
+      "maximumGauge": 2,
+      "winner": "mastermind",
+      "providerCalls": 31,
+      "spentEstimate": 0.12611285999999994,
+      "replayFrames": 45,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 10,
+          "activeIncidents": 3,
+          "inactiveIncidents": 0,
+          "informationSources": 1,
+          "maximumScheduledEX": 3,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "采用杀人计划为主规则Y，配绝对意志与潜藏的杀人鬼。关键人物男学生集中于学校，杀手医生潜伏医院，幕后黑手为人工智能，连环杀手护士在医院活动。3日2轮回，事件公开但犯人保密，主人公须辨明真正威胁。",
+        "threatPlan": "绝对意志的警察须至少作一次犯人，首日不安扩大由其引发；医生作为杀手可杀暗跃达2的关键人物，护士在独处时触发连续杀人。人工智能每日可增暗跃，配合医院与学校的高压威胁，迫使主人公分散行动。",
+        "counterplay": "主人公可优先接触男学生降低不安，用巫女得知角色、警察询问已发生事件的犯人。阻止护士与医院人物独处，并借医生友好2后的能力反制暗跃。第二轮回据线索保护关键人物并尝试最终战。",
+        "cluePlan": "公开日程暴露医院为高威胁地点；警察能力可询问犯人，巫女可揭示同地点角色。医生可通过医院暗跃与死亡事件验证；人工智能不能为普通人，其幕后黑手身份靠角色排除与能力线索确认。",
+        "loopPlan": "第一轮回学习事件节奏与医院威胁，第二轮回据线索保护关键人物并缩短战线。三天长度保证每轮回至少一次事件与一次能力反制窗口。警察作为绝对意志犯下首日事件，既满足强制犯人又提供可推理的公开线索。"
+      }
+    }
+  },
+  "tactics": {},
+  "errors": [
+    {
+      "suite": "author",
+      "case": "MZ",
+      "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局；可重试或选择精选剧本。"
+    }
+  ],
+  "lastSuite": "play",
+  "lastSuitePassed": true,
+  "allRequiredPassed": false
+}

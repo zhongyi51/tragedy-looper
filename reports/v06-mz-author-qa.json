@@ -1,0 +1,96 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "b803d861-ea97-4b14-b5df-58f11be3798f",
+  "potentialProviderCalls": 4,
+  "httpRequests": 42,
+  "author": {
+    "MZ": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：roles.immortal: 人数和所选的规则对不上"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "MZ",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": true,
+          "theme": "雨停之后的旧街",
+          "seed": 26111402
+        },
+        "requestId": "18552c54-53ce-4c3b-836e-3f21fb24a583"
+      },
+      "creationSent": true,
+      "gameId": "5aad17da-b8c3-480c-b205-9711ed82e295",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停旧街的告别信",
+      "ruleset": "MZ",
+      "publicSchedule": [
+        {
+          "day": 2,
+          "type": "unease"
+        },
+        {
+          "day": 3,
+          "type": "serial_murder"
+        }
+      ]
+    }
+  },
+  "play": {
+    "MZ": {
+      "gameId": "5aad17da-b8c3-480c-b205-9711ed82e295",
+      "controller": "bot",
+      "steps": 27,
+      "transitionFrames": 49,
+      "maximumGauge": 0,
+      "winner": "heroes",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 38,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 12,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 3,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "以「绝密报告」为核心：本轮回公开幕后黑手、因子或魔术师则败。配役将因子、魔术师、幕后黑手分散于记者、班长、军人，关键人物由AI承担；X引入的因子与魔术师都成为可被公开即败的双刃证据链。",
+        "threatPlan": "剧作家用幕后黑手每回合提暗跃，因子每轮回一次在所在地放暗跃；若关键人物AI所在都市暗跃达1，伪装事件可瞬杀主人公。备用线为医生连续杀人清除神社/医院人员，制造信息差。魔术师可把高不安人物移到相邻地点配合伪装事件。",
+        "counterplay": "主人公可优先与AI、医生、巫女建立友好：巫女可降神社暗跃，AI可结算突破移除暗跃，警察可查已发生事件犯人；同时避免在未确认安全前公开因子/魔术师/幕后黑手角色。活过第二轮回或集齐配役进入最终战均可。",
+        "cluePlan": "公开日程伪装事件假名为「不安扩大」，实际由犯人初始地点的暗跃判定，可被警察确认犯人后交叉验证。因子暗跃转移、魔术师移动都可被巫女与突破抵消；误导来自伪装事件公开名与事实效果的差异，有公认证据可辨。",
+        "loopPlan": "第一轮回用2天学习日程与角色分布，第二轮回跨轮回交流传递犯人/关键人物情报，并视情况活过第三日或进入最终战。快节奏3天2轮回确保每轮回都有可执行反制。"
+      }
+    }
+  },
+  "tactics": {},
+  "errors": [],
+  "lastSuite": "play",
+  "lastSuitePassed": true,
+  "allRequiredPassed": false
+}

@@ -4,14 +4,14 @@ import {parseDraft,roleNeeds} from '../script-draft.mjs';
 
 const option=(value,label,current)=>`<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;
 const select=(kind,key,options,current,label)=>`<select data-edit="${kind}" data-key="${esc(key)}" aria-label="${esc(label)}">${options.map(([v,l])=>option(v,l,current)).join('')}</select>`;
-const RULESETS=[['FS','入门（First Steps）'],['BTX','进阶（Basic Tragedy Χ）']];
+const RULESETS=[['FS','FS · First Steps（入门）'],['BTX','BTX · Basic Tragedy Χ（进阶）'],['MZ','MZ · Midnight Zone（扩展）'],['MC','MC · Mystery Circle（扩展）']];
 // Where a problem is, in the words the form uses: “角色 · 医生”, “事件 2”.
-const PARTS={title:'标题',ruleset:'规则集',days:'天数',loops:'轮回数',communication:'主人公讨论',characters:'人物',mainPlot:'主规则',subPlots:'副规则',roles:'角色',incidents:'事件',settings:'特殊人物',specialRules:'特殊规则',godlyLoop:'神格',transferDay:'转学生',bossTerritory:'大人物',culprit:'犯人',day:'日期',type:'事件',script:'剧本'};
+const PARTS={title:'标题',ruleset:'惨剧集合',days:'天数',loops:'轮回数',communication:'主人公讨论',characters:'人物',mainPlot:'规则 Y',subPlots:'规则 X',roles:'角色',incidents:'事件',settings:'特殊人物',specialRules:'特殊规则',godlyLoop:'神格',transferDay:'转学生',bossTerritory:'大人物',culprit:'犯人',day:'日期',type:'事件',publicType:'公开名称',incidentVisibility:'事件日程',script:'剧本'};
 const place=path=>path.split('.').map(part=>PARTS[part]||(/^\d+$/.test(part)?String(Number(part)+1):name(part))).join(' · ').replace(/ · (\d+)/,' $1');
 const field=(label,control,cls='')=>`<label class="field ${cls}"><span>${label}</span>${control}</label>`;
 
 function form(d){
- const set=['FS','BTX'].includes(d.ruleset)?d.ruleset:'FS',cast=d.characters||[],roles=rolesFor(set).map(r=>[r.id,r.name_zh_working]);
+ const set=['FS','BTX','MZ','MC'].includes(d.ruleset)?d.ruleset:'FS',cast=d.characters||[],roles=rolesFor(set).map(r=>[r.id,r.name_zh_working]);
  const plotOptions=kind=>plotsFor(set,kind).map(p=>[p.id,p.name_zh_working+(plotRoles(p)?`（${plotRoles(p)}）`:'')]);
  const needs=roleNeeds({...d,ruleset:set});
  const castCard=c=>{
@@ -25,7 +25,7 @@ function form(d){
   const e=(d.incidents||[]).find(x=>x.day===day);
   return `<div class="day-row${e?' has':''}"><b>第 ${day} 日</b>
    ${select('incident',day,[['','无事件'],...incidentsFor(set).map(x=>[x.id,x.name_zh_working])],e?.type||'','第 '+day+' 日的事件')}
-   ${e?select('culprit',day,cast.map(c=>[c,name(c)]),e.culprit,'第 '+day+' 日事件的犯人'):'<span class="hint">—</span>'}</div>`;
+   ${e?select('culprit',day,cast.map(c=>[c,name(c)]),e.culprit,'第 '+day+' 日事件的犯人'):'<span class="hint">—</span>'}</div>${e?.type==='fake_incident'?`<div class="day-mask">${field('第 '+day+' 日 · 对主人公公开的名称',select('disguise',day,[['','伪装事件（不另作伪装）'],...incidentsFor(set).filter(x=>x.id!=='fake_incident').map(x=>[x.id,x.name_zh_working])],e.publicType||'','第 '+day+' 日伪装事件的公开名称'))}</div>`:''}`;
  };
  const specials=[
   cast.includes('godly_being')&&field('神格从第几轮回登场',`<input type="number" min="1" max="${d.loops}" data-edit="setting" data-key="godlyLoop" value="${esc(d.settings?.godlyLoop??1)}">`),
@@ -36,18 +36,19 @@ function form(d){
   <section class="form-block"><h3>基本信息</h3><div class="fields">
    ${field('标题',`<input data-edit="field" data-key="title" maxlength="120" value="${esc(d.title??'')}">`,'wide')}
    ${field('作者',`<input data-edit="field" data-key="author" maxlength="80" value="${esc(d.author??'')}">`)}
-   ${field('规则集',select('field','ruleset',RULESETS,set,'规则集'))}
+   ${field('惨剧集合',select('field','ruleset',RULESETS,set,'惨剧集合'))}
    ${field('天数',`<input type="number" min="1" max="10" data-edit="field" data-key="days" value="${esc(d.days??4)}">`)}
    ${field('轮回数',`<input type="number" min="1" max="8" data-edit="field" data-key="loops" value="${esc(d.loops??3)}">`)}
    ${field('主人公讨论',select('field','communication',[['between_loops_only','只在轮回之间'],['allowed_during_loop','随时可以']],d.communication,'主人公讨论'))}
+   ${field('事件日程',select('setting','incidentVisibility',[['public','公开名称（原版日程）'],['hidden','隐藏名称（自定玩法）']],d.settings?.incidentVisibility||'public','事件日程'))}
   </div></section>
   <section class="form-block"><h3>规则</h3><div class="fields">
-   ${field('主规则',select('field','mainPlot',plotOptions('Y'),d.mainPlot,'主规则'),'wide')}
-   ${(set==='FS'?[0]:[0,1]).map(i=>field('副规则'+(set==='BTX'?' '+(i+1):''),select('sub',i,plotOptions('X'),d.subPlots?.[i],'副规则 '+(i+1)),'wide')).join('')}
+   ${field('规则 Y',select('field','mainPlot',plotOptions('Y'),d.mainPlot,'规则 Y'),'wide')}
+   ${(set==='FS'?[0]:[0,1]).map(i=>field('规则 X'+(set!=='FS'?' '+(i+1):''),select('sub',i,plotOptions('X'),d.subPlots?.[i],'规则 X '+(i+1)),'wide')).join('')}
   </div>
   <div class="needs" aria-label="需要的角色">${needs.length?needs.map(n=>`<span class="need${n.ok?' ok':' bad'}">${esc(name(n.role))} <b>${n.count}</b>/${n.min===n.max?n.max:n.min+'–'+n.max}</span>`).join(''):'<span class="hint">这些规则不要求特定的角色。</span>'}</div></section>
   <section class="form-block"><h3>人物 <small>${cast.length} 人 · 点头像加入或移出</small></h3><div class="cast-grid">${cat().characters.map(castCard).join('')}</div></section>
-  <section class="form-block"><h3>事件 <small>每天最多一个，每个人物只能当一次犯人</small></h3><div class="day-rows">${Array.from({length:Math.max(1,Math.min(10,d.days||1))},(_,i)=>dayRow(i+1)).join('')}</div></section>
+  <section class="form-block"><h3>事件 <small>每天最多一个；同一犯人可用于多个连续杀人，不能与其他事件混用</small></h3>${set==='MC'?'<p class="hint">愚者、双子、绝对者须各自担任事件犯人；私家侦探不能担任犯人。</p>':''}<div class="day-rows">${Array.from({length:Math.max(1,Math.min(10,d.days||1))},(_,i)=>dayRow(i+1)).join('')}</div></section>
   ${specials.length?`<section class="form-block"><h3>特殊人物</h3><div class="fields">${specials.join('')}</div></section>`:''}
  </div>`;
 }
@@ -68,11 +69,16 @@ export function editorHtml(state){
   <div class="page-intro"><div><h1>剧本工坊</h1></div><p class="lead">先生成一份剧本，再改成你想要的样子。</p></div>
   <div class="editor-grid">
    <aside class="panel generator"><h3>生成</h3>
-    ${field('规则集',`<select id="gen-set">${RULESETS.map(([id,label])=>option(id,label,gen.ruleset)).join('')}</select>`)}
+    ${field('惨剧集合',`<select id="gen-set">${RULESETS.map(([id,label])=>option(id,label,gen.ruleset)).join('')}</select>`)}
     ${field('随机种子',`<input id="gen-seed" type="number" value="${esc(gen.seed)}">`)}
+    <label class="setup-check"><input id="gen-lock" type="checkbox"${gen.lockSeed?' checked':''}><span>固定种子，复现这份随机剧本</span></label>
+    ${field('时长',`<select id="gen-length">${[['quick','短局'],['standard','标准'],['long','长局']].map(([id,label])=>option(id,label,gen.lengthPreset||'standard')).join('')}</select>`)}
+    ${field('AI 编剧难度',`<select id="gen-difficulty">${[['beginner','入门'],['standard','标准'],['hard','挑战']].map(([id,label])=>option(id,label,gen.difficulty||'standard')).join('')}</select>`)}
     ${field('主题（可选）',`<input id="gen-theme" value="${esc(gen.theme)}" placeholder="例如：雨夜的末班电车">`)}
-    ${btn('随机生成','generate','primary',working?'disabled':'')}
-    ${btn(icon('bot')+'AI 生成','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
+    ${btn(gen.lockSeed?'按种子生成':'随机生成 · 换一份','generate','primary',working?'disabled':'')}
+    ${btn(icon('bot')+'AI 编剧','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
+    ${btn('润色标题与简介','ai-polish','',working||!info.configured||!draft?'disabled':'')}
+    <p class="hint">AI 编剧会设计规则、配役和事件；试作剧本尚需试玩，每次上限 $0.12。润色只改标题与简介。</p>
     ${btn('载入起始剧本','starter-editor')}
     <label class="btn file">导入<input type="file" id="script-file" accept=".json,application/json"></label>
    </aside>

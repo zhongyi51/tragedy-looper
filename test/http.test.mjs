@@ -36,16 +36,19 @@ test('HTTP simultaneous submissions advance exactly once and invalid script shap
  assert.equal((await c('/api/info')).status,200);
 });
 
-test('HTTP public schedule hides event identities across roles and exports',async()=>{
+test('HTTP standard schedules show names while explicit hidden schedules and all secret answers stay concealed',async()=>{
  const c=client();
- for(const mode of ['heroes','observe','mastermind']){
-  const g=(await c('/api/games',{mode})).body;
+ for(const visibility of [undefined,'hidden'])for(const mode of ['heroes','observe','mastermind']){
+  const g=(await c('/api/games',{mode,...(visibility?{incidentVisibility:visibility}:{})})).body;
+  const schedule=visibility==='hidden'?[{day:3}]:[{day:3,type:'suicide'}];
   if(mode==='mastermind')assert.equal(g.secret.incidents[0].type,'suicide');
-  else assert.deepEqual(g.script.incidents,[{day:3}]);
-  assert.deepEqual((await c('/api/games/'+g.id+'/script')).body.incidents,[{day:3}]);
+  else assert.equal(g.secret,undefined);
+  assert.deepEqual(g.script.incidents,mode==='mastermind'?[{day:3,type:'suicide'}]:schedule);assert.equal(g.script.roles,undefined);assert.equal(g.script.mainPlot,undefined);
+  const script=(await c('/api/games/'+g.id+'/script')).body;
+  assert.deepEqual(script.incidents,schedule);assert.equal(script.roles,undefined);
   const replay=(await c('/api/games/'+g.id+'/replay')).body;
-  assert.deepEqual(replay.script.incidents,[{day:3}]);
-  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,[{day:3}]);assert.equal(frame.view.secret,undefined);}
+  assert.deepEqual(replay.script.incidents,schedule);assert.equal(replay.script.roles,undefined);
+  for(const frame of replay.frames){assert.deepEqual(frame.view.script.incidents,schedule);assert.equal(frame.view.secret,undefined);assert.equal(frame.view.script.roles,undefined);}
  }
 });
 

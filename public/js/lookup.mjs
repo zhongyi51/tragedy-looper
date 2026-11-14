@@ -15,7 +15,7 @@ export const SEATS=['A','B','C'];
 export const seatName=seat=>seat==='M'?'剧作家':seat==='public'?'观众':'主人公 '+seat;
 export const seatMark=seat=>seat==='M'?'幕':seat;
 export const modeName=mode=>mode==='heroes'?'主人公':mode==='mastermind'?'剧作家':'观战';
-const PHASES={setup:'轮回准备',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'已结束'};
+const PHASES={extra_setup:'EX 卡设置',reveal_role:'角色公开',ai_simulate:'事件模拟',ai_target:'事件模拟',incident_check:'事件',end_forced:'日结束',setup:'轮回准备',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'已结束'};
 export const phaseLabel=id=>PHASES[id]||id;
 export const COUNTERS={goodwill:{label:'友好',icon:'heart',cls:'g'},paranoia:{label:'不安',icon:'unrest',cls:'p'},intrigue:{label:'暗跃',icon:'intrigue',cls:'i'},guard:{label:'护卫',icon:'shield',cls:'gd'}};
 
@@ -48,7 +48,9 @@ export function cardPreview(card,target,v){
  const meta=cardMeta(card),person=v.board[target];
  if(!person)return meta.location?(meta.forbid?'禁暗跃':'暗跃 '+meta.value):'无效';
  if(meta.move){
+  if(person.movementLockedDay===v.day)return '移动禁止';
   const to=moveDestination(card,person.location),barred=char(target).forbiddenLocations.includes(to)&&!(target==='patient'&&v.flags?.patientFree);
+  if((v.closedLocations?.[person.location]??-1)>=v.day||(v.closedLocations?.[to]??-1)>=v.day)return '地点封锁';
   return barred?'禁入'+name(to):'→ '+name(to);
  }
  if(meta.forbid)return '禁'+({move:'移动',goodwill:'友好',paranoia:'不安',intrigue:'暗跃'})[meta.family];

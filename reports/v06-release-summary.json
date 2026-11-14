@@ -1,0 +1,139 @@
+{
+  "version": "0.6.0",
+  "sourceHashes": {
+    "src/ai.mjs": "4662e81c3a8169b4674d8cd5cd8954c8ca225180b4cc8f01c0142181cb298566",
+    "src/author.mjs": "bed2ae827d5f5ac9006987f28e513e62123f2012135047f10147fb3bb3dba36c",
+    "src/content.mjs": "d38407722a00a332d87eb3541fc050f5e657f05fb40928aae1a7f680c5cc419a",
+    "src/engine.mjs": "1522c3446dfc31bb826e308ad40ce0ea8469dc16e2eab8f3d9b747b6dec9660d",
+    "src/game-services.mjs": "b2abdd7900fdb0727d69a6cdfba4e25d63f4712b3aa57bc4943d1719d84f0f66",
+    "src/model-provider.mjs": "d4c66a9ffdbb76e6bca1e69f221d12d791d27e1063a9e43ba1ef2d6d1ffa7648",
+    "src/play.mjs": "c109e721cf20cce430f405f9f74d64d700d5d0759b79dc5a8f509c5cf82dd636",
+    "src/script-library.mjs": "0084ee0379c1d7ba86072f3bd8e5e9898357c7c552daafba6904d2bbae1b83bc",
+    "src/script-quality.mjs": "23a6148363b754383a37833d5c7ab0e7c66b7f8521b5a7dd9a86358bbad1e0a3",
+    "src/server.mjs": "aae872f3603ee93490afbe4a492f37b2712042beaf175811f2cb8f1559ab41de",
+    "public/js/anim.mjs": "097db20bfe1513c5d554cad056b558b6ff9264bc013d97ce0767218fb93ed2cf",
+    "public/js/api.mjs": "278b3238bcbbcafe0cd0a1c8d74d1c7ba9fe7dff467358804dd0628d77449f06",
+    "public/js/deduce.mjs": "3f74701eec28c2362de877431a6571c68b91a5e40993b2c054c438aa6dd4f78a",
+    "public/js/exporters.mjs": "a3e6ee28c3324bd5af3faff24d746ace88f0dec0a1334990d3625f6d5383ad90",
+    "public/js/game-setup.mjs": "edc8cc5bf4a1ab44e30c0745f81a588bc017afd93ca291cff22ba60583ec628d",
+    "public/js/guidance.mjs": "8199770cd471f4cc33228cab68589699c32b7792c4c8f7b88f4bf41f8e21fb1e",
+    "public/js/html.mjs": "7a97b750c94a0114efaefb62bc3f14add36947d982570dd3a659d93bb8d5c11f",
+    "public/js/lookup.mjs": "e401c740a6b7ce1c72f56b5a2b8688fb9180f486c3ea7572e7d9db4e238c37dd",
+    "public/js/main.mjs": "777fc0fc2bb0e49d4bdf83ae150e195b8d86adc77c14d1030193ddb6b6b04e82",
+    "public/js/script-draft.mjs": "25932918d52bd27590aa1a8d9dec6f46ea7dac1ffe547591ae359511bb849b9b",
+    "public/js/session.mjs": "01da1eb617455ec6f6524ec7da622f0b6ce993592b50868ff77f1270e6b68a24",
+    "public/js/state.mjs": "07b48fe8d443adc709b899b6a882c798b534132ba7051950f1716cde833c66a8",
+    "public/js/ui/board.mjs": "a7ec4fc63add044fca850a2747bd96cc2dc927c6af38ddfaae040384768a4b9e",
+    "public/js/ui/dock.mjs": "3cf60c8f9dc44cc09faf1714470ce19c9a43aad5addc116ab37e4d3519fd8f9a",
+    "public/js/ui/editor.mjs": "f3cf069c33aac36e2238ff9e24bcb12f78daed63699eb8186b781c7c643d9ae5",
+    "public/js/ui/game.mjs": "30b75efa3935860a1c9af3737d850ad92e0a6419de59a726a89403f0ad4d44fb",
+    "public/js/ui/home.mjs": "930303f10d7daa3bdb0f9a472b7a07b950063d30a5f71a987bb5b2b2ceb5459e",
+    "public/js/ui/hud.mjs": "e04beee623bad80c7630a09bc5582d48e1f844809d097a34ed49725d9e53e306",
+    "public/js/ui/modals.mjs": "79f42b81b932e51434d010a7e1d193096c706dcd5e4ad7b3424a2268e2470740",
+    "public/js/ui/replay.mjs": "53a87d4afeea887d6342a35fbad7d7a2b34a07d998a7ed5c89396b40e428561c",
+    "public/js/ui/rules.mjs": "42cefd802211843303f732e1a7452e8e84e85601931f7e0a5e40bca4a9f71085",
+    "public/js/ui/side.mjs": "8480aa654e446e4c6994c71f7541dedf2b2900d11208ff3c76406336f478b376",
+    "public/css/base.css": "9942cd81f0c66d51a877af082590da66780bb058e5189d77ed31e1a6e27aab5d",
+    "public/css/pages.css": "8103a904851c36e7f1a4dc233db41f23e980dfd21ee11970406fbbada10c8bbc",
+    "public/css/table.css": "a559139fb99036d30548238972cd01c7ef32e2fe1db2821de8243788cdc71288",
+    "worker/index.mjs": "fa4b2e33eeb46925efeaf40cd3c6ad5eab04a5682f3fc0d8c2b4fa2baac1cd3b",
+    "data/catalog.json": "edea1b4c6241235b67add281aedc0ee6a6f6fed533b8e04a68424e5db4b668bf"
+  },
+  "automatedTests": {
+    "pass": 449,
+    "fail": 0,
+    "skipped": 0,
+    "durationSeconds": 43.2
+  },
+  "rulesAudit": {
+    "games": 1050,
+    "commands": 109722,
+    "failures": 0
+  },
+  "compiledWorker": {
+    "applicationTests": 11,
+    "directWorkerTests": 10,
+    "smokeChecks": 13
+  },
+  "liveDecisions": {
+    "fullAiGames": 2,
+    "tacticalCases": 2,
+    "providerCalls": 71,
+    "estimatedUsdExcludingAuthor": 0.2577029879999999
+  },
+  "liveAuthorCampaignBeforeCaptionIsolation": {
+    "unconstrainedRequests": 9,
+    "unconstrainedAccepted": 3,
+    "unconstrainedMcAccepted": 0,
+    "unconstrainedMcRequests": 3,
+    "constrainedMcRequests": 1,
+    "constrainedMcAccepted": 1,
+    "scope": "Unconstrained means no selected X/Y or exact cast, but quick length, days, loops and event count were constrained. Internal repairs are not separate creation requests."
+  },
+  "authoredSamplesCompletedBeforeCaptionIsolation": {
+    "BTX": {
+      "controller": "bot",
+      "complete": true,
+      "steps": 60,
+      "winner": "mastermind",
+      "providerCalls": 0,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "replayFrames": 82
+    },
+    "MZ": {
+      "controller": "bot",
+      "complete": true,
+      "steps": 24,
+      "winner": "heroes",
+      "providerCalls": 0,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "replayFrames": 34
+    },
+    "FS": {
+      "controller": "bot",
+      "complete": true,
+      "steps": 43,
+      "winner": "heroes",
+      "providerCalls": 0,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "replayFrames": 61
+    },
+    "MC": {
+      "controller": "bot",
+      "complete": true,
+      "steps": 62,
+      "winner": "mastermind",
+      "providerCalls": 0,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "replayFrames": 86
+    }
+  },
+  "checksPassed": true,
+  "unconstrainedAuthorQualityPassed": false,
+  "limitations": [
+    "No claim of balance or expert-level model play",
+    "MC unrestricted rule selection failed all three final samples; constrained MC passed",
+    "Grounded model review still has prose errors; static scores are not semantic verification",
+    "Author costs are capped but separate author usage was not exposed by the QA ledger",
+    "Live model tests preceded final caption isolation and removal of design notes from decision prompts; final regression tests cover those changes"
+  ],
+  "reports": [
+    "RULES-AI-QUALITY-20261114.md",
+    "v06-author-reviewed-qa.json",
+    "v06-constrained-mc-qa.json",
+    "v06-reviewed-completion-qa.json",
+    "v06-reviewed-fs-completion-qa.json",
+    "v06-play-qa.json",
+    "v06-live-qa.json",
+    "mc-audit-v06.json",
+    "mz-audit-v06.json"
+  ]
+}

@@ -1,7 +1,7 @@
 // Table logic shared by the local server and the hosted Worker: who may act,
 // what each player may see, and how one step turns into saved frames.
 import {view,turn,applyCommand,botCommand,advanceAutomatic,transitionFrames} from './engine.mjs';
-import {decide,decisionSummary} from './ai.mjs';
+import {decide,decisionSummary,rememberDecision} from './ai.mjs';
 
 export const MODES=['heroes','mastermind','observe'];
 export const STEP_ROUTES=['command','ai-step','bot-step','advance'];
@@ -38,7 +38,7 @@ export async function playStep({state,mode,route,command,ai={}}){
  else commands=[route==='bot-step'?botCommand(state,seat):command];
  const frames=[];let current=state;
  for(const next of commands){const beats=[];current=applyCommand(current,seat,next,beats);frames.push({seat,command:next,state:current,beats});}
- if(answer)current.notes[seat]=answer.note||current.notes[seat];
+ if(answer)rememberDecision(current,seat,answer);
  frames.push(...advanceAutomatic(current,automatic).steps);
  return {seat,frames,answer};
 }
@@ -47,5 +47,9 @@ export async function playStep({state,mode,route,command,ai={}}){
 // intermediate frames and who decided.
 export const stepReport=({mode,route,seat,answer,initial,frames,decorate=v=>v})=>({
  transitionFrames:transitionFrames(state=>decorate(project(mode,state)),initial,frames),
- decision:decisionSummary(route,seat,answer)
+ // Secret roles can change the number of choices at the same public phase.
+ // Keep the forced/model shortcut out of protagonist and observer metadata.
+ decision:mode!=='mastermind'&&(['reveal_role','incident_check'].includes(initial.phase)
+  ||initial.script.ruleset==='MC'&&['mm_ability','end_area','end_forced'].includes(initial.phase))
+  ?{controller:'剧作家',seat:'M'}:decisionSummary(route,seat,answer)
 });

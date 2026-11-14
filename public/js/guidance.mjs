@@ -22,7 +22,7 @@ export function afterPlacing(v,{card,target}){
 
 // Seat names read as a sentence subject: 「主人公 A 思考中」.
 const actor=seat=>seat==='M'?'剧作家':seatName(seat)+' ';
-const PROMPTS={setup:'选择手下从哪里登场。',cultist:'选择邪教徒是否无视暗跃禁止。',mm_ability:'可以使用角色能力，也可以直接结束。',hero_ability:'友好够了的人物可以使用能力，也可以直接结束。',reveal_plot:'选择公开哪一条副规则。',incident:'事件发生了，选择它的结果。',end_area:'选择大人物按哪个地点结算。',end:'可以使用日结束能力，也可以直接结束这一天。'};
+const PROMPTS={extra_setup:'选择 EX 卡放在哪个人物上。',reveal_role:'选择要公开的角色。',ai_simulate:'选择要模拟的事件与目标。',ai_target:'已公开所选事件，选择模拟效果的目标。',incident_check:'选择按实际地点还是领地判定事件。',end_forced:'结算日结束时的强制效果；如需选择，请指定目标。',setup:'选择手下从哪里登场。',cultist:'选择邪教徒是否无视暗跃禁止。',mm_ability:'可以使用角色能力，也可以直接结束。',hero_ability:'友好够了的人物可以使用能力，也可以直接结束。',reveal_plot:'选择公开哪一条规则 X。',incident:'事件发生了，选择它的结果。',end_area:'选择大人物按哪个地点结算。',end:'可以使用日结束能力，也可以直接结束这一天。'};
 const WORKING={sync:'同步中',animation:'结算中',rules:'结算中',human:'提交中'};
 
 // ctx: {working, requestKind, syncRequired, actionError, auto, selected}
@@ -86,13 +86,15 @@ export function choiceGroups(v,sheet){
    add(a.actor+a.index,`${name(a.actor)} · 能力 ${a.index+1}`,`需要友好 ${ability.minGoodwill} · ${ability.limit==='loop'?'每轮回一次':'每天一次'} · ${ability.effect_zh}`,{...item,text:optionText(o)||'使用',hl:a.target||a.actor},a.actor);
   }else if(a.type==='mm')add(a.actor+a.ability,o.label.split(' → ')[0],'',{...item,text:optionText(o),hl:a.target},char(a.actor)?a.actor:'');
   else if(a.type==='guess'){
-   const known=v.knownRoles[a.character],mine=sheet?.rows.find(r=>r.id===a.character),mark=mine?.cells[a.role]?.mark,picked=mine?.pick;
-   add(a.character,name(a.character),known?'已确认：'+name(known):picked?'你的推理：'+name(picked):'',
+   const declared=v.knownRoles[a.character],known=v.script?.ruleset==='MZ'?null:declared,mine=sheet?.rows.find(r=>r.id===a.character),mark=mine?.cells[a.role]?.mark,picked=mine?.pick;
+   add(a.character,name(a.character),known?'已确认：'+name(known):picked?'你的推理：'+name(picked):declared?'已宣告：'+name(declared)+'（可能是伪装）':'',
     {...item,text:name(a.role)+(known===a.role?' ✓':''),hl:a.character,cls:known===a.role?'known':known?'':mark==='yes'?'picked':mark==='no'?'ruled':''},a.character);
   }else if(a.type==='refusal'){
    const actor=v.pending?.action?.actor||'';
    add('refusal',actor?'主人公想用'+name(actor)+'的能力':'主人公想用能力','',{...item,text:o.label,hl:actor},actor);
-  }else if(a.type==='incident')add('incident',v.choiceTitle||'选择事件的结果','',{...item,text:o.label,hl:a.target});
+  }else if(a.type==='ai_target')add('ai_target',v.choiceTitle||'选择模拟事件的目标','',{...item,text:o.label,hl:a.target});
+  else if(a.type==='end_forced')add('end_forced','日结束结算','',{...item,text:o.label,hl:a.target||a.actor});
+  else if(a.type==='incident')add('incident',v.choiceTitle||'选择事件的结果','',{...item,text:o.label,hl:a.target});
   else add(a.type,'','',{...item,text:o.label,hl:a.target||a.actor});
  });
  return [...groups.values()];

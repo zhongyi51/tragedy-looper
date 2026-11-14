@@ -22,19 +22,19 @@ function fixture(){
  return {sql,env,request,store};
 }
 function noProvider(t){let calls=0;t.mock.method(globalThis,'fetch',async()=>{calls++;throw Error('deterministic rule attempted provider call');});return ()=>calls;}
-function pendingEnd(){const s=createGame(starter);s.phase='hero_ability';return s;}
+function pendingEnd(incidentVisibility='public'){const s=createGame({...starter,settings:{...starter.settings,incidentVisibility}});s.phase='hero_ability';return s;}
 function fiveCards(){let s=createGame(starter);for(const [card,target] of [['move_h#0','hospital'],['move_v#0','shrine'],['move_d#0','city'],['goodwill_1#0','boy_student'],['goodwill_1#0','girl_student']])s=applyCommand(s,turn(s),{type:'place',card,target});return s;}
-function publicFrame(v){assert.equal(v.secret,undefined);assert.equal(v.pending,undefined);assert.ok(v.script.incidents.every(e=>!('type'in e)&&!('culprit'in e)));assert.notEqual(v.seat,'M');}
+function publicFrame(v,{hidden=false}={}){assert.equal(v.secret,undefined);assert.equal(v.pending,undefined);for(const key of ['roles','mainPlot','subPlots','privateDesign'])assert.equal(v.script[key],undefined);assert.ok(v.script.incidents.every(e=>!('culprit'in e)&&(hidden?!('type'in e):typeof e.type==='string')));assert.notEqual(v.seat,'M');}
 
 test('advance drains forced phases without provider calls and persists each sanitized frame',async t=>{
- const calls=noProvider(t),{sql,request,store}=fixture(),{id}=await store(pendingEnd());
+ const calls=noProvider(t),{sql,request,store}=fixture(),{id}=await store(pendingEnd('hidden'));
  const advanced=await request('/api/games/'+id+'/advance',{revision:0,commandId:'forced-chain'});
  assert.equal(advanced.status,200);const g=advanced.data;assert.equal(g.phaseId,'mm_cards');assert.equal(g.day,2);assert.ok(g.revision>=3);assert.equal(g.busy,false);assert.equal(calls(),0);
- assert.ok(g.transitionFrames.length>=1);for(const frame of g.transitionFrames)publicFrame(frame);
+ assert.ok(g.transitionFrames.length>=1);for(const frame of g.transitionFrames)publicFrame(frame,{hidden:true});
  const stored=sql.prepare('SELECT revision,state FROM frames WHERE game=? ORDER BY revision').all(id);
  assert.deepEqual(stored.map(f=>f.revision),Array.from({length:g.revision+1},(_,i)=>i));
  const replay=(await request('/api/games/'+id+'/replay')).data;
- assert.equal(replay.frames.length,stored.length);for(let i=0;i<stored.length;i++){publicFrame(replay.frames[i].view);assert.deepEqual(replay.frames[i].view,view(JSON.parse(stored[i].state),'public'));}
+ assert.equal(replay.frames.length,stored.length);for(let i=0;i<stored.length;i++){publicFrame(replay.frames[i].view,{hidden:true});assert.deepEqual(replay.frames[i].view,view(JSON.parse(stored[i].state),'public'));}
  assert.equal(sql.prepare('SELECT count(*) AS n FROM calls WHERE game=?').get(id).n,0);
  assert.equal(sql.prepare('SELECT spent FROM games WHERE id=?').get(id).spent,0);
  const retry=await request('/api/games/'+id+'/advance',{revision:0,commandId:'forced-chain'});assert.equal(retry.status,200);assert.equal(retry.data.revision,g.revision);assert.equal(calls(),0);

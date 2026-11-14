@@ -1,0 +1,173 @@
+{
+  "version": "0.6.0",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "runId": "6b4f1750-9aef-4d01-951b-f8b4fb632136",
+  "potentialProviderCalls": 36,
+  "httpRequests": 73,
+  "author": {
+    "FS": {
+      "previousAttempts": [
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_REVIEW: 设计核对未通过，这次没有创建对局。最后校验：design.cluePlan: 普通事件不会自动公开犯人；告白可公开身份，封闭之环仅公开地点，其他线索须引用具体调查能力。"
+        },
+        {
+          "creationSent": true,
+          "error": "400 AUTHOR_QUALITY: AI 编剧尚未通过规则与可玩性检查，这次没有创建对局。最后校验：公开标题或简介含角色/规则名称，请改成只依据公开人物、地点和主题的文案"
+        }
+      ],
+      "creation": {
+        "mode": "observe",
+        "budget": 0.5,
+        "setup": {
+          "generation": "ai",
+          "ruleset": "FS",
+          "lengthPreset": "quick",
+          "difficulty": "standard",
+          "days": 3,
+          "loops": 2,
+          "incidentCount": 2,
+          "incidentVisibility": "public",
+          "characterPool": "standard",
+          "includeAI": false,
+          "theme": "雨停之后的旧街",
+          "seed": 26111400
+        },
+        "requestId": "c5992693-e2a4-4c59-a217-0aaa06e7cd10"
+      },
+      "creationSent": true,
+      "gameId": "fb388823-b523-45c0-99b0-5407929d09f5",
+      "creationIdempotent": true,
+      "passed": true,
+      "title": "雨停后的旧街",
+      "ruleset": "FS",
+      "publicSchedule": [
+        {
+          "day": 1,
+          "type": "unease"
+        },
+        {
+          "day": 2,
+          "type": "murder"
+        }
+      ]
+    }
+  },
+  "play": {
+    "FS": {
+      "gameId": "fb388823-b523-45c0-99b0-5407929d09f5",
+      "controller": "bot",
+      "steps": 43,
+      "transitionFrames": 80,
+      "maximumGauge": 0,
+      "winner": "heroes",
+      "providerCalls": 0,
+      "spentEstimate": 0,
+      "replayFrames": 61,
+      "reviewAvailable": true,
+      "feedbackPersisted": true,
+      "feedbackDidNotAdvance": true,
+      "complete": true,
+      "reviewSummary": "主人公获胜。实际规则：杀人计划、不安的传闻。",
+      "qualitySummary": {
+        "accepted": true,
+        "score": 100,
+        "issues": [],
+        "metrics": {
+          "structurallyValid": true,
+          "characters": 7,
+          "activeIncidents": 2,
+          "inactiveIncidents": 0,
+          "informationSources": 3,
+          "maximumScheduledEX": null,
+          "forcedFinalGuess": false
+        },
+        "review": "static"
+      },
+      "designSummary": {
+        "premise": "本稿角色配役为：巫女是关键人物，教师是幕后黑手，医生是杀手，班长是误导者；主线为杀人计划，支线为不安的传闻。第一日不安扩大由班长犯下，公开日程中仅显示事件名与日期；第二日杀人事件由医生犯下。主人公须在两个轮回内查明真相或活过第一轮回；第一天后巫女死亡即主人公失败并立即结束轮回。",
+        "threatPlan": "教师（幕后黑手）可在剧作家能力阶段让同地点一人或所在地点暗跃+1；不安的传闻每轮回一次可让任意地点暗跃+1。医生（杀手）在日结束时，可杀死同地点暗跃≥2的关键人物，或自身暗跃≥4时杀死主人公。第一日不安扩大效果为任意一人不安+2、再让另一人暗跃+1，由剧作家选择；第二日杀人事件在与犯人同地点选另一人死亡。",
+        "counterplay": "可执行的防守路径：巫女在神社且友好3时可用其能力使神社暗跃−1；警察友好5时给同地点一人1护卫，护卫可抵消一次死亡；警察友好4时每轮回得知已发生的一个事件犯人。避免让巫女与医生在日结束时同地点且暗跃≥2，并控制医生暗跃不到4以防主人公被杀。班长友好2可收回自己本轮一张每轮回一次的牌；医生友好2可对同地点另一人不安±1，友好3可使本轮回住院患者进入任何地点。",
+        "cluePlan": "公开范围仅事件名称与日期，犯人与配役不自动公开，普通事件也不公开犯人。调查路径：警察友好4每轮回得知本轮一个已发生事件的犯人；教师友好3每轮回得知同地点一名学生的角色；巫女友好5每轮回得知同地点一人（含自己）的角色。封闭之环类效果不在本稿日程内，不能调用。班长为误导者只能由公开事件链与其能力不安+1路径推测，不能断言已证实。",
+        "loopPlan": "第一轮回以生存为先：可优先让巫女留在神社并达到友好3降暗跃，争取警察友好5布置护卫；避免医生与巫女同地点过夜。第二轮回若主人公存活，利用警察友好4、教师友好3、巫女友好5在轮回内分别取得事件犯人与同地点角色信息，再结合第一轮回公开日程交叉推理。三天内只有第一、二日有公开事件，第三日无日程外事件可调用。"
+      },
+      "authoredScript": {
+        "title": "雨停后的旧街",
+        "intro": "雨停之后，旧街的四个地点——医院、神社、都市、学校——发生了两起事件。主人公与六位同伴必须在两个轮回内查明真相，或活过第一个轮回。",
+        "ruleset": "FS",
+        "days": 3,
+        "loops": 2,
+        "communication": "between_loops_only",
+        "characters": [
+          "boy_student",
+          "girl_student",
+          "shrine_maiden",
+          "police",
+          "doctor",
+          "class_rep",
+          "teacher"
+        ],
+        "mainPlot": "murder_plan",
+        "subPlots": [
+          "unsettling_rumor"
+        ],
+        "roles": {
+          "boy_student": "person",
+          "girl_student": "person",
+          "shrine_maiden": "key_person",
+          "police": "person",
+          "doctor": "killer",
+          "class_rep": "misleader",
+          "teacher": "brain"
+        },
+        "incidents": [
+          {
+            "day": 1,
+            "type": "unease",
+            "culprit": "class_rep"
+          },
+          {
+            "day": 2,
+            "type": "murder",
+            "culprit": "doctor"
+          }
+        ],
+        "settings": {
+          "incidentVisibility": "public"
+        },
+        "specialRules": [],
+        "id": "ai-5d572a91-89ba-4c49-97cb-ab204c9244cc",
+        "author": "DeepSeek 编剧",
+        "source": "ai",
+        "difficulty": "standard",
+        "seed": 26111400,
+        "privateDesign": {
+          "premise": "本稿角色配役为：巫女是关键人物，教师是幕后黑手，医生是杀手，班长是误导者；主线为杀人计划，支线为不安的传闻。第一日不安扩大由班长犯下，公开日程中仅显示事件名与日期；第二日杀人事件由医生犯下。主人公须在两个轮回内查明真相或活过第一轮回；第一天后巫女死亡即主人公失败并立即结束轮回。",
+          "threatPlan": "教师（幕后黑手）可在剧作家能力阶段让同地点一人或所在地点暗跃+1；不安的传闻每轮回一次可让任意地点暗跃+1。医生（杀手）在日结束时，可杀死同地点暗跃≥2的关键人物，或自身暗跃≥4时杀死主人公。第一日不安扩大效果为任意一人不安+2、再让另一人暗跃+1，由剧作家选择；第二日杀人事件在与犯人同地点选另一人死亡。",
+          "counterplay": "可执行的防守路径：巫女在神社且友好3时可用其能力使神社暗跃−1；警察友好5时给同地点一人1护卫，护卫可抵消一次死亡；警察友好4时每轮回得知已发生的一个事件犯人。避免让巫女与医生在日结束时同地点且暗跃≥2，并控制医生暗跃不到4以防主人公被杀。班长友好2可收回自己本轮一张每轮回一次的牌；医生友好2可对同地点另一人不安±1，友好3可使本轮回住院患者进入任何地点。",
+          "cluePlan": "公开范围仅事件名称与日期，犯人与配役不自动公开，普通事件也不公开犯人。调查路径：警察友好4每轮回得知本轮一个已发生事件的犯人；教师友好3每轮回得知同地点一名学生的角色；巫女友好5每轮回得知同地点一人（含自己）的角色。封闭之环类效果不在本稿日程内，不能调用。班长为误导者只能由公开事件链与其能力不安+1路径推测，不能断言已证实。",
+          "loopPlan": "第一轮回以生存为先：可优先让巫女留在神社并达到友好3降暗跃，争取警察友好5布置护卫；避免医生与巫女同地点过夜。第二轮回若主人公存活，利用警察友好4、教师友好3、巫女友好5在轮回内分别取得事件犯人与同地点角色信息，再结合第一轮回公开日程交叉推理。三天内只有第一、二日有公开事件，第三日无日程外事件可调用。",
+          "intendedDifficulty": "standard",
+          "intentionalExceptions": []
+        },
+        "generation": {
+          "source": "ai",
+          "version": "script-author-1",
+          "attempts": 2,
+          "designReview": "catalog-grounded-1",
+          "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+          "scriptHash": "2465c1c7b7bcd866d4eddd0600585f9f271f27d46fb25834ed5831de00c170bb",
+          "quality": {
+            "review": "static"
+          }
+        },
+        "validationStatus": "规则与静态质量检查通过；尚未经人工试玩"
+      }
+    }
+  },
+  "tactics": {},
+  "errors": [],
+  "lastSuite": "play",
+  "lastSuitePassed": true,
+  "allRequiredPassed": false
+}

@@ -2,7 +2,7 @@
 // structurally coherent (no roles for absent characters, no incidents past the last day…).
 import {cat,rolesFor,plotsFor,incidentsFor} from './lookup.mjs';
 
-const SUB_PLOTS={FS:1,BTX:2};
+const SUB_PLOTS={FS:1,BTX:2,MZ:2,MC:2};
 const SPECIAL_DEFAULTS={godly_being:['godlyLoop',1],transfer_student:['transferDay',1],boss:['bossTerritory','city']};
 const NUMERIC_SETTINGS=['godlyLoop','transferDay'];
 
@@ -12,7 +12,7 @@ export function parseDraft(text){
 
 export function blankDraft(){
  return {id:'custom-'+Date.now().toString(36),title:'未命名的剧本',author:'',ruleset:'FS',days:4,loops:3,communication:'between_loops_only',
-  characters:[],mainPlot:plotsFor('FS','Y')[0].id,subPlots:[plotsFor('FS','X')[0].id],roles:{},incidents:[],settings:{},specialRules:[]};
+  characters:[],mainPlot:plotsFor('FS','Y')[0].id,subPlots:[plotsFor('FS','X')[0].id],roles:{},incidents:[],settings:{incidentVisibility:'public'},specialRules:[]};
 }
 
 // How many of each role the chosen plots demand, next to how many the cast currently has.
@@ -35,7 +35,7 @@ function withRuleset(d,ruleset){
  for(const p of subs)if(subPlots.length<SUB_PLOTS[ruleset]&&!subPlots.includes(p))subPlots.push(p);
  return {...d,ruleset,mainPlot:mains.includes(d.mainPlot)?d.mainPlot:mains[0],subPlots,
   roles:Object.fromEntries(Object.entries(d.roles||{}).map(([c,r])=>[c,roleIds.has(r)?r:'person'])),
-  incidents:(d.incidents||[]).map(e=>events.includes(e.type)?e:{...e,type:events[0]})};
+  incidents:(d.incidents||[]).map(e=>{const {publicType,...rest}=e;return events.includes(e.type)?{...rest,...(e.type==='fake_incident'&&events.includes(publicType)?{publicType}:{})}:{...rest,type:events[0]};})};
 }
 
 function toggleCast(d,id){
@@ -51,8 +51,9 @@ function toggleCast(d,id){
 function setIncident(d,day,type){
  const rest=d.incidents.filter(e=>e.day!==day),existing=d.incidents.find(e=>e.day===day);
  if(!type)return {...d,incidents:rest};
- const taken=new Set(rest.map(e=>e.culprit)),culprit=existing?.culprit||d.characters.find(c=>!taken.has(c))||'';
- return {...d,incidents:[...rest,{day,type,culprit}].sort((a,b)=>a.day-b.day)};
+ const taken=new Set(rest.map(e=>e.culprit)),repeat=type==='serial_murder'?d.characters.find(c=>rest.some(e=>e.culprit===c)&&rest.filter(e=>e.culprit===c).every(e=>e.type==='serial_murder')):null;
+ const culprit=existing?.culprit||d.characters.find(c=>!taken.has(c))||repeat||'';
+ return {...d,incidents:[...rest,{day,type,culprit,...(type==='fake_incident'&&existing?.publicType?{publicType:existing.publicType}:{})}].sort((a,b)=>a.day-b.day)};
 }
 
 // edit: {kind, key, value} as produced by the form controls.
@@ -72,6 +73,7 @@ export function editDraft(draft,{kind,key,value}){
   case 'cast':return toggleCast(d,key);
   case 'role':return {...d,roles:{...d.roles,[key]:value}};
   case 'incident':return setIncident(d,+key,value);
+  case 'disguise':return {...d,incidents:d.incidents.map(e=>{if(e.day!==+key||e.type!=='fake_incident')return e;const {publicType,...rest}=e;return {...rest,...(value?{publicType:value}:{})};})};
   case 'culprit':return {...d,incidents:d.incidents.map(e=>e.day===+key?{...e,culprit:value}:e)};
   case 'setting':return {...d,settings:{...d.settings,[key]:NUMERIC_SETTINGS.includes(key)?Math.round(Number(value))||1:value}};
   default:return d;
