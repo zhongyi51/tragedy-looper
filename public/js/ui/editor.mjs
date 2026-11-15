@@ -1,6 +1,7 @@
 import {esc,icon,btn} from '../html.mjs';
 import {cat,name,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
 import {parseDraft,roleNeeds} from '../script-draft.mjs';
+import {availableModels,authorModel,authorBudget} from '../ai-settings.mjs';
 
 const option=(value,label,current)=>`<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;
 const select=(kind,key,options,current,label)=>`<select data-edit="${kind}" data-key="${esc(key)}" aria-label="${esc(label)}">${options.map(([v,l])=>option(v,l,current)).join('')}</select>`;
@@ -73,12 +74,13 @@ export function editorHtml(state){
     ${field('随机种子',`<input id="gen-seed" type="number" value="${esc(gen.seed)}">`)}
     <label class="setup-check"><input id="gen-lock" type="checkbox"${gen.lockSeed?' checked':''}><span>固定种子，复现这份随机剧本</span></label>
     ${field('时长',`<select id="gen-length">${[['quick','短局'],['standard','标准'],['long','长局']].map(([id,label])=>option(id,label,gen.lengthPreset||'standard')).join('')}</select>`)}
+    ${field('编剧模型',`<select id="gen-provider">${availableModels(info).map(p=>option(p.id,p.label,authorModel(info,gen.provider))).join('')}</select>`)}
     ${field('AI 编剧难度',`<select id="gen-difficulty">${[['beginner','入门'],['standard','标准'],['hard','挑战']].map(([id,label])=>option(id,label,gen.difficulty||'standard')).join('')}</select>`)}
     ${field('主题（可选）',`<input id="gen-theme" maxlength="300" value="${esc(gen.theme)}" placeholder="例如：雨夜的末班电车">`)}
     ${btn(gen.lockSeed?'按种子生成':'随机生成 · 换一份','generate','primary',working?'disabled':'')}
-    ${btn(icon('bot')+'AI 编剧','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先配置 DeepSeek 密钥'}"`:'')}
+    ${btn(icon('bot')+'AI 编剧','ai-generate','',working||!info.configured?`disabled title="${info.configured?'':'需要先连接 AI 模型'}"`:'')}
     ${btn('润色标题与简介','ai-polish','',working||!info.configured||!draft?'disabled':'')}
-    <p class="hint">主题用于标题、开场氛围与选稿偏好，舞台与规则仍以本场设置为准。AI 编剧会策划规则与人物，再从试跑候选中选稿；试作剧本尚需试玩，每次上限 $0.12。润色只改标题与简介。</p>
+    <p class="hint">主题用于标题、开场氛围与选稿偏好，舞台与规则仍以本场设置为准。AI 编剧会策划规则与人物，再从试跑候选中选稿；试作剧本尚需试玩，每次上限 $${authorBudget(info,authorModel(info,gen.provider)).toFixed(2)}。润色只改标题与简介。</p>
     ${btn('载入起始剧本','starter-editor')}
     <label class="btn file">导入<input type="file" id="script-file" accept=".json,application/json"></label>
    </aside>

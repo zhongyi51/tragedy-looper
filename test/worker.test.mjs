@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createWorker} from '../worker/index.mjs';
 function fixture(){
- const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../drizzle/0000_initial.sql',import.meta.url),'utf8'));
+ const sql=new DatabaseSync(':memory:');for(const migration of ['0000_initial.sql','0001_script_feedback.sql'])sql.exec(readFileSync(new URL('../drizzle/'+migration,import.meta.url),'utf8'));
  const wrap=(query,args=[])=>({bind(...values){return wrap(query,values);},async first(){return sql.prepare(query).get(...args)||null;},async all(){return {results:sql.prepare(query).all(...args)};},async run(){const r=sql.prepare(query).run(...args);return {meta:{changes:Number(r.changes)}};}});
  const DB={prepare:q=>wrap(q),async batch(statements){sql.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sql.exec('COMMIT');return out;}catch(e){sql.exec('ROLLBACK');throw e;}}};
  const worker=createWorker({'/':{type:'text/html',data:Buffer.from('<h1>Game</h1>').toString('base64')}});
@@ -136,4 +136,67 @@ test('cloud errors are JSON with stable codes and request identifiers matching r
  assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,0);
  assert.equal(logs.length,2);for(const entry of logs){assert.equal(entry.event,'api_error');assert.ok(entry.requestId);assert.ok(!JSON.stringify(entry).includes('sensitive-user-identifier'));assert.ok(!JSON.stringify(entry).includes('Not JSON'));}
  const ok=await worker.fetch(new Request('https://game.test/api/info',{headers:{'oai-authenticated-user-id':'owner-1'}}),env);assert.equal(ok.status,200);assert.ok(ok.headers.get('x-request-id'));
+});
+
+test('cloud advertises both model providers without disclosing credentials',async()=>{
+ const {request,env}=fixture();env.DEEPSEEK_API_KEY='unit-deepseek-secret';env.OPENROUTER_API_KEY='unit-openrouter-secret';
+ const r=await request('/api/info');assert.equal(r.status,200);
+ assert.equal(r.data.defaultProvider,'deepseek');assert.equal(r.data.providers.length,2);
+ assert.deepEqual(r.data.providers.map(p=>[p.id,p.configured]),[['deepseek',true],['openrouter',true]]);
+ assert.equal(r.data.providers.find(p=>p.id==='openrouter').model,'openai/gpt-6.1-sol');
+ assert.equal(r.data.authorBudgets.deepseek,.12);assert.equal(r.data.authorBudgets.openrouter,.50);
+ assert.doesNotMatch(JSON.stringify(r.data),/unit-deepseek-secret|unit-openrouter-secret|API_KEY/);
+ delete env.DEEPSEEK_API_KEY;const onlySol=(await request('/api/info')).data;assert.equal(onlySol.configured,true);assert.equal(onlySol.defaultProvider,'openrouter');
+});
+
+test('cloud rejects unsupported or unconfigured explicit models before creating or charging',async()=>{
+ const {request,sql}=fixture();
+ for(const input of [{aiProvider:'anything',opponent:'ai'},{aiProvider:'openrouter',opponent:'ai'},{opponent:'anything'},{authorProvider:'anything'}]){
+  const r=await request('/api/games',input);assert.equal(r.status,400);assert.ok(['MODEL_PROVIDER','NO_KEY','INVALID_SETUP'].includes(r.data.code));
+ }
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,0);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls').get().n,0);
+ const author=await request('/api/scripts/ai-generate',{provider:'openrouter'});assert.equal(author.data.code,'NO_KEY');
+});
+
+test('cloud saves Sol choice through reload and branch and settles actual provider cost once',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-deepseek-secret';env.OPENROUTER_API_KEY='unit-openrouter-secret';let calls=0;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls++;assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(options.headers.Authorization,'Bearer '+env.OPENROUTER_API_KEY);
+  const body=JSON.parse(options.body);assert.equal(body.model,'openai/gpt-6.1-sol');assert.equal(body.reasoning.effort,'low');assert.ok(body.session_id||body.prompt_cache_key);
+  return new Response(JSON.stringify({id:'provider-test',model:body.model,usage:{prompt_tokens:1000,completion_tokens:100,cost:.012345,prompt_tokens_details:{cached_tokens:800,cache_write_tokens:100},completion_tokens_details:{reasoning_tokens:40}},choices:[{finish_reason:'stop',message:{content:'{"choice":0,"reason":"选择合法行动"}'}}]}));
+ });
+ const created=await request('/api/games',{mode:'mastermind',aiProvider:'openrouter',opponent:'ai',budget:1});assert.equal(created.status,201);let g=created.data;
+ assert.equal(g.aiProvider,'openrouter');assert.equal(g.opponent,'ai');assert.equal(g.modelLabel,'GPT-6.1 Sol');
+ for(let n=0;n<3;n++)g=(await request('/api/games/'+g.id+'/bot-step',{revision:g.revision})).data;
+ assert.equal(g.phaseId,'hero_cards');
+ const requestBody={revision:g.revision,commandId:'sol-once'};const step=await request('/api/games/'+g.id+'/ai-step',requestBody);assert.equal(step.status,200);assert.equal(step.data.decision.controller,'GPT-6.1 Sol');assert.equal(calls,1);
+ assert.equal((await request('/api/games/'+g.id+'/ai-step',requestBody)).status,200);assert.equal(calls,1);
+ const saved=sql.prepare('SELECT spent,state FROM games WHERE id=?').get(g.id);assert.ok(Math.abs(saved.spent-.012345)<1e-10);
+ const ledger=JSON.parse(sql.prepare('SELECT data FROM calls WHERE game=?').get(g.id).data);assert.equal(ledger.costKind,'provider_reported');assert.equal(ledger.actualCost,.012345);assert.equal(ledger.normalizedUsage.cachedInputTokens,800);
+ const reload=(await request('/api/games/'+g.id)).data;assert.equal(reload.aiProvider,'openrouter');assert.equal(reload.opponent,'ai');
+ const branch=await request('/api/games/'+g.id+'/branch',{revision:0});assert.equal(branch.status,201);assert.equal(branch.data.aiProvider,'openrouter');assert.equal(branch.data.opponent,'ai');
+ delete env.OPENROUTER_API_KEY;const resumed=(await request('/api/games/'+g.id)).data;assert.equal(resumed.aiProvider,'openrouter');assert.equal(resumed.aiConfigured,false);
+ const failed=await request('/api/games/'+g.id+'/ai-step',{revision:resumed.revision});assert.equal(failed.data.code,'NO_KEY');assert.equal(calls,1);
+});
+
+test('cloud author endpoints route the independently selected provider and label reported cost',async t=>{
+ const {request,env}=fixture();env.OPENROUTER_API_KEY='unit-openrouter-secret';let calls=0;
+ const script=(await request('/api/scripts/starter')).data;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls++;assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(options.headers.Authorization,'Bearer '+env.OPENROUTER_API_KEY);
+  return new Response(JSON.stringify({usage:{prompt_tokens:500,completion_tokens:40,cost:.0015},choices:[{finish_reason:'stop',message:{content:'{"title":"雨夜灯火","intro":"灯火映着雨幕，钟声再次响起。"}'}}]}));
+ });
+ const result=await request('/api/scripts/ai-polish',{provider:'openrouter',script,theme:'雨夜'});
+ assert.equal(result.status,200);assert.equal(result.data.provider,'openrouter');assert.equal(result.data.costKind,'provider_reported');assert.equal(result.data.estimatedCost,.0015);assert.equal(result.data.script.title,'雨夜灯火');assert.equal(calls,1);
+ const missing=await request('/api/scripts/ai-polish',{provider:'deepseek',script,theme:'雨夜'});assert.equal(missing.data.code,'NO_KEY');assert.equal(calls,1);
+});
+
+
+test('completed creation recovery does not require the former model credential or create another game',async()=>{
+ const {request,env,sql}=fixture();env.OPENROUTER_API_KEY='unit-openrouter-secret';
+ const input={requestId:'completed-model-recovery',aiProvider:'openrouter',opponent:'ai'};
+ const first=await request('/api/games',input);assert.equal(first.status,201);delete env.OPENROUTER_API_KEY;
+ const recovered=await request('/api/games',input);assert.equal(recovered.status,200);assert.equal(recovered.data.id,first.data.id);assert.equal(recovered.data.aiConfigured,false);
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,1);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls').get().n,0);
+ const fresh=await request('/api/games',{...input,requestId:'another-model-recovery'});assert.equal(fresh.data.code,'NO_KEY');
 });

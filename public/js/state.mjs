@@ -13,6 +13,6 @@ export const state={
  autoPlay:stored('tl-autoplay','on')!=='off',
  speed:stored('tl-speed','1')==='2'?2:1,
  rulesTab:'basics',
- editor:{text:'',report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:'',lockSeed:false,lengthPreset:'standard',difficulty:'standard'}},
+ editor:{text:'',report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:'',lockSeed:false,lengthPreset:'standard',difficulty:'standard',provider:'deepseek'}},
  replay:{data:null,at:0,gameId:null,playing:false,full:false}
 };

@@ -27,7 +27,7 @@ function invalidPlan(s,duplicate){
 test('large protagonist rescue decisions enable bounded thinking in the actual request',async t=>{
  const {state:s,targetSeat:seat}=rescueMovementFixture(),actions=legalActions(s,seat),requests=[];
  assert.equal(s.phase,'hero_cards');assert.ok(actions.length>50);
- assert.equal(AI_DECISION_VERSION,'decision-4.1');
+ assert.equal(AI_DECISION_VERSION,'decision-5');
  assert.deepEqual(decisionProfile(s,actions,0),{thinking:'enabled',reasoningEffort:'low',maxTokens:8192});
  t.mock.method(globalThis,'fetch',async(_url,init)=>{requests.push(JSON.parse(init.body));return response({choice:0});});
  await decide(s,seat,options);
@@ -77,7 +77,7 @@ for(const duplicate of ['card','target'])test(`a mastermind batch with a duplica
  assert.equal(requests.length,2);assert.equal(answer.repairAttempts,1);assert.equal(answer.commands.length,3);
  assert.equal(answer.memory,undefined);assert.equal(answer.repairMode,'compiled-plan');
  assert.equal(requests[1].thinking.type,'disabled');assert.equal(requests[1].max_tokens,1200);assert.deepEqual(answer.repairCauses,['INVALID_BATCH']);
- assert.deepEqual(answer.commands,JSON.parse(requests[1].messages[1].content).plans[0].commands);
+ assert.deepEqual(answer.commands,JSON.parse(requests[1].messages.at(-1).content.split('\n').at(-1)).plans[0].commands);
  assert.ok(!JSON.stringify(requests[1]).includes('REJECTED_PLAN_MEMORY'));
  let simulated=s;for(const command of answer.commands){assert.ok(legalActions(simulated,'M').some(a=>sameCommand(a.command,command)));simulated=applyCommand(simulated,'M',command);}
  assert.equal(simulated.phase,'hero_cards');assert.deepEqual(s,before);
@@ -98,20 +98,20 @@ test('a valid three-card mastermind plan remains intact without repair',async t=
  assert.deepEqual(answer.command,answer.commands[0]);assert.deepEqual(s,before);
 });
 
-for(const cause of ['TRUNCATED','BAD_JSON'])test(`${cause} mastermind repair lets the model select an intact compiled plan in a fresh compact conversation`,async t=>{
+for(const cause of ['TRUNCATED','BAD_JSON'])test(`${cause} mastermind repair preserves full context and selects an intact compiled plan`,async t=>{
  const s=createGame(starter),requests=[];s.notes.A='PRIVATE_HERO_NOTE';s.notes.M='OLD_M_NOTE';const before=structuredClone(s);
  t.mock.method(globalThis,'fetch',async(_url,init)=>{
   requests.push(JSON.parse(init.body));
   if(requests.length===1)return new Response(JSON.stringify({choices:[{finish_reason:cause==='TRUNCATED'?'length':'stop',message:{content:'INVALID_PRIOR_TEXT'}}],usage:{prompt_tokens:100,completion_tokens:8192}}));
   return response({plan:1,reason:'选择第二个整组方案'});
  });
- const answer=await decide(s,'M',options),repair=requests[1],input=JSON.parse(repair.messages[1].content);
+ const answer=await decide(s,'M',options),repair=requests[1],input=JSON.parse(repair.messages.at(-1).content.split('\n').at(-1)),identity=JSON.parse(repair.messages[1].content),context=JSON.parse(repair.messages[2].content);
  assert.equal(requests.length,2);assert.equal(answer.repairAttempts,1);assert.deepEqual(answer.repairCauses,[cause]);assert.equal(answer.repairMode,'compiled-plan');
  assert.equal(repair.thinking.type,'disabled');assert.equal(repair.max_tokens,1200);assert.equal(repair.reasoning_effort,undefined);
- assert.equal(repair.messages.length,2);assert.ok(repair.messages.every(m=>m.role!=='assistant'));
- assert.ok(input.plans.length>=2&&input.plans.length<=3);assert.deepEqual(input.secret,view(s,'M').secret);assert.equal(input.observation.secret,undefined);
- for(const key of ['actions','strategyPlans','suggestion','tacticalOptions'])assert.equal(input.observation[key],undefined);
- for(const marker of ['INVALID_PRIOR_TEXT','PRIVATE_HERO_NOTE','OLD_M_NOTE'])assert.ok(!JSON.stringify(repair).includes(marker));
+ assert.equal(repair.messages.length,4);assert.deepEqual(repair.messages.slice(0,3),requests[0].messages);assert.ok(repair.messages.every(m=>m.role!=='assistant'));
+ assert.ok(input.plans.length>=2&&input.plans.length<=3);assert.deepEqual(identity.secret,view(s,'M').secret);assert.equal(context.observation.secret,undefined);
+ assert.deepEqual(context.visibleHistory,decisionContext(s,'M').payload.visibleHistory);assert.equal(context.observation.actions.length,legalActions(s,'M').length);assert.equal(context.privateNote,'OLD_M_NOTE');
+ for(const marker of ['INVALID_PRIOR_TEXT','PRIVATE_HERO_NOTE'])assert.ok(!JSON.stringify(repair).includes(marker));
  assert.deepEqual(answer.commands,input.plans[1].commands);assert.equal(answer.commands.length,3);assert.equal(answer.memory,undefined);
  let current=s;for(const command of answer.commands)current=applyCommand(current,'M',command);assert.equal(current.phase,'hero_cards');assert.deepEqual(s,before);
 });
@@ -164,7 +164,7 @@ for(const ruleset of ['FS','BTX','MZ','MC'])test(`${ruleset} compact rules prese
   for(const entry of rules[section])for(const key of fields)assert.deepEqual(entry[key],full.find(x=>x.id===entry.id)[key],`${entry.id}.${key}`);
  }
  const mastermind=rulesForDecision(s,'M');
- assert.deepEqual(new Set(mastermind.plots.map(x=>x.id)),new Set([s.script.mainPlot,...s.script.subPlots]));
+ assert.deepEqual(mastermind.plots,rules.plots);
  assert.deepEqual(mastermind.roles,rules.roles);assert.deepEqual(mastermind.incidents,rules.incidents);
  assert.ok(!JSON.stringify(rules).includes('sourceRef'));assert.ok(!JSON.stringify(rules).includes('officialAssetNumber'));
 });

@@ -21,7 +21,7 @@ export function homeHtml(state){
     <h1>这一次，<br>改写惨剧的结局。</h1>
     <p class="lead">同样的几天一再重来。记住每一条线索，在轮回用完之前阻止惨剧。</p>
     <div class="row">${btn(icon('loop')+'开始游戏','new','primary big')}${g&&!g.winner?btn('继续对局'+icon('next'),'nav-game','big'):btn(icon('help')+'怎么玩','guide','big')}</div>
-    <div class="pills"><span class="pill${info.configured?' on':''}">${icon('bot')}${info.configured?'对手：DeepSeek AI':'对手：离线机器人'}</span></div>
+    <div class="pills"><span class="pill${info.configured?' on':''}">${icon('bot')}${info.configured?'对手：'+esc(info.providers?.filter(p=>p.configured).length>1?'AI 可选':info.modelLabel||'DeepSeek'):'对手：离线机器人'}</span></div>
    </div>
    <div class="hero-art" aria-hidden="true"><div class="hero-ring"><i></i><i></i><i></i></div>${cast.map((id,i)=>`<img class="p${i}" src="/${char(id).portrait}" alt="">`).join('')}</div>
   </section>

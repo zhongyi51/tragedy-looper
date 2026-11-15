@@ -1,0 +1,180 @@
+{
+  "version": "strategy-v2",
+  "label": "v08-deepseek",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "d4d3619b19962d2b43834862768f2f4f0c2e4cdfa7b0b5492821c0901fb0d6bf",
+  "replicates": 1,
+  "provider": "deepseek",
+  "forcedFirstMaxTokens": null,
+  "httpRequests": 26,
+  "potentialProviderCalls": 16,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "66adfe78c477efab617c515a886606fd70899aefc84524af7815bc9608b5e12b",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "mc-silver-bullet@1": {
+      "id": "mc-silver-bullet",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "在没有当前败北条件时，用 A.I. 模拟银之子弹取得胜利。",
+      "creationId": "a88dfabf-9d83-43b7-bf27-1f0bec79335f",
+      "game": {
+        "id": "11340e66-d7cf-414f-9cb9-13c67e5337cd",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 20,
+        "commandId": "c65234a2-e708-4f3f-baf9-6f0e3f854423"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "c52f1b92-ad4c-4b3a-aeb7-95985bf41288",
+      "game": {
+        "id": "5e512728-2e4d-404c-86bd-a4240f30580b",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 41,
+        "commandId": "fdf2eb37-6bbe-4780-a38b-939d86cb4e3e"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "fs-hero-shrine-cleanup@1": {
+      "id": "fs-hero-shrine-cleanup",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "shrine_cleanup",
+      "description": "正确使用地点能力清除神社暗跃，减少公开威胁。",
+      "creationId": "2757be4b-f56a-4bcf-abab-5b1de2379d90",
+      "game": {
+        "id": "aed120e1-6fcc-460e-bcda-0bb8216cba63",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 41,
+        "commandId": "ae462de2-1be0-435d-8434-b09c46c98b1b"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "btx-hero-final-role-quota@1": {
+      "id": "btx-hero-final-role-quota",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "利用已正确作答的身份与规则配额，完成最后一项判断。",
+      "creationId": "f0ffe5d2-9e83-47fd-93ad-5f252b1ea4fa",
+      "game": {
+        "id": "f0540aec-854a-4ab8-85b4-4128b2bdd3a0",
+        "revision": 55
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 55,
+        "commandId": "a22b63f1-f31c-4958-86f8-512650667edb"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "fs-mastermind-kill-heroes@1": {
+      "id": "fs-mastermind-kill-heroes",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "可立即杀死主人公时，不把一天白白结束。",
+      "creationId": "b095ad75-597b-42fb-ae2f-8fdf27871af1",
+      "game": {
+        "id": "2e402c04-94b9-4fa0-aee0-bfc44d129c27",
+        "revision": 32
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 32,
+        "commandId": "d6dc071c-0095-4664-8f7c-0f268c8ddd1f"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "fs-mastermind-kill-key@1": {
+      "id": "fs-mastermind-kill-key",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "关键人物已满足杀手条件，选择死亡能力。",
+      "creationId": "8e19e40e-4c1c-4492-8a3b-d1ff0e2bb83b",
+      "game": {
+        "id": "b1e03491-934e-4604-980f-e8563f896873",
+        "revision": 10
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 10,
+        "commandId": "758d453d-54b6-47aa-ae31-17d384974670"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "fs-mastermind-location-finish@1": {
+      "id": "fs-mastermind-location-finish",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "最后一天把真正的败北地点从 1 暗跃推到 2。",
+      "creationId": "65350ad4-1fba-46ea-bd25-e6cf1c4a5e75",
+      "game": {
+        "id": "f896cda1-5ff5-401f-b71d-ec60dabc7ba0",
+        "revision": 40
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 40,
+        "commandId": "1bad8ac1-a082-49d4-80f7-d72d1ee9cbee"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "mc-mastermind-therapy-low@1": {
+      "id": "mc-mastermind-therapy-low",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 1 时压住前兆，使钢丝上的计划保持 EX 1。",
+      "creationId": "ca68f859-e16f-4134-9515-47ef48ef0356",
+      "game": {
+        "id": "19245358-46ce-4101-a434-2a14ce4061f2",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "pendingPaid": {
+        "revision": 20,
+        "commandId": "b229a77a-374c-47d6-95ca-8316bc355f1b"
+      },
+      "error": "HTTP 400 NETWORK; no automatic retry"
+    },
+    "mc-mastermind-therapy-high@1": {
+      "id": "mc-mastermind-therapy-high",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 2 时保留前兆，使拼凑事件达到 EX 3。",
+      "creationId": "a2dc8ef8-b20e-410d-a1aa-a2d7dcd4158d"
+    },
+    "fs-mastermind-resilient-three-cards@1": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "aa53b6fd-b118-45c5-9714-886d0ac2a420"
+    }
+  },
+  "runStatus": "stopped_initial_transport_failure",
+  "diagnosis": "Cloudflare Workers rejects redirect:error before sending the provider request. Replaced with manual and explicit rejection of 3xx. This run is not a model quality measurement; application unknown-cost reservations are not supplier bills."
+}

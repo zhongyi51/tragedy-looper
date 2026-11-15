@@ -9,6 +9,7 @@ import {createAnimator,domFx} from './anim.mjs';
 import {publicDraft,printableHtml,offlineReplayHtml} from './exporters.mjs';
 import {parseDraft,blankDraft,editDraft} from './script-draft.mjs';
 import {generationOptions,randomSetup,freshSeed,libraryItems,creationAttempt} from './game-setup.mjs';
+import {availableModels,authorModel,opponentSettings} from './ai-settings.mjs';
 import {TABLE_SKELETON,emptyGameHtml,tableRegions} from './ui/game.mjs';
 import {homeHtml} from './ui/home.mjs';
 import {rulesHtml} from './ui/rules.mjs';
@@ -55,7 +56,7 @@ function navHtml(){
  const {info,page,sound}=state;
  return `<button type="button" class="brand" data-do="nav-home" aria-label="返回首页"><span class="brand-mark">${icon('loop')}</span><span class="brand-text">时隙<small>TRAGEDY LOOPER</small></span></button>
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
-  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(info.model):'没有配置 DeepSeek 密钥，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
+  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(availableModels(info).map(p=>p.label).join('、')):'没有连接 AI 模型，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
 const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ + MC</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
@@ -143,7 +144,7 @@ function readGameSetup(){
  const setup={communication:value('new-talk'),opponent:value('new-opponent'),budget:Number(value('new-budget')??.5),
   incidentVisibility:'public',advancedOpen:Boolean($('#new-advanced')?.open)};
  const fields={days:'new-days',loops:'new-loops',incidentCount:'new-incidents',seed:'new-seed',characterPool:'new-pool',mainPlot:'new-main',
-  ruleset:'new-ruleset',lengthPreset:'new-length',difficulty:'new-difficulty',theme:'new-theme',libraryId:'new-library'};
+  ruleset:'new-ruleset',lengthPreset:'new-length',difficulty:'new-difficulty',theme:'new-theme',libraryId:'new-library',authorProvider:'new-author-provider'};
  for(const [key,id] of Object.entries(fields))if($('#'+id))setup[key]=value(id);
  if($('#new-sub-0'))setup.subPlots=[value('new-sub-0'),...($('#new-sub-1')?[value('new-sub-1')]:[])];
  if($('#new-ai-character'))setup.includeAI=$('#new-ai-character').checked;
@@ -239,7 +240,8 @@ const actions={
   let createdSuccessfully=false;
   state.creating=true;state.modal=newGameModal(state,mode,type,setup);render();
   try{
-   const request={mode,budget:setup.budget,incidentVisibility:'public',communication:setup.communication};
+   const request={mode,budget:setup.budget,incidentVisibility:'public',communication:setup.communication,...opponentSettings(setup.opponent)};
+   if(type==='ai')request.authorProvider=authorModel(state.info,setup.authorProvider);
    if(randomSetup(type))request.setup=generationOptions(type,setup);
    else if(type==='library')request.libraryId=setup.libraryId;
    else{
@@ -292,13 +294,13 @@ async function generate(kind){
  if(state.working)return;
  const gen=editor.generator;
  if(kind!=='ai-polish'&&!gen.lockSeed)gen.seed=freshSeed(gen.seed);
- const config=kind==='ai-polish'?{script:readDraft(),theme:gen.theme}:{ruleset:gen.ruleset,seed:+gen.seed,theme:gen.theme,
-  lengthPreset:gen.lengthPreset||'standard',difficulty:gen.difficulty||'standard',incidentVisibility:'public'};
+ const config=kind==='ai-polish'?{script:readDraft(),theme:gen.theme,provider:authorModel(state.info,gen.provider)}:{ruleset:gen.ruleset,seed:+gen.seed,theme:gen.theme,
+  lengthPreset:gen.lengthPreset||'standard',difficulty:gen.difficulty||'standard',incidentVisibility:'public',...(kind==='generate'?{}:{provider:authorModel(state.info,gen.provider)})};
  state.working=true;render();
  try{
   const data=await api(kind==='generate'?'/scripts/generate':kind==='ai-polish'?'/scripts/ai-polish':'/scripts/ai-generate',config);
   setDraft(data.script||data);
-  toast(kind==='generate'?(gen.lockSeed?'已按种子生成剧本':'已生成另一份剧本'):(kind==='ai-polish'?'AI 润色完成':'AI 编剧完成')+(Number.isFinite(data.estimatedCost)?'，约 $'+data.estimatedCost.toFixed(5):''));
+  toast(kind==='generate'?(gen.lockSeed?'已按种子生成剧本':'已生成另一份剧本'):(kind==='ai-polish'?'AI 润色完成':'AI 编剧完成')+(Number.isFinite(data.estimatedCost)?(data.costKind==='provider_reported'?'，$':'，约 $')+data.estimatedCost.toFixed(5):''));
  }finally{state.working=false;render();}
 }
 
@@ -337,8 +339,9 @@ document.addEventListener('change',async e=>{
  const t=e.target;
  try{
   if(t.name==='new-script')return updateNewGame(t.value);
-  if(['new-ruleset','new-main','new-sub-0','new-sub-1','new-days','new-length','new-library'].includes(t.id))return updateNewGame();
+  if(['new-ruleset','new-main','new-sub-0','new-sub-1','new-days','new-length','new-library','new-author-provider'].includes(t.id))return updateNewGame();
   if(t.id==='replay-range')return render();
+  if(t.id==='gen-provider'){editor.generator.provider=t.value;render();return;}
   if(t.id==='gen-set'){editor.generator.ruleset=t.value;return;}
   if(t.id==='gen-lock'){editor.generator.lockSeed=t.checked;render();return;}
   if(t.id==='gen-length'){editor.generator.lengthPreset=t.value;return;}

@@ -1,0 +1,111 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 7,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "deepseek",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "pendingPaid": true
+        }
+      ],
+      "gameId": "75bbc691-d64d-448f-afa0-e614e575727b",
+      "error": "HTTP 400 NETWORK; not retried"
+    },
+    {
+      "provider": "openrouter",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "pendingPaid": true
+        }
+      ],
+      "gameId": "98cae2fb-34c7-48d7-9832-1b941d1998cf",
+      "error": "HTTP 400 NETWORK; not retried"
+    }
+  ],
+  "authors": [
+    {
+      "provider": "deepseek",
+      "pendingPaid": true,
+      "error": "HTTP 400 NETWORK; not retried"
+    },
+    {
+      "provider": "openrouter",
+      "pendingPaid": true,
+      "error": "HTTP 400 NETWORK; not retried"
+    }
+  ],
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-5"
+  },
+  "runStatus": "stopped_initial_transport_failure",
+  "diagnosis": "Cloudflare Workers rejects redirect:error before sending the provider request. Replaced with manual and explicit rejection of 3xx. This run is not a model quality measurement; application unknown-cost reservations are not supplier bills."
+}

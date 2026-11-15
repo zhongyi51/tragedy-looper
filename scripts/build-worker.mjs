@@ -16,7 +16,12 @@ function bundleModule(file){
  visiting.add(file);const id='mod_'+modules.size+'_'+visiting.size,exports=new Map();
  let source=read(file);
  if(file==='src/content.mjs')source=source.replace(/^import \{readFileSync\} from 'node:fs';\r?\n/m,'').replace(/^export const catalog=.*?;\r?\n/m,`export const catalog=${JSON.stringify(catalog)};\n`);
- if(file==='src/model-provider.mjs')source=source.replace("process.env.DEEPSEEK_API_KEY||''","''").replace("process.env.DEEPSEEK_MODEL||'deepseek-flash'","'deepseek-flash'").replace("(process.env.DEEPSEEK_BASE_URL||'https://api.deepseek.com')","('https://api.deepseek.com')").replaceAll('Buffer.byteLength(JSON.stringify(messages))','new TextEncoder().encode(JSON.stringify(messages)).length');
+ if(file==='src/model-provider.mjs'){
+  // Hosted credentials are supplied per request from Worker bindings. Never
+  // capture the build process environment or retain Node-only env access.
+  source=source.replaceAll("process.env.DEEPSEEK_API_KEY||''","''").replaceAll("process.env.OPENROUTER_API_KEY||''","''").replace("process.env.DEEPSEEK_MODEL||'deepseek-flash'","'deepseek-flash'").replace("(process.env.DEEPSEEK_BASE_URL||'https://api.deepseek.com')","('https://api.deepseek.com')").replaceAll('Buffer.byteLength(JSON.stringify(messages))','new TextEncoder().encode(JSON.stringify(messages)).length');
+  if(/process\.env\./.test(source))throw Error('Unmapped provider environment binding in Worker build');
+ }
  const dependency=specifier=>{
   if(specifier==='node:crypto')return 'runtimeCrypto';
   if(!specifier.startsWith('.'))throw Error('Unsupported Worker import '+specifier+' in '+file);
@@ -47,7 +52,7 @@ for(const c of catalog.characters)for(const key of ['portrait','card'])add('/'+c
 for(const n of ['click_001','drop_001','confirmation_001','error_001','glitch_001','bong_001','open_001'])add('/assets/audio/Audio/'+n+'.ogg','assets/audio/Audio/'+n+'.ogg','audio/ogg');
 const entry=bundleModule('worker/index.mjs');
 const bundle="import * as runtimeCrypto from 'node:crypto';\n"+chunks.join('\n')+'\nconst ASSETS='+JSON.stringify(assets)+`;\nexport default ${entry}.createWorker(ASSETS);\n`;
-if(/sk-[a-zA-Z0-9]{20,}/.test(bundle))throw Error('疑似凭据，不可构建');
+if(/sk-(?:or-v1-)?[a-zA-Z0-9]{20,}/.test(bundle))throw Error('疑似凭据，不可构建');
 mkdirSync(path.join(root,'dist/server'),{recursive:true});mkdirSync(path.join(root,'dist/.openai'),{recursive:true});
 writeFileSync(path.join(root,'dist/server/index.js'),bundle);
 writeFileSync(path.join(root,'dist/server/wrangler.json'),JSON.stringify({name:'tragedy-looper',main:'index.js',compatibility_date:'2026-05-15',compatibility_flags:['nodejs_compat']},null,2));

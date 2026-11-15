@@ -5,6 +5,7 @@ import {generateWithAi,authoredScriptHash} from './author.mjs';
 import {getCuratedScript} from './script-library.mjs';
 import {evaluateScriptQuality} from './script-quality.mjs';
 import {compileDesign,DESIGN_VERSION} from './script-design.mjs';
+import {authorBudgetFor} from './ai-settings.mjs';
 
 export const AUTHOR_BUDGET=.12;
 export const FEEDBACK_RATINGS=['interesting','too_easy','too_hard','unclear','repetitive'];
@@ -44,7 +45,7 @@ export async function prepareGameScript(body={},aiOptions={}){
   const setup={...body.setup,...(body.communication===undefined?{}:{communication:body.communication})};
   const generation=setup.generation??'random';
   if(!['random','ai'].includes(generation))throw serviceError('请选择快速随机或 AI 编剧','INVALID_SETUP');
-  if(generation==='ai')script=await generateWithAi({...setup,incidentVisibility:'public'},{...aiOptions,authorBudget:AUTHOR_BUDGET});
+  if(generation==='ai')script=await generateWithAi({...setup,incidentVisibility:'public'},{...aiOptions,authorBudget:authorBudgetFor(aiOptions.provider??'deepseek')});
   else script=scriptForGame({...body,setup});
  }else script=scriptForGame(body);
  if(body.communication!==undefined&&serviceRecord(script))script.communication=body.communication;

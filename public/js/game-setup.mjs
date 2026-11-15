@@ -14,7 +14,7 @@ export function normalizeGameSetup(script,values={}){
  const subPlots=Array.from({length:ruleset==='FS'?1:2},(_,i)=>xs.includes(values.subPlots?.[i])?values.subPlots[i]:'');
  for(let i=1;i<subPlots.length;i++)if(subPlots[i]&&subPlots.slice(0,i).includes(subPlots[i]))subPlots[i]='';
  return {days:'',loops:'',incidentCount:'',lengthPreset:'standard',seed:'',characterPool:'standard',includeAI:false,
-  communication:'between_loops_only',opponent:'',budget:.5,advancedOpen:false,theme:'',difficulty:'standard',libraryId:'',...values,
+  communication:'between_loops_only',opponent:'',budget:.5,advancedOpen:false,theme:'',difficulty:'standard',libraryId:'',authorProvider:'deepseek',...values,
   incidentVisibility:'public',ruleset,mainPlot:allowed('Y').includes(values.mainPlot)?values.mainPlot:'',subPlots};
 }
 

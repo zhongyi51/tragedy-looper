@@ -13,12 +13,12 @@ function heroState(){
  return s;
 }
 
-for(const set of ['FS','BTX','MZ','MC'])test(`${set} model dictionary contains the entire selected set and only its cast`,()=>{
+for(const set of ['FS','BTX','MZ','MC'])test(`${set} model dictionary contains the entire selected set and public character catalog`,()=>{
  const s=createGame(generateScript({ruleset:set,seed:142126})),r=rulesForDecision(s);
  assert.deepEqual(r.sets.map(x=>x.id),[set]);
  assert.deepEqual(r.plots.map(x=>x.id),catalog.plots.filter(x=>x.sets.includes(set)).map(x=>x.id));
  assert.deepEqual(r.roles.map(x=>x.id),catalog.roles.filter(x=>x.sets.includes(set)).map(x=>x.id));
- assert.deepEqual(new Set(r.characters.map(x=>x.id)),new Set(s.script.characters));
+ assert.deepEqual(new Set(r.characters.map(x=>x.id)),new Set(catalog.characters.map(x=>x.id)));
  const other=structuredClone(s);other.script.mainPlot='SECRET_DIFFERENT_Y';other.script.subPlots=['SECRET_X'];other.script.roles={};
  assert.deepEqual(rulesForDecision(other),r);
 });
@@ -114,7 +114,7 @@ test('critical plans use bounded thinking while simple decisions retain fast mod
  assert.deepEqual(decisionProfile({...s,phase:'refusal'},actions.slice(0,2),0),{thinking:'disabled',maxTokens:1800});
 });
 
-test('a truncated protagonist decision retains bounded reasoning, accounts both calls, and leaves the state unchanged',async t=>{
+test('a truncated DeepSeek protagonist decision uses one fast full-context repair and accounts both calls',async t=>{
  const s=heroState(),before=structuredClone(s),requests=[],reservations=[],usage=[];
  t.mock.method(globalThis,'fetch',async(_url,init)=>{
   requests.push(JSON.parse(init.body));
@@ -124,13 +124,13 @@ test('a truncated protagonist decision retains bounded reasoning, accounts both 
  const answer=await decide(s,'A',{apiKey:'unit_test_not_a_real_key',onReserve:x=>reservations.push(x),onUsage:x=>usage.push(x)});
  assert.equal(requests.length,2);assert.equal(answer.repairAttempts,1);
  assert.equal(requests[0].thinking.type,'enabled');assert.equal(requests[0].max_tokens,8192);
- assert.equal(requests[1].thinking.type,'enabled');assert.equal(requests[1].max_tokens,8192);assert.equal(requests[1].reasoning_effort,'low');
+ assert.equal(requests[1].thinking.type,'disabled');assert.equal(requests[1].max_tokens,1200);assert.equal(requests[1].reasoning_effort,undefined);
  assert.deepEqual(requests[1].messages.slice(0,3),requests[0].messages);assert.match(requests[1].messages.at(-1).content,/省略memory和note/);
  assert.deepEqual(answer.repairCauses,['TRUNCATED']);
- assert.deepEqual(usage.map(x=>x.status),['completed','completed']);assert.deepEqual(usage.map(x=>x.thinking),['enabled','enabled']);
+ assert.deepEqual(usage.map(x=>x.status),['completed','completed']);assert.deepEqual(usage.map(x=>x.thinking),['enabled','disabled']);
  assert.deepEqual(usage.map(x=>x.reserved),reservations);assert.equal(usage[0].estimatedCost,(100*.3+8192*1.2)/1e6);assert.equal(usage[1].estimatedCost,(100*.3+80*1.2)/1e6);
  assert.ok(!JSON.stringify(requests.concat(usage)).includes('PRIVATE_TRUNCATED_REASONING'));
- assert.deepEqual(answer.command,legalActions(s,'A')[0].command);assert.equal(answer.repairMode,undefined);assert.deepEqual(s,before);
+ assert.deepEqual(answer.command,legalActions(s,'A')[0].command);assert.equal(answer.repairMode,'direct-json');assert.deepEqual(s,before);
 });
 
 for(const invalid of ['not JSON',{choice:-1}])test(`a ${typeof invalid==='string'?'JSON':'candidate'} repair bounds the thinking effort without switching off reasoning`,async t=>{

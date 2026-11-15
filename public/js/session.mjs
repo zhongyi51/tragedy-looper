@@ -101,7 +101,7 @@ export function createSession({state,api,render,animate=async()=>{},land=()=>{},
   }
  }
 
- const aiRoute=()=>state.info.configured&&storage.getItem('tl-opp-'+state.g.id)!=='bot'?'ai-step':'bot-step';
+ const aiRoute=()=>state.g.opponent==='ai'?'ai-step':state.g.opponent==='bot'?'bot-step':(state.g.aiConfigured??state.info.configured)&&storage.getItem('tl-opp-'+state.g.id)!=='bot'?'ai-step':'bot-step';
  const settled=g=>PLACING.includes(g.phaseId)||state.advancedRevision===mark(g);
 
  // Runs forced rule steps and opponent turns until a human decision, the end, or a pause.

@@ -76,15 +76,16 @@ class Runner:
     def __init__(self, args, specs, base, token):
         self.args, self.specs, self.base, self.token = args, specs, base, token
         self.output, self.lock = pathlib.Path(args.output).resolve(), threading.RLock()
+        self.transport_blocked = threading.Event()
         manifest = hashlib.sha256(json.dumps(specs, sort_keys=True).encode()).hexdigest()
         self.data = json.loads(self.output.read_text()) if self.output.exists() else {
             'version': VERSION, 'label': args.label, 'base': base, 'manifestHash': manifest,
-            'replicates': args.replicates, 'forcedFirstMaxTokens': args.first_max_tokens, 'httpRequests': 0, 'potentialProviderCalls': 0,
+            'replicates': args.replicates, 'provider': args.provider, 'forcedFirstMaxTokens': args.first_max_tokens, 'httpRequests': 0, 'potentialProviderCalls': 0,
             'sourceHashes': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
-                             for p in ['src/engine.mjs', 'src/ai.mjs', 'test/fixtures/strategy-v2.mjs']},
+                             for p in ['src/engine.mjs', 'src/ai.mjs', 'src/model-provider.mjs', 'src/game-prompt.mjs', 'test/fixtures/strategy-v2.mjs']},
             'cases': {}}
         for key, expected in [('version', VERSION), ('label', args.label), ('base', base),
-                              ('manifestHash', manifest), ('replicates', args.replicates)]:
+                              ('manifestHash', manifest), ('replicates', args.replicates), ('provider', args.provider)]:
             if self.data.get(key) != expected:
                 raise ValueError('Checkpoint mismatch: ' + key)
         if self.data.get('forcedFirstMaxTokens') != args.first_max_tokens:
@@ -124,6 +125,8 @@ class Runner:
 
     def run_case(self, spec, replicate):
         key = f"{spec['id']}@{replicate}"
+        if self.transport_blocked.is_set():
+            return
         with self.lock:
             record = self.data['cases'].setdefault(key, {'id': spec['id'], 'replicate': replicate,
                          'seat': spec['targetSeat'], 'criterion': spec['criterion'],
@@ -135,7 +138,7 @@ class Runner:
                 if record.get('pendingPaid'):
                     raise RuntimeError('Previous paid request is uncertain; inspect it manually, do not resample')
                 if not record.get('game'):
-                    game = self.call('/games', {'mode': 'observe', 'budget': .2, 'script': spec['script'],
+                    game = self.call('/games', {'mode': 'observe', 'budget': .5, 'aiProvider': self.args.provider, 'opponent': 'ai', 'script': spec['script'],
                                                'requestId': record['creationId']})
                     record['game'] = {'id': game['id'], 'revision': game['revision']}
                     self.save()
@@ -177,6 +180,9 @@ class Runner:
                               'spentEstimate': decision.get('spentEstimate')}, ensure_ascii=False), flush=True)
         except Exception as error:
             record['error'] = str(error) or type(error).__name__
+            if 'NETWORK' in record['error'] or 'Uncertain request result' in record['error']:
+                self.transport_blocked.set()
+                self.data['stoppedForTransportFailure'] = True
             print(json.dumps({'case': key, 'error': record['error']}, ensure_ascii=False), flush=True)
         finally:
             self.save()
@@ -207,6 +213,7 @@ class Runner:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--label', default='candidate')
+    parser.add_argument('--provider', choices=['deepseek', 'openrouter'], default='deepseek')
     parser.add_argument('--replicates', type=int, choices=[1, 2, 3], default=1)
     parser.add_argument('--workers', type=int, choices=[1, 2], default=2)
     parser.add_argument('--ids', nargs='*')

@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import {normalizeFailureLog} from '../public/failure-timing.mjs';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.7.1';
+export const VERSION='0.8.0';
 export const VISIBILITY_POLICY='failure_timing_v2';
 export const phases={setup:'轮回准备',extra_setup:'EX 卡设置',reveal_role:'角色公开',ai_target:'事件模拟',incident_check:'事件',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end_forced:'日结束',end:'日结束',loop_end:'轮回结束',legacy_end:'结束时点未记录',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;

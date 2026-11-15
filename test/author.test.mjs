@@ -4,35 +4,40 @@ import {authorPrompt,validateAuthorPlan,buildAuthorCandidates,generateWithAi,pol
 import {configureKey,reserveFor} from '../src/model-provider.mjs';
 import {catalog,validateScript,publicScript,generatedTitle} from '../src/content.mjs';
 import {listCuratedScripts,getCuratedScript} from '../src/script-library.mjs';
+import {rulesForPrompt} from '../src/game-prompt.mjs';
 
 configureKey('author_mock_key_not_a_real_secret');
 const base={ruleset:'FS',seed:143211,difficulty:'standard'};
 const sourceFor=ruleset=>getCuratedScript(listCuratedScripts().find(script=>script.ruleset===ruleset).id);
 const planFor=ruleset=>{const s=sourceFor(ruleset);return {mainPlot:s.mainPlot,subPlots:s.subPlots,characters:s.characters,days:s.days,loops:s.loops,incidentCount:s.incidents.length,settings:s.settings};};
 const initialInput=request=>JSON.parse(request.messages.find(message=>message.role==='user').content);
+// Provider cache identities need not encode the private authoring stage.
+const stageOf=request=>{const input=initialInput(request);return input.candidates?'_select':input.constraints?'_plan':input.stage?'_polish':'_caption';};
 function selectedAnswer(request,index=0){
- const candidate=initialInput(request).candidates[index],o=candidate.designOptions;
+ const input=initialInput(request),candidate=input.candidates[index],o={...candidate.designOptions,facts:[...(input.commonDesignOptions?.facts||[]),...candidate.designOptions.facts]};
  return {candidateId:candidate.id,design:{focus:o.focuses[0].id,...Object.fromEntries(['threats','counterplay','clues','loopFacts'].map(section=>[section,o.facts.filter(fact=>fact.sections.includes(section)).slice(0,section==='loopFacts'?2:3).map(fact=>fact.id)]))}};
 }
 const response=(answer,usage={prompt_tokens:1000,prompt_cache_hit_tokens:800,prompt_cache_miss_tokens:200,completion_tokens:100})=>new Response(JSON.stringify({model:'author-test',id:'author-mock',choices:[{finish_reason:'stop',message:{content:typeof answer==='string'?answer:JSON.stringify(answer)}}],usage}),{status:200});
 async function withProvider(fn,body){
  const original=globalThis.fetch,requests=[];
- globalThis.fetch=async(url,init)=>{const request=JSON.parse(init.body);requests.push(request);const result=await fn(request,requests,url,init);return result instanceof Response?result:response(result??(request.user_id.endsWith('_caption')?{title:initialInput(request).theme+'的余音',intro:'关于'+initialInput(request).theme+'的记忆，在四条街道之间反复回响。'}:request.user_id.endsWith('_plan')?{plan:planFor(initialInput(request).dictionary.set.id)}:selectedAnswer(request)));};
+ globalThis.fetch=async(url,init)=>{const request=JSON.parse(init.body);requests.push(request);const result=await fn(request,requests,url,init);return result instanceof Response?result:response(result??((stageOf(request)==='_caption')?{title:initialInput(request).theme+'的余音',intro:'关于'+initialInput(request).theme+'的记忆，在四条街道之间反复回响。'}:(stageOf(request)==='_plan')?{plan:planFor(initialInput(request).ruleset)}:selectedAnswer(request)));};
  try{return await body(requests);}finally{globalThis.fetch=original;}
 }
 
 test('planning input contains the selected ruleset, exact constraints and one labelled original example',()=>{
  const {messages,configuration:c}=authorPrompt({ruleset:'BTX',mainPlot:'contract',subPlots:['','threads_fate'],theme:'窗边的空座位',seed:1});
- const input=JSON.parse(messages[1].content);
- assert.ok(input.dictionary.plots.every(plot=>plot.sets.includes('BTX')));
- assert.ok(input.dictionary.roles.every(role=>role.sets.includes('BTX')));
+ const input=initialInput({messages}),dictionary=rulesForPrompt('BTX');
+ assert.equal(input.ruleset,'BTX');assert.equal(input.dictionary,undefined);
+ assert.deepEqual(dictionary.plots.map(plot=>plot.id),catalog.plots.filter(plot=>plot.sets.includes('BTX')).map(plot=>plot.id));
+ assert.deepEqual(dictionary.roles.map(role=>role.id),catalog.roles.filter(role=>role.sets.includes('BTX')).map(role=>role.id));
+ assert.ok(messages[0].content.includes(JSON.stringify(dictionary)));
  assert.deepEqual(input.constraints.subPlots,['','threads_fate']);
  assert.equal(input.schema.plan.roles,undefined);assert.equal(input.schema.plan.incidents,undefined);
  assert.equal(input.theme,'窗边的空座位');assert.equal(c.constraints.incidentVisibility,'public');
  assert.match(input.example.origin,/原创/);assert.notEqual(input.example.plan.mainPlot,'contract');
- assert.match(messages[0].content,/subPlots 的每个非空索引都已固定/);
- assert.match(messages[0].content,/FS 没有最后的战斗/);
- assert.match(messages[0].content,/事件名称和日期从开局公开/);
+ assert.match(messages[1].content,/subPlots 的每个非空索引都已固定/);
+ assert.match(messages[1].content,/FS 没有最后的战斗/);
+ assert.match(messages[1].content,/事件名称和日期从开局公开/);
 });
 
 test('plan validation preserves explicit X indexes and rejects unsupported mechanics fields',()=>{
@@ -75,7 +80,7 @@ test('normal authoring uses planning then legal candidate selection and stores p
  let chosen,stage;
  const used=[];
  const result=await withProvider(request=>{
-  if(request.user_id.endsWith('_select')){const input=initialInput(request);chosen=input.candidates.at(-1);stage=input.stage;return selectedAnswer(request,input.candidates.length-1);}
+  if((stageOf(request)==='_select')){const input=initialInput(request);chosen=input.candidates.at(-1);stage=input.stage;return selectedAnswer(request,input.candidates.length-1);}
  },requests=>generateWithAi(base,{onUsage:entry=>used.push(entry)}));
  assert.equal(result.source,'ai');assert.equal(result.generation.version,AUTHOR_VERSION);assert.equal(result.generation.pipeline,'plan-compile-select');
  assert.equal(result.generation.planSource,'model');assert.equal(result.generation.planAttempts,1);assert.equal(result.generation.selectionAttempts,1);
@@ -92,7 +97,7 @@ test('normal authoring uses planning then legal candidate selection and stores p
 
 test('a fully specified user plan skips model planning without bypassing compilation or selection',async()=>{
  const plan=planFor('MC'),config={ruleset:'MC',...plan,includeAI:true,seed:42};let calls=0;
- const result=await withProvider(request=>{calls++;assert.ok(request.user_id.endsWith('_select'));},()=>generateWithAi(config));
+ const result=await withProvider(request=>{calls++;assert.ok((stageOf(request)==='_select'));},()=>generateWithAi(config));
  assert.equal(calls,1);assert.equal(result.generation.planSource,'user');assert.equal(result.generation.planAttempts,0);assert.deepEqual(result.generation.plan,plan);
  assert.equal(result.generation.usage.requests,1);assert.notEqual(result.roles.ai_character,'person');
 });
@@ -109,7 +114,7 @@ test('all four rulesets compile selected model plans including A.I. and expansio
 test('the first request of each stage can think while a repair is bounded and non-thinking',async()=>{
  let planCalls=0,selectCalls=0;
  const result=await withProvider(request=>{
-  if(request.user_id.endsWith('_plan')){planCalls++;const plan=planFor('FS');if(planCalls===1)plan.days++;return {plan};}
+  if((stageOf(request)==='_plan')){planCalls++;const plan=planFor('FS');if(planCalls===1)plan.days++;return {plan};}
   selectCalls++;if(selectCalls===1)return {candidateId:'not-a-candidate',design:{}};
  },async requests=>{const result=await generateWithAi({...base,days:4});assert.equal(requests.length,4);assert.deepEqual(requests.map(r=>r.thinking.type),['enabled','disabled','enabled','disabled']);assert.deepEqual(requests.map(r=>r.max_tokens),[8192,4096,8192,4096]);assert.equal(requests[0].reasoning_effort,'low');assert.equal(requests[1].reasoning_effort,undefined);return result;});
  assert.equal(result.generation.usage.requests,4);assert.equal(result.generation.planAttempts,2);assert.equal(result.generation.selectionAttempts,2);
@@ -119,7 +124,7 @@ test('malformed JSON and truncation get at most one fast repair per stage',async
  for(const stage of ['_plan','_select'])for(const type of ['json','truncated']){
   let failures=0;
   await withProvider(request=>{
-   if(request.user_id.endsWith(stage)&&failures++===0)return type==='json'?response('{unfinished'):new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:'{}'}}],usage:{completion_tokens:50}}));
+   if((stageOf(request)===stage)&&failures++===0)return type==='json'?response('{unfinished'):new Response(JSON.stringify({choices:[{finish_reason:'length',message:{content:'{}'}}],usage:{completion_tokens:50}}));
   },async requests=>{await generateWithAi(base);assert.equal(requests.length,3);assert.equal(requests.filter(r=>r.thinking.type==='disabled').length,1);});
  }
 });
@@ -133,7 +138,7 @@ test('invalid plans cannot silently become unrelated random scripts',async()=>{
 test('incompatible compiled plans receive concrete repair findings without changing fixed rules',async()=>{
  const good=planFor('BTX');good.mainPlot='contract';good.characters=['boy_student','girl_student','police','office_worker','doctor','informer','soldier'];
  const bad={...good,characters:good.characters.filter(id=>id!=='girl_student')};let plans=0;
- const result=await withProvider(request=>{if(request.user_id.endsWith('_plan'))return {plan:++plans===1?bad:good};},async requests=>{
+ const result=await withProvider(request=>{if((stageOf(request)==='_plan'))return {plan:++plans===1?bad:good};},async requests=>{
   const result=await generateWithAi({ruleset:'BTX',mainPlot:'contract',seed:27});assert.equal(requests.length,3);assert.match(requests[1].messages.at(-1).content,/少女/);return result;
  });
  assert.equal(result.mainPlot,'contract');assert.deepEqual(result.characters,good.characters);
@@ -147,7 +152,7 @@ test('an impossible fully specified user plan fails before any paid model call',
 
 test('selection cannot alter a candidate or inject natural-language design claims',async()=>{
  for(const modify of [answer=>({...answer,script:{roles:{doctor:'brain'}}}),answer=>({...answer,design:{...answer.design,counterplay:['invented:doctor:reveal']}}),answer=>({...answer,design:{...answer.design,explanation:'医生可以揭露角色'}}),answer=>({...answer,design:{...answer.design,clues:answer.design.threats}})]){
-  let selections=0;await withProvider(request=>{if(request.user_id.endsWith('_select')){selections++;return modify(selectedAnswer(request));}},()=>assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_QUALITY'));
+  let selections=0;await withProvider(request=>{if((stageOf(request)==='_select')){selections++;return modify(selectedAnswer(request));}},()=>assert.rejects(generateWithAi(base),e=>e.code==='AUTHOR_QUALITY'));
   assert.equal(selections,2);
  }
 });
@@ -155,12 +160,12 @@ test('selection cannot alter a candidate or inject natural-language design claim
 test('selection supplies exact grouped IDs and repairs wrong clue references with only that candidate choices',async()=>{
  let selections=0,chosen,repair;
  const result=await withProvider(request=>{
-  if(!request.user_id.endsWith('_select'))return;
+  if(!(stageOf(request)==='_select'))return;
   selections++;
   const input=initialInput(request);
   for(const candidate of input.candidates){
    assert.deepEqual(candidate.designChoices.focus,candidate.designOptions.focuses.map(focus=>focus.id));
-   for(const section of ['threats','counterplay','clues','loopFacts'])assert.deepEqual(candidate.designChoices[section],candidate.designOptions.facts.filter(fact=>fact.sections.includes(section)).map(fact=>fact.id));
+   for(const section of ['threats','counterplay','clues','loopFacts'])assert.deepEqual(new Set(candidate.designChoices[section]),new Set([...input.commonDesignOptions.facts,...candidate.designOptions.facts].filter(fact=>fact.sections.includes(section)).map(fact=>fact.id)));
    assert.deepEqual(candidate.designLimits.clues,{type:'array',min:1,max:4,unique:true});
    assert.deepEqual(candidate.designLimits.loopFacts,{type:'array',min:0,max:3,unique:true});
   }
@@ -181,7 +186,7 @@ test('selection supplies exact grouped IDs and repairs wrong clue references wit
 test('a repeated invalid design fails after one repair without exposing model text or private reference choices',async()=>{
  let selections=0;
  await withProvider(request=>{
-  if(!request.user_id.endsWith('_select'))return;
+  if(!(stageOf(request)==='_select'))return;
   selections++;
   const answer=selectedAnswer(request);answer.design.clues=['PRIVATE_UNKNOWN_MODEL_ID'];answer.design.explanation='PRIVATE_MODEL_PROSE';return answer;
  },async requests=>{
@@ -197,7 +202,7 @@ test('a repeated invalid design fails after one repair without exposing model te
 
 test('the same theme yields a secret-independent public caption request under different hidden plans',async()=>{
  const a=planFor('FS'),b={...a,mainPlot:'murder_plan'},theme='雨夜的末班电车',results=[],captions=[];
- for(const plan of [a,b])results.push(await withProvider(request=>{if(request.user_id.endsWith('_caption'))captions.push(request.messages);return request.user_id.endsWith('_plan')?{plan}:undefined;},()=>generateWithAi({...base,theme,mainPlot:plan.mainPlot})));
+ for(const plan of [a,b])results.push(await withProvider(request=>{if((stageOf(request)==='_caption'))captions.push(request.messages);return (stageOf(request)==='_plan')?{plan}:undefined;},()=>generateWithAi({...base,theme,mainPlot:plan.mainPlot})));
  assert.notEqual(results[0].mainPlot,results[1].mainPlot);assert.deepEqual(captions[0],captions[1]);
  assert.equal(results[0].title,results[1].title);assert.equal(results[0].intro,results[1].intro);assert.match(results[0].intro,/雨夜的末班电车/);
  assert.doesNotMatch(JSON.stringify(captions),/avenger|murder_plan|roles|culprit|privateDesign|candidate|scriptHash/);
@@ -209,7 +214,7 @@ test('an explicit theme changes visible prose, is accounted once, and reaches pl
  const results=[];
  for(const theme of ['雨夜的末班电车','雪落在空剧场'])results.push(await withProvider(()=>{},async requests=>{
   const script=await generateWithAi({...base,theme});
-  assert.deepEqual(requests.map(request=>request.user_id.split('_').at(-1)),['caption','plan','select']);
+  assert.deepEqual(requests.map(request=>stageOf(request).slice(1)),['caption','plan','select']);
   assert.equal(requests[0].thinking.type,'disabled');assert.equal(requests[0].max_tokens,700);
   assert.equal(initialInput(requests[1]).theme,theme);assert.equal(initialInput(requests[2]).theme,theme);
   assert.equal(script.generation.theme,theme);assert.equal(script.generation.captionSource,'public-theme-model');
@@ -232,12 +237,23 @@ test('blank themes add no request and explicit titles still override themed titl
 });
 
 test('complete fixed plans compile before paid theme copy and preserve mechanics after captioning',async()=>{
- const plan=planFor('MC'),config={ruleset:'MC',...plan,includeAI:true,seed:42};
- const plain=await withProvider(()=>{},()=>generateWithAi(config));
- const themed=await withProvider(()=>{},async requests=>{
+ const plan=planFor('MC'),config={ruleset:'MC',...plan,includeAI:true,seed:42};let selectedId;
+ const plain=await withProvider(request=>{
+  const input=initialInput(request);selectedId=input.candidates[0].id;return selectedAnswer(request);
+ },()=>generateWithAi(config));
+ // Bounded probes can complete different numbers of commands under CPU load,
+ // changing rank without changing a candidate. Compare the same draft by ID:
+ // this test isolates captioning, not the model's choice between valid drafts.
+ const themed=await withProvider(request=>{
+  if(!(stageOf(request)==='_select'))return;
+  const index=initialInput(request).candidates.findIndex(candidate=>candidate.id===selectedId);
+  assert.ok(index>=0,'captioning must preserve the selected mechanical candidate');
+  return selectedAnswer(request,index);
+ },async requests=>{
   const script=await generateWithAi({...config,theme:'窗外的纸风车'});
-  assert.deepEqual(requests.map(request=>request.user_id.split('_').at(-1)),['caption','select']);return script;
+  assert.deepEqual(requests.map(request=>stageOf(request).slice(1)),['caption','select']);return script;
  });
+ assert.equal(plain.generation.chosenId,selectedId);assert.equal(themed.generation.chosenId,selectedId);
  assert.deepEqual(themed.generation.plan,plan);assert.equal(themed.generation.planAttempts,0);
  for(const key of ['ruleset','days','loops','characters','mainPlot','subPlots','roles','incidents','settings'])assert.deepEqual(themed[key],plain[key]);
  assert.equal(themed.generation.scriptHash,authoredScriptHash(themed));assert.match(themed.intro,/窗外的纸风车/);
@@ -261,8 +277,8 @@ test('theme copy shares the total budget and only adds one request to the bounde
  });
  let plans=0,selections=0;
  await withProvider(request=>{
-  if(request.user_id.endsWith('_plan')){const plan=planFor('FS');if(!plans++)plan.days++;return {plan};}
-  if(request.user_id.endsWith('_select')&&!selections++)return {candidateId:'missing',design:{}};
+  if((stageOf(request)==='_plan')){const plan=planFor('FS');if(!plans++)plan.days++;return {plan};}
+  if((stageOf(request)==='_select')&&!selections++)return {candidateId:'missing',design:{}};
  },async requests=>{
   const script=await generateWithAi({...base,days:4,theme:'雨后的回声'});
   assert.equal(requests.length,5);assert.equal(script.generation.usage.requests,5);
@@ -292,7 +308,7 @@ test('the shared budget reserves before calls and includes preceding plan usage'
 
 test('network uncertainty in either stage is accounted and never retried',async()=>{
  for(const suffix of ['_plan','_select']){let calls=0;const usage=[];
-  await withProvider(request=>{calls++;if(request.user_id.endsWith(suffix))throw Error('disconnect');},()=>assert.rejects(generateWithAi(base,{onUsage:entry=>usage.push(entry)}),e=>e.code==='NETWORK'));
+  await withProvider(request=>{calls++;if((stageOf(request)===suffix))throw Error('disconnect');},()=>assert.rejects(generateWithAi(base,{onUsage:entry=>usage.push(entry)}),e=>e.code==='NETWORK'));
   assert.equal(calls,suffix==='_plan'?1:2);assert.equal(usage.at(-1).status,'unknown');assert.equal(usage.at(-1).estimatedCost,usage.at(-1).reserved);
  }
 });

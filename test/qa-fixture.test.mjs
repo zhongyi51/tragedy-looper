@@ -4,7 +4,8 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createWorker} from '../worker/index.mjs';
 import {tacticalFixtures,silverBulletFixture} from './fixtures/tactics.mjs';
-import {hash} from '../src/engine.mjs';
+import {hash,createGame,applyCommand} from '../src/engine.mjs';
+import {withAiSettings} from '../src/ai-settings.mjs';
 
 function fixture(){
  const sql=new DatabaseSync(':memory:');
@@ -18,6 +19,10 @@ function fixture(){
  };
  return {sql,env,request};
 }
+function configuredFixture(spec){
+ const state=spec.commands.reduce((s,{seat,command})=>applyCommand(s,seat,command),withAiSettings(createGame(spec.script),{aiProvider:'deepseek'}));
+ assert.deepEqual(state,{...spec.state,aiProvider:'deepseek'});return state;
+}
 function publicOnly(game){assert.equal(game.secret,undefined);assert.equal(game.pending,undefined);for(const k of ['roles','mainPlot','subPlots','privateDesign','seed'])assert.equal(game.script[k],undefined);for(const e of game.script.incidents)assert.equal(e.culprit,undefined);}
 
 test('QA fixture steps reproduce both tactical positions exactly without automatic or model steps',async t=>{
@@ -30,7 +35,7 @@ test('QA fixture steps reproduce both tactical positions exactly without automat
    for(const frame of game.transitionFrames||[])publicOnly(frame);
   }
   const stored=JSON.parse(f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state);
-  assert.equal(hash(stored),hash(spec.state));
+  assert.equal(hash(stored),hash(configuredFixture(spec)));
   assert.equal(f.sql.prepare('SELECT count(*) AS n FROM calls WHERE game=?').get(game.id).n,0);
  }
 });
@@ -88,7 +93,7 @@ test('bounded fixture batches preserve exact history and reject an invalid suffi
  const body={revision:0,commandId:'complete-fixture',commands};
  const done=await f.request(path,body);assert.equal(done.status,200);assert.equal(done.data.revision,commands.length);
  assert.equal((await f.request(path,body)).data.revision,commands.length);
- assert.equal(hash(JSON.parse(f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state)),hash(spec.state));
+ assert.equal(hash(JSON.parse(f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state)),hash(configuredFixture(spec)));
 });
 
 test('decision diagnostics are restricted to isolated service QA games',async t=>{
