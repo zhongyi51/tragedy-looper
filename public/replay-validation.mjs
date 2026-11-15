@@ -1,4 +1,5 @@
 // Imported files are untrusted. Reject incompatible snapshots before rendering.
+import {normalizeFailureLog} from './failure-timing.mjs';
 export function validateReplay(data,catalog){
  const fail=()=>{throw Error('回放结构无效或包含未知内容，请使用本游戏导出的回放。');};
  const obj=x=>x&&typeof x==='object'&&!Array.isArray(x),arr=x=>Array.isArray(x),str=x=>typeof x==='string',num=x=>Number.isInteger(x)&&x>=0&&x<=100000;
@@ -43,7 +44,9 @@ export function sanitizePublicReplay(data){
   delete s.roles;delete s.mainPlot;delete s.subPlots;
  };
  if(clean.perspective!=='M')publicScript(clean.script);
- for(const f of clean.frames||[]){const v=f.view;if(!v||!(clean.perspective==='public'||v.seat!=='M'))continue;
+ for(const f of clean.frames||[]){const v=f.view;if(!v)continue;
+  if(v.log)v.log=v.log.map(normalizeFailureLog);
+  if(!(clean.perspective==='public'||v.seat!=='M'))continue;
   publicScript(v.script);delete v.secret;
   for(const e of v.log||[])if(v.script?.settings?.incidentVisibility!=='public'&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;
  }

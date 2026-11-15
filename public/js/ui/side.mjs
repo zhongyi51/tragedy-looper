@@ -1,6 +1,7 @@
 import {esc,icon,btn} from '../html.mjs';
 import {char,name,seatName,seatMark,cardLabel,phaseLabel,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
 import {MARKS,clues,failure} from '../deduce.mjs';
+import {normalizeFailureLog} from '../../failure-timing.mjs';
 
 const REFUSAL={optional:'可以拒绝能力',mandatory:'一定拒绝能力'};
 
@@ -39,7 +40,7 @@ function intel(v,ctx){
 const UNPHASED=['day','loop'];
 function log(v,ctx){
  const feed=ctx.readOnly?[]:(ctx.aiFeed||[]).filter(f=>f.gameId===v.id);
- const items=[...v.log.map(e=>({key:e.n,e})),...feed.map(f=>({key:f.at+.5,f}))].sort((a,b)=>a.key-b.key).slice(-160).reverse();
+ const items=[...v.log.map(e=>({key:e.n,e:normalizeFailureLog(e)})),...feed.map(f=>({key:f.at+.5,f}))].sort((a,b)=>a.key-b.key).slice(-160).reverse();
  let stamp='',phase='';const out=[];
  for(const {e,f} of items){
   const x=e||f,here=`第 ${x.loop} 轮回 · 第 ${x.day} 日`;

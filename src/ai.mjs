@@ -5,7 +5,7 @@ export {configureKey,configured,model,rates,estimateUsage,reserveFor,requestJson
 export {generateWithAi,polishWithAi} from './author.mjs';
 
 export const AI_MEMORY_VERSION=1;
-export const AI_DECISION_VERSION='decision-4';
+export const AI_DECISION_VERSION='decision-4.1';
 const aiSeats=['A','B','C'];
 const aiRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const aiText=(value,max)=>typeof value==='string'&&value.length<=max;
@@ -49,7 +49,7 @@ ${rolePlan}
 【局势简报与参考】urgency 提供公开日程、剩余出牌机会与有条件的即时风险，不证明隐藏身份。observation.briefing、suggestion、tacticalOptions 是启发式提示，可能漏算，不是规则裁定或必胜证明。ruleBeliefs 是公开配役约束的候选筛选，不是秘密答案或概率；contradiction 时不得采信排除结果。strategyPlans 仅模拟列出的少数应对，不能代表所有反制；先核对事实与规则，再比较计划。不能仅因 suggestion 推荐就忽略可获胜能力或救命动作。
 【出牌】剧作家每日三张，三位主人公依领导者顺序各一张。同阵营当日不能重复目标；同一玩家不能重复同一张牌。一次性牌无效果也会消耗，只能选当前候选，不能跳过必需盖牌。只能依据已公开信息推断其它暗牌。
 【目标与效果】所有行动牌可盖在存活且在场人物或地点上。地点只接受暗跃计数/暗跃禁止；移动、移动禁止、友好、不安牌盖在地点上是合法佯动，没有对应效果。地点本身永远不移动。移动人物时 target 必须是该人物。无效果动作需要明确的佯动、避免有害效果或保留资源目的。
-【结算】全部六张盖完才统一揭示，先移动再计数。横移+纵移=斜移；斜移+横移=纵移；斜移+纵移=横移。移动禁止与禁入地点可能阻止移动。暗跃禁止同日两张及以上全部失效。友好能力门槛不消耗友好，仍有每日/每轮回次数和可能拒绝。隐藏的拒绝原因不可当作公开证据。事件由引擎按日程、犯人状态及门槛判定。
+【结算】全部六张盖完才统一揭示，先移动再计数。横移+纵移=斜移；斜移+横移=纵移；斜移+纵移=横移。移动禁止与禁入地点可能阻止移动。暗跃禁止同日两张及以上全部失效。友好能力门槛不消耗友好，仍有每日/每轮回次数和可能拒绝。隐藏的拒绝原因不可当作公开证据。事件由引擎按日程、犯人状态及门槛判定。先处理日结束（day_end），再处理轮回结束（loop_end）；最后一天也不能混同两者。银弹提前进入轮回结束，不触发尚未到达的日结束能力。日末有人死亡后败北不证明死者是关键人物，也可能是随后时间旅行者的能力；legacy_end 旧记录未区分时点，不得据此排除规则或认定角色。
 【人工智能人物】按日程的公开名称模拟事件效果，须在拒绝前声明全部目标；模拟不算实际事件发生，也不增加 MC EX。不要因它可能被拒绝而完全忽略，仍应比较收益、风险及拒绝所提供的线索。旧自定义隐藏日程只能主动选一天再知道该日名称。
 【主人公协作】默认由当日领导者负责暗跃禁止以避免互相抵消，这是协作约定，不是卡牌限制；结合已知资源判断。permittedDiscussion 是讨论设置允许共享的结构化笔记；只有轮回间可讨论时，本轮新私有笔记不共享。不能据队友猜测虚构牌面或把推测提升为事实。
 【证据与记忆】observation.evidence 是引擎从公开记录提取的事实/宣告。privateNote、privateMemory 和讨论里的旧计划都不是规则事实；先按当前人物位置、计数、日程和可用资源复核，再决定延续或改换目标。memory 只记录简短假说、下一目标与待验证问题；每条假说的 evidence 必须引用 visibleHistory 中存在的 n 编号，可为空并将 confidence 设 low。新证据矛盾时修正或丢弃旧假说。不要把自己的未揭牌面写进共享假说；剧作家记忆绝不与主人公共享。

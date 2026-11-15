@@ -124,7 +124,7 @@ test('cloud AI persistence never restores legacy protagonist notes after visibil
  const next=await request('/api/games/'+g.id+'/ai-step',{revision:g.revision});assert.equal(next.status,200);
  const persisted=JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state);
  assert.deepEqual(persisted.notes,{A:'',B:'',C:'',M:'mastermind private evidence'});
- assert.equal(persisted.visibilityPolicy,'hidden_incident_names_v1');
+ assert.equal(persisted.visibilityPolicy,'failure_timing_v2');
 });
 
 test('cloud errors are JSON with stable codes and request identifiers matching response headers',async t=>{

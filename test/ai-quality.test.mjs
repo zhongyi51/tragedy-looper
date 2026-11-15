@@ -68,6 +68,21 @@ test('legacy visibility policy discards structured memories and discussions too'
  rememberDecision(s,'A',{resetHeroMemory:true});assert.deepEqual(Object.keys(s.aiMemory),['M']);assert.equal(s.heroDiscussion,undefined);
 });
 
+test('AI sees distinct failure timings and cannot reuse notes based on old day-end causes',()=>{
+ const s=heroState();s.visibilityPolicy='hidden_incident_names_v1';s.notes.A='OLD_DAY_END_SECRET';
+ s.log=[{n:1,loop:1,day:3,phase:'end',type:'failed',when:'end',text:'最后一天结束时，失败条件成立。'},
+  {n:2,loop:2,day:3,phase:'end',type:'failed',when:'death',dead:['girl_student'],text:'女学生死亡，轮回立即结束。'},
+  {n:3,loop:3,day:1,phase:'loop_end',type:'failed',when:'loop_end',text:'轮回结束时，失败条件成立。'}];
+ s.aiMemory={A:{...saved(memory('OLD_DAY_END_SECRET')),policy:s.visibilityPolicy}};
+ const before=structuredClone(s),{payload,messages}=decisionContext(s,'A');
+ assert.equal(payload.privateNote,'');assert.deepEqual(payload.privateMemory,{hypotheses:[],goals:[],questions:[]});
+ assert.deepEqual(payload.visibleHistory.map(e=>[e.when,e.phase]),[['legacy_end','legacy_end'],['day_end','end'],['loop_end','loop_end']]);
+ assert.deepEqual(payload.observation.evidence.recentClues,payload.visibleHistory);
+ assert.doesNotMatch(JSON.stringify(messages),/OLD_DAY_END_SECRET|女学生死亡，轮回立即结束/);
+ assert.match(messages[0].content,/先处理日结束（day_end），再处理轮回结束（loop_end）/);
+ assert.deepEqual(s,before);
+});
+
 test('MZ evidence marks an identity as a declaration rather than confirmed truth',()=>{
  const s=createGame(generateScript({ruleset:'MZ',seed:147126}));s.knownRoles[s.script.characters[0]]='brain';
  const {payload}=decisionContext(s,'M');assert.equal(payload.observation.evidence.roles[0].status,'declared_may_be_disguised');

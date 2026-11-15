@@ -1,8 +1,9 @@
 import {createHash} from 'node:crypto';
+import {normalizeFailureLog} from '../public/failure-timing.mjs';
 import {catalog,chars,roles,plots,incidents,locs,name,publicScript,validateScript,contentHash} from './content.mjs';
-export const VERSION='0.7.0';
-export const VISIBILITY_POLICY='hidden_incident_names_v1';
-export const phases={setup:'轮回准备',extra_setup:'EX 卡设置',reveal_role:'角色公开',ai_target:'事件模拟',incident_check:'事件',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end_forced:'日结束',end:'日结束',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
+export const VERSION='0.7.1';
+export const VISIBILITY_POLICY='failure_timing_v2';
+export const phases={setup:'轮回准备',extra_setup:'EX 卡设置',reveal_role:'角色公开',ai_target:'事件模拟',incident_check:'事件',dawn:'日开始',mm_cards:'剧作家出牌',hero_cards:'主人公出牌',cultist:'翻牌结算',mm_ability:'剧作家能力',hero_ability:'主人公能力',refusal:'主人公能力',reveal_plot:'主人公能力',incident:'事件',end_area:'日结束',end_forced:'日结束',end:'日结束',loop_end:'轮回结束',legacy_end:'结束时点未记录',between:'时之狭间',guess:'最后的战斗',over:'对局结束'};
 const cp=x=>structuredClone(x);export const sameCommand=(a,b)=>a&&b&&Object.keys(a).length===Object.keys(b).length&&Object.keys(a).every(k=>a[k]===b[k]);const eq=sameCommand;
 export const hash=s=>createHash('sha256').update(JSON.stringify(s)).digest('hex');
 const living=s=>Object.values(s.board).filter(c=>c.alive&&c.present);
@@ -17,14 +18,18 @@ let tracing=null;
 const beat=s=>cp({phase:s.phase,log:s.log.length,board:s.board,locations:s.locations,placements:s.placements,dayRevealed:s.dayRevealed||[],knownRoles:s.knownRoles,knownCulprits:s.knownCulprits,knownIncidentTypes:s.knownIncidentTypes||{},knownPlots:s.knownPlots,guessed:s.guessed||{},occurred:s.occurred||[],loop:s.loop,day:s.day,leader:s.leader,winner:s.winner,extraGauge:s.extraGauge,closedLocations:s.closedLocations||{},heroImmortal:!!s.heroImmortal,patientFree:!!s.patientFree,suppressed:s.suppressed||[]});
 // `phase` is the step of the day an entry happened in. `who` names the character or location it is
 // about, `by` the seat whose card caused it, `hit` the seats whose cards on `who` it cancelled.
-function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,phase:s.phase,text,type,...extra});tracing?.push(beat(s));}
+function log(s,text,type='notice',extra={}){s.log.push({n:s.log.length+1,loop:s.loop,day:s.day,phase:s.phase,text,type,...extra});tracing?.push({...beat(s),phase:extra.phase||s.phase});}
 // A revealed card that ends up doing nothing stays marked for the rest of the day.
 function strike(s,target,seat){const p=(s.dayRevealed||[]).find(p=>p.target===target&&p.seat===seat);if(p)p.void=true;}
 const FORBIDDEN={move:'移动',goodwill:'友好',paranoia:'不安',intrigue:'暗跃'},COUNTER_ZH={goodwill:'友好',paranoia:'不安',intrigue:'暗跃',guard:'护卫'};
 function forbid(s,target,what,hit,by){for(const p of hit)strike(s,target,p.seat);log(s,`${name(target)}的${FORBIDDEN[what]}被禁止。`,'blocked',{who:target,what,by:by.seat,hit:hit.map(p=>p.seat)});}
 // Older saves recorded the hidden name even when an incident did not happen.
 // Sanitize at the observation boundary too, including historical replay frames.
-function visibleLog(s,isM){return s.log.map(entry=>{const e=cp(entry);if(!isM&&s.script.settings?.incidentVisibility==='hidden'&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;return e;});}
+function visibleLog(s,isM){return s.log.map(entry=>{
+ const e=normalizeFailureLog(cp(entry));
+ if(!isM&&s.script.settings?.incidentVisibility==='hidden'&&e.type==='incident'&&/^预告的「[^」]+」没有发生。$/.test(e.text))e.text=`第 ${e.day} 日预告的事件没有发生。`;
+ return e;
+});}
 function counter(s,id,type,n,by){if(locs.includes(id)){if(type!=='intrigue')return;s.locations[id]=Math.max(0,s.locations[id]+n);}else{if(!s.board[id])return;s.board[id][type]=Math.max(0,(s.board[id][type]||0)+n);}log(s,`${name(id)} · ${COUNTER_ZH[type]} ${n>0?'+'+n:'−'+-n}`,'counter',{who:id,...(by?{by}:{})});}
 function extraGauge(s,amount){if(s.script.ruleset!=='MC')return;s.extraGauge=Math.max(0,(s.extraGauge||0)+amount);log(s,`EX 计量 · ${s.extraGauge}`,'counter',{what:'extraGauge'});}
 function declareRole(s,id,role){s.knownRoles[id]=role;(s.loopRevealedRoles||=[]).push(role);log(s,`${name(id)}的角色是「${name(role)}」。`,'reveal',{who:id});}
@@ -38,11 +43,24 @@ function revealCulprit(s,day){let e=s.script.incidents.find(e=>e.day===day);if(e
 function addUsage(s,key,scope='day'){s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`]=true;}
 function used(s,key,scope='day'){return !!s.usage[`${scope==='loop'?'L'+s.loop:'D'+s.loop+'.'+s.day}:${key}`];}
 function stopped(s){return ['between','guess','over'].includes(s.phase);}
-// cause: {dead:[ids]} when deaths ended the loop on the spot, {heroes:true} when the protagonists died.
-// The entry says when the loop ended and what the table had just seen, never the hidden rule behind it.
+// Forced losses retain the phase in which they happened. Loop-end conditions
+// have a separate timing even when the final day just finished (or Silver Bullet
+// ended an earlier phase). Never infer the timing merely from the day number.
 function finishLoop(s,forced=false,cause={}){
  if(stopped(s))return;
- const at=s.phase;
+ const at=s.phase,dayFailure=forced&&['end_area','end_forced','end'].includes(at);
+ const counters=()=>Object.fromEntries([...locs.map(l=>[l,s.locations[l]]),...Object.values(s.board).filter(c=>c.present).map(c=>[c.id,c.intrigue])].filter(([,n])=>n>0));
+ const announceFailure=()=>{
+  if(dayFailure)log(s,`第 ${s.loop} 轮回失败：日结束时，失败条件成立。`,'failed',{phase:'end',when:'day_end',intrigue:counters()});
+  else if(cause.dead)log(s,`第 ${s.loop} 轮回失败：${cause.dead.map(name).join('、')}死亡，轮回立即结束。`,'failed',{phase:at,when:'death',dead:cause.dead});
+  else if(cause.heroes)log(s,`第 ${s.loop} 轮回失败：主人公死亡。`,'failed',{phase:at,when:'heroes'});
+  else log(s,`第 ${s.loop} 轮回失败：轮回结束时，失败条件成立。`,'failed',{phase:'loop_end',when:'loop_end',intrigue:counters()});
+ };
+ s.placements=[];s.pending=null;
+ // The loss that ended a day/incident precedes mandatory loop-end reveals.
+ // In particular, revealing a dead Friend must not relabel the earlier loss.
+ if(forced)announceFailure();
+ s.phase='loop_end';
  let failed=forced||s.loopFailed;
  for(const c of Object.values(s.board))if(c.present&&!c.alive&&hasRole(s,c.id,'friend')){declareRole(s,c.id,currentRole(s,c.id));failed=true;}
  const sc=s.script;const initial=r=>Object.keys(sc.roles).filter(c=>sc.roles[c]===r).map(c=>s.board[c].initial);
@@ -59,12 +77,9 @@ function finishLoop(s,forced=false,cause={}){
  if(sc.mainPlot==='contract'&&Object.keys(sc.roles).some(id=>sc.roles[id]==='key_person'&&s.board[id].intrigue>=2))failed=true;
  if(sc.mainPlot==='time_bomb'&&initial('witch').some(l=>s.locations[l]>=2))failed=true;
  if(sc.mainPlot==='change_future'&&s.occurred.some(day=>sc.incidents.find(e=>e.day===day)?.type==='butterfly'))failed=true;
- s.placements=[];s.pending=null;
- if(!failed){s.phase='over';s.winner='heroes';log(s,'主人公平安度过了这个轮回，获胜。','victory',{phase:at});return;}
- if(cause.dead)log(s,`第 ${s.loop} 轮回失败：${cause.dead.map(name).join('、')}死亡，轮回立即结束。`,'failed',{when:'death',dead:cause.dead});
- else if(cause.heroes)log(s,`第 ${s.loop} 轮回失败：主人公死亡。`,'failed',{when:'heroes'});
- else log(s,`第 ${s.loop} 轮回失败：${s.day===s.script.days?"最后一天结束时":"轮回结束时"}，失败条件成立。`,'failed',{when:'end',intrigue:Object.fromEntries([...locs.map(l=>[l,s.locations[l]]),...Object.values(s.board).filter(c=>c.present).map(c=>[c.id,c.intrigue])].filter(([,n])=>n>0))});
- if(s.loop<sc.loops)s.phase='between';else if(sc.ruleset==='FS'){s.phase='over';s.winner='mastermind';log(s,'轮回全部失败，剧作家获胜。','defeat',{phase:at});}else enterGuess(s);
+ if(!failed){s.phase='over';s.winner='heroes';log(s,'主人公平安度过了这个轮回，获胜。','victory',{phase:'loop_end'});return;}
+ if(!forced)announceFailure();
+ if(s.loop<sc.loops)s.phase='between';else if(sc.ruleset==='FS'){s.phase='over';s.winner='mastermind';log(s,'轮回全部失败，剧作家获胜。','defeat',{phase:'loop_end'});}else enterGuess(s);
 }
 function clearFoolAfterIncident(s,p=s.pending){if(p&&!p.simulated&&p.culprit&&hasRole(s,p.culprit,'fool')&&s.board[p.culprit].paranoia>0)counter(s,p.culprit,'paranoia',-s.board[p.culprit].paranoia);}
 function failFromDeaths(s,dead){clearFoolAfterIncident(s);if(s.phase==='end_forced'){s.forcedFailure||={dead:[]};s.forcedFailure.dead.push(...dead);return;}finishLoop(s,true,{dead});}
@@ -344,9 +359,9 @@ export function applyCommand(state,seat,command,trace){
  try{return apply(cp(state),seat,command);}finally{tracing=null;}
 }
 function apply(s,seat,a){
- // Previous versions gave protagonist models the named incident schedule.
- // Their persisted notes may retain those secrets: clear only the three AI
- // protagonist notes once, preserving all board state and mastermind notes.
+ // Earlier versions exposed hidden incident names or treated a day-end death
+ // as proof of the hidden loss cause. Clear protagonist AI memory once so old
+ // conclusions are not reused; preserve the board and mastermind notes.
  if(s.visibilityPolicy!==VISIBILITY_POLICY){s.notes={...(s.notes||{}),A:'',B:'',C:''};if(s.aiMemory)s.aiMemory={M:s.aiMemory.M};delete s.heroDiscussion;s.visibilityPolicy=VISIBILITY_POLICY;s.version=VERSION;}
  switch(a.type){
   case 'incident_check':checkIncident(s,a.territory);break;
@@ -363,7 +378,7 @@ function apply(s,seat,a){
   case 'refusal':{const pending=s.pending.action;s.pending=null;s.phase='hero_ability';if(a.refuse)log(s,`${name(pending.actor)}拒绝了请求。`,'refused',{who:pending.actor});else executeGoodwill(s,pending);break;}
   case 'reveal_plot':s.knownPlots.push(a.plot);log(s,`公开规则 X「${name(a.plot)}」。`,'reveal');s.pending=null;s.phase='hero_ability';break;
   case 'incident':resolveIncidentChoice(s,a);break;
-  case 'end_ability':addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else{log(s,`第 ${s.day} 日结束。`,'dayend');finishLoop(s,true);}break;
+  case 'end_ability':addUsage(s,a.actor+':'+a.ability);if(a.ability==='kill')kill(s,[a.target]);else if(a.ability==='heroes')killHeroes(s);else finishLoop(s,true);break;
   case 'pass':if(s.phase==='mm_ability')s.phase='hero_ability';else if(s.phase==='hero_ability'){if(s.endAfterIncident){s.endAfterIncident=false;finishLoop(s);}else checkIncident(s);}else if(s.phase==='end'){log(s,`第 ${s.day} 日结束。`,'dayend');if(s.day===s.script.days)finishLoop(s);else{s.day++;startDay(s);}}break;
   case 'next_loop':s.loop++;startLoop(s);break;
   case 'final_battle':enterGuess(s);break;

@@ -1,5 +1,6 @@
 // The deduction sheet's logic: what the player's marks and the public record still leave possible.
 import {char,name,phaseLabel,rolesFor,plotsFor,plotRoles} from './lookup.mjs';
+import {normalizeFailureLog} from '../failure-timing.mjs';
 
 const SUB_PLOTS={FS:1,BTX:2,MZ:2,MC:2};
 export const MARKS={no:'✗',yes:'✓',maybe:'?'};
@@ -45,18 +46,18 @@ function requests(v){
 // Notable public events, newest loop first, for reading back what each loop revealed.
 export function clues(v){
  const loops=new Map();
- for(const e of v.log)if(CLUES.includes(e.type)){if(!loops.has(e.loop))loops.set(e.loop,[]);loops.get(e.loop).push(e);}
+ for(const entry of v.log){const e=normalizeFailureLog(entry);if(CLUES.includes(e.type)){if(!loops.has(e.loop))loops.set(e.loop,[]);loops.get(e.loop).push(e);}}
  return [...loops].map(([loop,items])=>({loop,items})).reverse();
 }
 
 // What the table saw of a failed loop: when it ended and what had just happened. The rule behind it stays hidden.
 export function failure(v,loop=v.loop){
- const e=v.log.findLast(e=>e.type==='failed'&&e.loop===loop);
+ const found=v.log.findLast(e=>e.type==='failed'&&e.loop===loop),e=found&&normalizeFailureLog(found);
  if(!e?.when)return null;
  const tally=Object.entries(e.intrigue||{}).map(([id,n])=>`${name(id)} ${n}`).join('、');
  return {stamp:`第 ${e.day} 日 · ${phaseLabel(e.phase)}`,
-  cause:e.when==='death'?`${e.dead.map(name).join('、')}死亡，轮回立即结束`:e.when==='heroes'?'主人公死亡':'最后一天结束时，失败条件成立',
-  detail:e.when==='end'?(tally?'当时的暗跃：'+tally:'当时场上没有暗跃'):''};
+  cause:e.when==='death'?`${(e.dead||[]).map(name).join('、')}死亡，轮回立即结束`:e.when==='heroes'?'主人公死亡':e.when==='day_end'?'日结束时，失败条件成立':e.when==='loop_end'?'轮回结束时，失败条件成立':e.when==='legacy_end'?'失败条件成立（旧记录未区分日结束与轮回结束）':'失败条件成立',
+  detail:e.intrigue?(tally?'当时的暗跃：'+tally:'当时场上没有暗跃'):''};
 }
 
 export function analyze(v,marks){
@@ -131,8 +132,9 @@ export function analyze(v,marks){
  }
  // Public events that point at a role: a loop that ends the moment one person dies, a ban that fails on someone.
  const points=(c,r,text)=>{if(def.has(r)&&range[r][1]&&!known[c]&&!picked(c)&&['','maybe'].includes(cells[c][r].mark))lead(c,r,text);};
- for(const e of manualOnly?[]:v.log){
-  if(e.type==='failed'&&e.when==='death'&&e.dead.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死，轮回就结束了，多半是${name('key_person')}`);
+ for(const entry of manualOnly?[]:v.log){
+  const e=normalizeFailureLog(entry);
+  if(e.type==='failed'&&e.when==='death'&&e.dead?.length===1)points(e.dead[0],'key_person',`${name(e.dead[0])}一死，轮回就结束了，多半是${name('key_person')}`);
   if(e.type==='ignored'&&e.what==='goodwill')points(e.who,'time_traveler',`${name(e.who)}不受友好禁止影响，多半是${name('time_traveler')}`);
  }
 

@@ -309,10 +309,38 @@ test('the record and the clues say which phase each thing happened in, and a los
  assert.deepEqual(analyze(v,markRole(emptyMarks(),'girl_student','key_person','no')).hints.filter(h=>h.role==='key_person'),[]);
  assert.deepEqual(failure(v),{stamp:'第 3 日 · 事件',cause:'女学生死亡，轮回立即结束',detail:''});
  assert.match(dockHtml(v,{aiFeed:[]},a),/class="why"><b><i>第 3 日 · 事件<\/i>女学生死亡，轮回立即结束<\/b>/);assert.match(boardHtml(v),/class="board failed"/);
- // A loop lost at the end of its last day keeps the public counters that were on the table.
- s.log.push(at(11,3,'end','failed','第 1 轮回失败：最后一天结束时，失败条件成立。',{when:'end',intrigue:{school:2,doctor:1}}));
- assert.deepEqual(failure(view(s,'A')),{stamp:'第 3 日 · 日结束',cause:'最后一天结束时，失败条件成立',detail:'当时的暗跃：学校 2、医生 1'});
+ // Finishing the last day enters a distinct loop-end check, with its public counters.
+ s.log.push(at(11,3,'loop_end','failed','第 1 轮回失败：轮回结束时，失败条件成立。',{when:'loop_end',intrigue:{school:2,doctor:1}}));
+ assert.deepEqual(failure(view(s,'A')),{stamp:'第 3 日 · 轮回结束',cause:'轮回结束时，失败条件成立',detail:'当时的暗跃：学校 2、医生 1'});
  assert.equal(failure({log:[{type:'failed',loop:1,text:'第 1 轮回失败。'}],loop:1}),null);
+});
+
+test('failure banners, records and clues distinguish day-end from early or final loop-end',()=>{
+ for(const [day,when,phase,label] of [[3,'day_end','end','日结束'],[3,'loop_end','loop_end','轮回结束'],[1,'loop_end','loop_end','轮回结束']]){
+  const s=createGame(starter);s.day=day;s.phase='between';
+  s.log=[{n:1,loop:1,day,phase,type:'failed',when,text:`第 1 轮回失败：${label}时，失败条件成立。`,intrigue:{school:2}}];
+  const v={...view(s,'A'),id:'game',mode:'heroes'},expected=`第 ${day} 日 · ${label}`;
+  assert.equal(failure(v).stamp,expected);assert.equal(failure(v).cause,`${label}时，失败条件成立`);
+  assert.match(dockHtml(v,{aiFeed:[]},analyze(v,emptyMarks())),new RegExp(expected));
+  assert.match(sideBodyHtml(v,{tab:'log',aiFeed:[]}),new RegExp(`<h6 class="log-phase">${label}</h6>`));
+  const banner=outcomeBanner({...v,winner:null,log:[]},{...v,winner:'mastermind'});
+  assert.equal(banner.stamp,expected);assert.equal(banner.cause,`${label}时，失败条件成立`);
+  assert.equal(clues(v)[0].items[0].phase,phase);
+ }
+});
+
+test('legacy records never invent a loss timing or a day-end victim role',()=>{
+ const s=createGame(starter);s.phase='between';s.day=3;
+ const v={...view(s,'A'),id:'game',mode:'heroes'};
+ const legacy={n:1,loop:1,day:3,phase:'end',type:'failed',when:'end',text:'第 1 轮回失败：最后一天结束时，失败条件成立。',intrigue:{}};
+ v.log=[legacy];
+ assert.equal(failure(v).stamp,'第 3 日 · 败北时点未记录');assert.match(failure(v).cause,/旧记录未区分/);
+ assert.doesNotMatch(sideBodyHtml(v,{tab:'log',aiFeed:[]}),/最后一天结束时/);
+ assert.equal(clues(v)[0].items[0].phase,'legacy_end');assert.equal(legacy.when,'end');
+ v.log=[{...legacy,when:'death',dead:['girl_student'],text:'第 1 轮回失败：女学生死亡，轮回立即结束。'}];
+ assert.equal(failure(v).cause,'日结束时，失败条件成立');
+ assert.equal(analyze(v,emptyMarks()).hints.some(h=>h.character==='girl_student'&&h.role==='key_person'),false);
+ assert.doesNotMatch(sideBodyHtml(v,{tab:'log',aiFeed:[]}),/轮回立即结束/);
 });
 
 /* ---------- deduction sheet ---------- */
