@@ -5,6 +5,7 @@ hidden stdin; no retries, credential files, or private user saves are involved.
 Run: python scripts/live-provider-cache-qa.py --output reports/provider-cache.json
 """
 import argparse
+import datetime
 import importlib.util
 import hashlib
 import json
@@ -31,7 +32,9 @@ def main():
     parser.add_argument('--providers', nargs='+', choices=['deepseek', 'openrouter'], default=['deepseek', 'openrouter'])
     parser.add_argument('--decisions', type=int, choices=range(1, 7), default=4)
     parser.add_argument('--author', action='store_true')
+    parser.add_argument('--qa-profile',choices=['hydrogen-low','hydrogen-high'])
     args = parser.parse_args()
+    if args.qa_profile and (args.providers!=['openrouter'] or args.author):parser.error('QA model profile requires only openrouter and no authoring')
     out = pathlib.Path(args.output).resolve()
     if out.exists():
         raise RuntimeError('Use a new output path; never automatically repeat uncertain paid work')
@@ -39,7 +42,7 @@ def main():
     opener = urllib.request.build_opener(NoRedirect)
     report = {'version': 'provider-cache-v1', 'base': base, 'httpRequests': 0,
               'purpose': 'Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.',
-              'games': [], 'authors': [],
+              'games': [], 'authors': [], 'qaProfile':args.qa_profile,
               'sourceHashes': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
                                for p in ['src/ai.mjs', 'src/model-provider.mjs', 'src/game-prompt.mjs', 'src/author.mjs']}}
 
@@ -79,11 +82,11 @@ def main():
                 if real >= args.decisions or game.get('winner'):
                     break
                 item = {'revision': game['revision'], 'phase': game['phaseId'], 'seat': game['turn'],
-                        'day': game['day'], 'loop': game['loop'], 'pendingPaid': True}
+                        'day': game['day'], 'loop': game['loop'], 'startedAtUTC':datetime.datetime.now(datetime.timezone.utc).isoformat(), 'pendingPaid': True}
                 record['decisions'].append(item)
                 save()
                 started = time.monotonic()
-                game = call('/games/' + game['id'] + '/ai-step', {'revision': game['revision'], 'commandId': str(uuid.uuid4())})
+                game = call('/games/' + game['id'] + '/ai-step', {'revision': game['revision'], 'commandId': str(uuid.uuid4()), **({'qaProfile':args.qa_profile} if args.qa_profile else {})})
                 receipt = game.get('qaDecision')
                 if receipt is None:
                     raise RuntimeError('QA decision receipt missing')
@@ -120,7 +123,7 @@ def main():
                 for step in range(130):
                     if game.get('winner'):
                         break
-                    game = call('/games/' + game['id'] + '/bot-step', {'revision': game['revision'], 'commandId': str(uuid.uuid4())})
+                    game = call('/games/' + game['id'] + '/bot-step', {'revision': game['revision'], 'commandId': str(uuid.uuid4()), **({'qaProfile':args.qa_profile} if args.qa_profile else {})})
                 if not game.get('winner'):
                     raise RuntimeError('Generated game did not terminate within bounded offline steps')
                 replay = call('/games/' + game['id'] + '/replay?full=1')

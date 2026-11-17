@@ -85,7 +85,7 @@ export async function handleApi(req,env,owner){
   return reply({rating:feedback.rating,updated:feedback.updated});
  }
  if(['replay','script'].includes(route)&&req.method==='GET'){const full=u.searchParams.get('full')==='1';if(full&&g.mode!=='mastermind'&&g.state.phase!=='over')fail(403,'对局结束后才能查看真相');return reply(route==='replay'?await exportReplay(db,g,full):full?g.state.script:publicScript(g.state.script));}
- if(route==='usage'&&req.method==='GET'){if(g.state.phase!=='over')fail(403,'用量明细在对局结束后才能查看');return reply((await rows(db,'SELECT data FROM calls WHERE game=?',id)).map(r=>JSON.parse(r.data)));}
+ if(route==='usage'&&req.method==='GET'){if(g.state.phase!=='over'&&!(owner===QA_OWNER&&env.SITES_QA_ENABLED==='true'))fail(403,'用量明细在对局结束后才能查看');return reply((await rows(db,'SELECT data FROM calls WHERE game=?',id)).map(r=>JSON.parse(r.data)));}
  if(req.method!=='POST')fail(405,'这个接口只接受 POST');const b=await readBody(req);
  if(route==='budget'){
   const {budget,expectedBudget}=budgetChange(b);
@@ -107,7 +107,7 @@ export async function handleApi(req,env,owner){
   g=await getGame(db,id,owner);
   let outcome;const qaUsage=owner===QA_OWNER&&route==='ai-step'&&env.SITES_QA_ENABLED==='true'?[]:undefined;
   if(b.qaFirstMaxTokens!==undefined&&(!qaUsage||![1,64,128].includes(b.qaFirstMaxTokens)))fail(400,'仅隔离测试可限制首个请求以验证截断恢复','INVALID_QA_LIMIT');
-  const profiles={'sol-legacy':{cacheLayout:'legacy'},'sol-system':{cacheLayout:'system'},'sol-history':{cacheLayout:'history'},'luna-history':{cacheLayout:'history',benchmarkModel:'openai/gpt-6-luna'}};
+  const profiles={'sol-legacy':{cacheLayout:'legacy'},'sol-system':{cacheLayout:'system'},'sol-history':{cacheLayout:'history'},'luna-history':{cacheLayout:'history',benchmarkModel:'openai/gpt-6-luna'},'hydrogen-low':{cacheLayout:'history',benchmarkModel:'google/gemini-4-hydrogen',reasoningEffort:'low',maxTokens:8192},'hydrogen-high':{cacheLayout:'history',benchmarkModel:'google/gemini-4-hydrogen',reasoningEffort:'high',maxTokens:8192}};
   if((b.qaProfile!==undefined||b.qaProbeRevision!==undefined)&&(!qaUsage||!profiles[b.qaProfile]||g.state.aiProvider!=='openrouter'||g.mode!=='observe'))fail(400,'仅隔离观察局可运行固定模型对照','INVALID_QA_PROFILE');
   const qaOptions=qaUsage&&b.qaProfile?profiles[b.qaProfile]:{};
   if(b.qaProbeRevision!==undefined){

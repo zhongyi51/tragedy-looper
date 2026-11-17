@@ -9,6 +9,7 @@ These are bounded tactical results, not an estimate of unrestricted game win rat
 """
 import argparse
 import concurrent.futures
+import datetime
 import hashlib
 import json
 import pathlib
@@ -160,10 +161,12 @@ class Runner:
                 if self.args.qa_profile: body['qaProfile']=self.args.qa_profile
                 if self.args.first_max_tokens is not None:
                     body['qaFirstMaxTokens'] = self.args.first_max_tokens
+                record['startedAtUTC']=datetime.datetime.now(datetime.timezone.utc).isoformat()
                 record['pendingPaid'] = body
                 self.save()
                 started = time.monotonic()
                 result = self.call('/games/' + record['game']['id'] + '/ai-step', body, paid=True)
+                record['finishedAtUTC']=datetime.datetime.now(datetime.timezone.utc).isoformat()
                 record['latencySeconds'] = round(time.monotonic() - started, 3)
                 decision = result.get('qaDecision')
                 if not isinstance(decision, dict):
@@ -215,7 +218,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--label', default='candidate')
     parser.add_argument('--provider', choices=['deepseek', 'openrouter'], default='deepseek')
-    parser.add_argument('--qa-profile',choices=['sol-legacy','sol-system','sol-history','luna-history'])
+    parser.add_argument('--qa-profile',choices=['sol-legacy','sol-system','sol-history','luna-history','hydrogen-low','hydrogen-high'])
     parser.add_argument('--replicates', type=int, choices=[1, 2, 3], default=1)
     parser.add_argument('--workers', type=int, choices=[1, 2], default=2)
     parser.add_argument('--ids', nargs='*')

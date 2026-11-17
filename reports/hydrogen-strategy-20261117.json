@@ -1,0 +1,1899 @@
+{
+  "version": "strategy-v2",
+  "label": "hydrogen-low",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "d4d3619b19962d2b43834862768f2f4f0c2e4cdfa7b0b5492821c0901fb0d6bf",
+  "replicates": 2,
+  "provider": "openrouter",
+  "qaProfile": "hydrogen-low",
+  "forcedFirstMaxTokens": null,
+  "httpRequests": 66,
+  "potentialProviderCalls": 44,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "90d36cc397375ffe972830509439d2848fb19c6eee32fac9b643e3c6363d3db7",
+    "src/model-provider.mjs": "eeb29826b016dcf3ab898d9b9c182f8e5ce1a447103646e71c0a0897a05ba64c",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "src/prompt-cache.mjs": "d09aae0e8b98fb3ecf3c38d684af40e573000d3879a6abee5a08601a8ece35bc",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "mc-silver-bullet@1": {
+      "id": "mc-silver-bullet",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "在没有当前败北条件时，用 A.I. 模拟银之子弹取得胜利。",
+      "creationId": "4a329700-b9a2-4ecf-be45-b720c8934cce",
+      "game": {
+        "id": "360fe7d7-da36-48a5-901b-f861afd57a66",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:21:50.197287+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:00.760186+00:00",
+      "latencySeconds": 10.562,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "ai_character",
+            "index": 0,
+            "target": "",
+            "day": 3
+          }
+        ],
+        "reason": "模拟第3日银色子弹，若不被拒绝且未触发EX<=1或黑之学园等轮回末败北条件可直接获胜；即使被拒绝或失败也能获取关键规则与身份线索。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0215925,
+            "normalizedUsage": {
+              "inputTokens": 11930,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 493,
+              "reasoningTokens": 435
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11930,
+              "completion_tokens": 493,
+              "total_tokens": 12423,
+              "cost": 0.0215925,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0215925,
+                "upstream_inference_prompt_cost": 0.017895,
+                "upstream_inference_completions_cost": 0.0036975
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 435,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0215925,
+            "latencyMs": 3466
+          }
+        ],
+        "spentEstimate": 0.021592500000000014
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "mc-silver-bullet@2": {
+      "id": "mc-silver-bullet",
+      "replicate": 2,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "在没有当前败北条件时，用 A.I. 模拟银之子弹取得胜利。",
+      "creationId": "31da8c7d-3416-444c-9913-6bc4bbc31d20",
+      "game": {
+        "id": "a1819cc9-5468-48be-a8df-d75fdd84d2aa",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:21:50.115401+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:00.692942+00:00",
+      "latencySeconds": 10.577,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "ai_character",
+            "index": 0,
+            "target": "",
+            "day": 3
+          }
+        ],
+        "reason": "人工智能模拟第3日银色子弹，若无EX≤1或黑之学园等轮回末败北条件可直接获胜；即使被拒绝或失败也能立刻验证规则与身份线索。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0218025,
+            "normalizedUsage": {
+              "inputTokens": 11930,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 521,
+              "reasoningTokens": 466
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11930,
+              "completion_tokens": 521,
+              "total_tokens": 12451,
+              "cost": 0.0218025,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0218025,
+                "upstream_inference_prompt_cost": 0.017895,
+                "upstream_inference_completions_cost": 0.0039075
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 466,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0218025,
+            "latencyMs": 3476
+          }
+        ],
+        "spentEstimate": 0.021802500000000002
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "5ac48998-eac1-401f-a996-87eabd8dd626",
+      "game": {
+        "id": "ed9fb662-a704-496b-93dd-cd67d6cc6160",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:12.857353+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:23.609539+00:00",
+      "latencySeconds": 10.752,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "上班族已公开为连环杀手且与偶像在都市独处，剧作家未对都市两人盖牌，纵移偶像至医院可解除其日末死亡威胁并避免潜在关键人物或朋友阵亡。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0263895,
+            "normalizedUsage": {
+              "inputTokens": 13233,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 872,
+              "reasoningTokens": 811
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13233,
+              "completion_tokens": 872,
+              "total_tokens": 14105,
+              "cost": 0.0263895,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0263895,
+                "upstream_inference_prompt_cost": 0.0198495,
+                "upstream_inference_completions_cost": 0.00654
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 811,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0263895,
+            "latencyMs": 5427
+          }
+        ],
+        "spentEstimate": 0.02638950000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    },
+    "btx-rescue-movement@2": {
+      "id": "btx-rescue-movement",
+      "replicate": 2,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "95ca3a97-898e-43b0-88a5-f0faaa054f35",
+      "game": {
+        "id": "cc22759b-fede-4369-8689-250b5c8edb6b",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:13.001843+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:21.262878+00:00",
+      "latencySeconds": 8.26,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "上班族已公开为连环杀手，目前与无护卫的偶像在都市独处。对偶像使用纵移将其移至医院，避免日结束时偶像被杀，同时医院已有两人不会形成新的独处。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0232695,
+            "normalizedUsage": {
+              "inputTokens": 13233,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 456,
+              "reasoningTokens": 393
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13233,
+              "completion_tokens": 456,
+              "total_tokens": 13689,
+              "cost": 0.0232695,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0232695,
+                "upstream_inference_prompt_cost": 0.0198495,
+                "upstream_inference_completions_cost": 0.00342
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 393,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0232695,
+            "latencyMs": 3053
+          }
+        ],
+        "spentEstimate": 0.0232695
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    },
+    "fs-hero-shrine-cleanup@1": {
+      "id": "fs-hero-shrine-cleanup",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "shrine_cleanup",
+      "description": "正确使用地点能力清除神社暗跃，减少公开威胁。",
+      "creationId": "0d9ea487-2054-466b-956d-a6624e56eb9d",
+      "game": {
+        "id": "11fe6a46-9c50-40c5-a096-9e466c648f5b",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:32.186689+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:41.527385+00:00",
+      "latencySeconds": 9.34,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "shrine_maiden",
+            "index": 0,
+            "target": "shrine"
+          }
+        ],
+        "reason": "第4日神社暗跃已达2，剧作家可能想触发复仇者之灯导致轮回末失败。发动巫女能力将神社暗跃-1可化解此威胁，若被拒绝也能获取巫女身份线索。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0202245,
+            "normalizedUsage": {
+              "inputTokens": 11773,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 342,
+              "reasoningTokens": 279
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11773,
+              "completion_tokens": 342,
+              "total_tokens": 12115,
+              "cost": 0.0202245,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0202245,
+                "upstream_inference_prompt_cost": 0.0176595,
+                "upstream_inference_completions_cost": 0.002565
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 279,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0202245,
+            "latencyMs": 2546
+          }
+        ],
+        "spentEstimate": 0.020224500000000006
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "shrine_cleanup"
+      }
+    },
+    "fs-hero-shrine-cleanup@2": {
+      "id": "fs-hero-shrine-cleanup",
+      "replicate": 2,
+      "seat": "A",
+      "criterion": "shrine_cleanup",
+      "description": "正确使用地点能力清除神社暗跃，减少公开威胁。",
+      "creationId": "2d95c1ef-5811-4313-9c2d-a4f303ac531c",
+      "game": {
+        "id": "cceaab4e-662b-43e4-bef1-2e5f7c44063f",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:32.156624+00:00",
+      "finishedAtUTC": "2026-11-17T04:22:41.196630+00:00",
+      "latencySeconds": 9.039,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "shrine_maiden",
+            "index": 0,
+            "target": "shrine"
+          }
+        ],
+        "reason": "降低神社暗跃至1，防范复仇者之灯在神社的轮回末失败条件，同时探测巫女是否拒绝能力。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.019422,
+            "normalizedUsage": {
+              "inputTokens": 11773,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 235,
+              "reasoningTokens": 193
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11773,
+              "completion_tokens": 235,
+              "total_tokens": 12008,
+              "cost": 0.019422,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.019422,
+                "upstream_inference_prompt_cost": 0.0176595,
+                "upstream_inference_completions_cost": 0.0017625
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 193,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.019422,
+            "latencyMs": 1995
+          }
+        ],
+        "spentEstimate": 0.019421999999999995
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "shrine_cleanup"
+      }
+    },
+    "btx-hero-final-role-quota@1": {
+      "id": "btx-hero-final-role-quota",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "利用已正确作答的身份与规则配额，完成最后一项判断。",
+      "creationId": "a98fcb96-aece-4314-bf8b-5f9a6a686e60",
+      "game": {
+        "id": "721e4cf0-0318-4d83-aeba-a01e0c461837",
+        "revision": 55
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:52.652562+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:02.320088+00:00",
+      "latencySeconds": 9.663,
+      "decision": {
+        "commands": [
+          {
+            "type": "guess",
+            "character": "girl_student",
+            "role": "killer"
+          }
+        ],
+        "reason": "已猜出关键人物、幕后黑手、连环杀手、朋友和误导者，结合杀人计划规则Y，剩余的杀手角色必定是女学生。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0227625,
+            "normalizedUsage": {
+              "inputTokens": 13150,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 405,
+              "reasoningTokens": 355
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13150,
+              "completion_tokens": 405,
+              "total_tokens": 13555,
+              "cost": 0.0227625,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0227625,
+                "upstream_inference_prompt_cost": 0.019725,
+                "upstream_inference_completions_cost": 0.0030375
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 355,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0227625,
+            "latencyMs": 2588
+          }
+        ],
+        "spentEstimate": 0.02276249999999999
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "btx-hero-final-role-quota@2": {
+      "id": "btx-hero-final-role-quota",
+      "replicate": 2,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "利用已正确作答的身份与规则配额，完成最后一项判断。",
+      "creationId": "4a3e96cb-137d-4af4-9ab1-a45a2d777850",
+      "game": {
+        "id": "9560e339-7285-448d-86a6-908774f18b79",
+        "revision": 55
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:22:52.650939+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:02.104361+00:00",
+      "latencySeconds": 9.451,
+      "decision": {
+        "commands": [
+          {
+            "type": "guess",
+            "character": "girl_student",
+            "role": "killer"
+          }
+        ],
+        "reason": "已猜中关键人物、幕后黑手、连环杀手、朋友与误导者，主规则必为杀人计划，故唯一未现身的杀手必定是女学生。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.02259,
+            "normalizedUsage": {
+              "inputTokens": 13150,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 382,
+              "reasoningTokens": 329
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13150,
+              "completion_tokens": 382,
+              "total_tokens": 13532,
+              "cost": 0.02259,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.02259,
+                "upstream_inference_prompt_cost": 0.019725,
+                "upstream_inference_completions_cost": 0.002865
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 329,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.02259,
+            "latencyMs": 2474
+          }
+        ],
+        "spentEstimate": 0.02259
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "fs-mastermind-kill-heroes@1": {
+      "id": "fs-mastermind-kill-heroes",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "可立即杀死主人公时，不把一天白白结束。",
+      "creationId": "a7663123-fd58-4387-b952-4f6c98f9bbe2",
+      "game": {
+        "id": "7964c50a-4724-47e6-bdd6-7afcb0f88ae4",
+        "revision": 32
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:12.986976+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:19.723419+00:00",
+      "latencySeconds": 6.735,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "office_worker",
+            "ability": "heroes"
+          }
+        ],
+        "reason": "上班族（杀手）暗跃已达4，在日结束阶段发动能力杀死主人公，立即使本轮回失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0178425,
+            "normalizedUsage": {
+              "inputTokens": 10910,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 197,
+              "reasoningTokens": 157
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10910,
+              "completion_tokens": 197,
+              "total_tokens": 11107,
+              "cost": 0.0178425,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0178425,
+                "upstream_inference_prompt_cost": 0.016365,
+                "upstream_inference_completions_cost": 0.0014775
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 157,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0178425,
+            "latencyMs": 1808
+          }
+        ],
+        "spentEstimate": 0.01784250000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-kill-heroes@2": {
+      "id": "fs-mastermind-kill-heroes",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "可立即杀死主人公时，不把一天白白结束。",
+      "creationId": "cb9fd9d9-9693-4546-8321-8e7d5e724938",
+      "game": {
+        "id": "816295e4-0725-4390-957c-0aa4db1b1b9b",
+        "revision": 32
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:12.488673+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:19.722270+00:00",
+      "latencySeconds": 7.232,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "office_worker",
+            "ability": "heroes"
+          }
+        ],
+        "reason": "最后一日日结束阶段，杀手上班族暗跃已达4，立即发动能力杀死主人公使第1轮回失败，避免轮回结束时主人公获胜。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.018,
+            "normalizedUsage": {
+              "inputTokens": 10910,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 218,
+              "reasoningTokens": 169
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10910,
+              "completion_tokens": 218,
+              "total_tokens": 11128,
+              "cost": 0.018,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.018,
+                "upstream_inference_prompt_cost": 0.016365,
+                "upstream_inference_completions_cost": 0.001635
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 169,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.018,
+            "latencyMs": 1832
+          }
+        ],
+        "spentEstimate": 0.017999999999999988
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-kill-key@1": {
+      "id": "fs-mastermind-kill-key",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "关键人物已满足杀手条件，选择死亡能力。",
+      "creationId": "9de0943c-cfa9-4e45-9d6b-6fa3c81ed941",
+      "game": {
+        "id": "3d3c133d-de22-4bf3-b48c-b792b9f2094b",
+        "revision": 10
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:32.566022+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:39.155908+00:00",
+      "latencySeconds": 6.589,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "boy_student",
+            "ability": "kill",
+            "target": "girl_student"
+          }
+        ],
+        "reason": "男学生与关键人物女学生同在学校且女学生暗跃已达2，发动杀手能力杀死女学生即可直接赢得第1轮回。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.005713425,
+            "normalizedUsage": {
+              "inputTokens": 9453,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 239,
+              "reasoningTokens": 193
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 9453,
+              "completion_tokens": 239,
+              "total_tokens": 9692,
+              "cost": 0.005713425,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.005713425,
+                "upstream_inference_prompt_cost": 0.003920925,
+                "upstream_inference_completions_cost": 0.0017925
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 193,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.005713425,
+            "latencyMs": 1812
+          }
+        ],
+        "spentEstimate": 0.005713424999999994
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-kill-key@2": {
+      "id": "fs-mastermind-kill-key",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "关键人物已满足杀手条件，选择死亡能力。",
+      "creationId": "571ccae2-30dd-4804-88c7-a77e9f9157aa",
+      "game": {
+        "id": "8d24e7f2-f378-4726-b67b-e1b921ec9b52",
+        "revision": 10
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:32.133075+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:39.001530+00:00",
+      "latencySeconds": 6.867,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "boy_student",
+            "ability": "kill",
+            "target": "girl_student"
+          }
+        ],
+        "reason": "男学生（杀手）与暗跃2的关键人物女学生同在学校，发动能力杀死女学生即可立即赢下本轮回。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.005458425,
+            "normalizedUsage": {
+              "inputTokens": 9453,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 205,
+              "reasoningTokens": 162
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 9453,
+              "completion_tokens": 205,
+              "total_tokens": 9658,
+              "cost": 0.005458425,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.005458425,
+                "upstream_inference_prompt_cost": 0.003920925,
+                "upstream_inference_completions_cost": 0.0015375
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 162,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.005458425,
+            "latencyMs": 1637
+          }
+        ],
+        "spentEstimate": 0.005458424999999989
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-location-finish@1": {
+      "id": "fs-mastermind-location-finish",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "最后一天把真正的败北地点从 1 暗跃推到 2。",
+      "creationId": "62254422-4518-4ac0-ac3b-40db33a82138",
+      "game": {
+        "id": "781827c2-018e-4584-9546-7ccace124d52",
+        "revision": 40
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:51.253578+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:59.926251+00:00",
+      "latencySeconds": 8.672,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "plot",
+            "ability": "rumor",
+            "target": "hospital"
+          }
+        ],
+        "reason": "使用不安的传闻让医院暗跃+1达到2，在轮回结束时触发复仇者之灯失败条件，确保赢下第1轮回且不暴露医生身份。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.011381925,
+            "normalizedUsage": {
+              "inputTokens": 12047,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 476,
+              "reasoningTokens": 423
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12047,
+              "completion_tokens": 476,
+              "total_tokens": 12523,
+              "cost": 0.011381925,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.011381925,
+                "upstream_inference_prompt_cost": 0.007811925,
+                "upstream_inference_completions_cost": 0.00357
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 423,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.011381925,
+            "latencyMs": 3299
+          }
+        ],
+        "spentEstimate": 0.011381924999999987
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "loop_failure"
+      }
+    },
+    "fs-mastermind-location-finish@2": {
+      "id": "fs-mastermind-location-finish",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "最后一天把真正的败北地点从 1 暗跃推到 2。",
+      "creationId": "8363b701-4e51-40be-8902-5809ec3a9475",
+      "game": {
+        "id": "ebd6e927-eaf6-4f75-a037-bd43e900e36d",
+        "revision": 40
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:23:51.258170+00:00",
+      "finishedAtUTC": "2026-11-17T04:23:59.231416+00:00",
+      "latencySeconds": 7.971,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "plot",
+            "ability": "rumor",
+            "target": "hospital"
+          }
+        ],
+        "reason": "使用不安的传闻使医院暗跃达到2，在隐藏医生幕后黑手身份的同时直接满足复仇者之灯的轮回末失败条件，拿下第1轮回。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.010564425,
+            "normalizedUsage": {
+              "inputTokens": 12047,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 367,
+              "reasoningTokens": 314
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12047,
+              "completion_tokens": 367,
+              "total_tokens": 12414,
+              "cost": 0.010564425,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.010564425,
+                "upstream_inference_prompt_cost": 0.007811925,
+                "upstream_inference_completions_cost": 0.0027525
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 314,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.010564425,
+            "latencyMs": 2640
+          }
+        ],
+        "spentEstimate": 0.010564424999999988
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-low@1": {
+      "id": "mc-mastermind-therapy-low",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 1 时压住前兆，使钢丝上的计划保持 EX 1。",
+      "creationId": "783b8b15-e53e-40e5-a8d0-e6ddb641ce45",
+      "game": {
+        "id": "129c6a6f-4eec-4f56-83bc-773dabd7da46",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:09.976916+00:00",
+      "finishedAtUTC": "2026-11-17T04:24:19.420113+00:00",
+      "latencySeconds": 9.441,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "police"
+          }
+        ],
+        "reason": "降低警察不安至1使其低于前兆临界2，阻止事件发生以保持EX为1，从而在轮回结束时触发钢丝上的计划令主人公失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.02088,
+            "normalizedUsage": {
+              "inputTokens": 11990,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 386,
+              "reasoningTokens": 338
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11990,
+              "completion_tokens": 386,
+              "total_tokens": 12376,
+              "cost": 0.02088,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.02088,
+                "upstream_inference_prompt_cost": 0.017985,
+                "upstream_inference_completions_cost": 0.002895
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 338,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.02088,
+            "latencyMs": 2571
+          }
+        ],
+        "spentEstimate": 0.02088000000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 1,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-low@2": {
+      "id": "mc-mastermind-therapy-low",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 1 时压住前兆，使钢丝上的计划保持 EX 1。",
+      "creationId": "cb8bab28-ad8d-42d7-b556-eb6593e367a2",
+      "game": {
+        "id": "940bfe3b-614a-4af0-8313-3bde3625dd76",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:09.773181+00:00",
+      "finishedAtUTC": "2026-11-17T04:24:19.321895+00:00",
+      "latencySeconds": 9.547,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "police"
+          }
+        ],
+        "reason": "降低警察不安至1以阻止今日前兆发生，维持EX为1并在轮回末触发钢丝上的计划使主人公失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.02052,
+            "normalizedUsage": {
+              "inputTokens": 11990,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 338,
+              "reasoningTokens": 297
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11990,
+              "completion_tokens": 338,
+              "total_tokens": 12328,
+              "cost": 0.02052,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.02052,
+                "upstream_inference_prompt_cost": 0.017985,
+                "upstream_inference_completions_cost": 0.002535
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 297,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.02052,
+            "latencyMs": 2343
+          }
+        ],
+        "spentEstimate": 0.02052000000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 1,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-high@1": {
+      "id": "mc-mastermind-therapy-high",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 2 时保留前兆，使拼凑事件达到 EX 3。",
+      "creationId": "3cb8d327-c5a5-4448-98ff-7e5d7d322be6",
+      "game": {
+        "id": "4fffff49-ecec-437d-8581-9700fc6aeedf",
+        "revision": 21
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:36.719527+00:00",
+      "finishedAtUTC": "2026-11-17T04:24:44.723906+00:00",
+      "latencySeconds": 8.002,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "idol"
+          }
+        ],
+        "reason": "对不安为0的偶像使用治疗师能力，避免降低警察不安，确保今日「前兆」发生使EX达到3，达成层叠事件拼图的败北条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.020706,
+            "normalizedUsage": {
+              "inputTokens": 12054,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 350,
+              "reasoningTokens": 300
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12054,
+              "completion_tokens": 350,
+              "total_tokens": 12404,
+              "cost": 0.020706,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.020706,
+                "upstream_inference_prompt_cost": 0.018081,
+                "upstream_inference_completions_cost": 0.002625
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 300,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.020706,
+            "latencyMs": 2630
+          }
+        ],
+        "spentEstimate": 0.020706000000000002
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 3,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-high@2": {
+      "id": "mc-mastermind-therapy-high",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 2 时保留前兆，使拼凑事件达到 EX 3。",
+      "creationId": "5924cb5a-981e-41c9-9c17-e13a494dd705",
+      "game": {
+        "id": "6fd465e2-d42e-4752-bfab-e32c330829e0",
+        "revision": 21
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:37.312742+00:00",
+      "finishedAtUTC": "2026-11-17T04:24:44.759061+00:00",
+      "latencySeconds": 7.443,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "idol"
+          }
+        ],
+        "reason": "选择偶像作为治疗师目标，其不安为0不会减少警察的不安，确保今日前兆事件顺利触发使EX达到3，从而达成层叠事件拼图的轮回末败北条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0209085,
+            "normalizedUsage": {
+              "inputTokens": 12054,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 377,
+              "reasoningTokens": 322
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12054,
+              "completion_tokens": 377,
+              "total_tokens": 12431,
+              "cost": 0.0209085,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0209085,
+                "upstream_inference_prompt_cost": 0.018081,
+                "upstream_inference_completions_cost": 0.0028275
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 322,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0209085,
+            "latencyMs": 2626
+          }
+        ],
+        "spentEstimate": 0.020908499999999997
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 3,
+        "reason": "loop_failure"
+      }
+    },
+    "fs-mastermind-resilient-three-cards@1": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "87959bd5-3803-41d0-8489-fa5a2314d978",
+      "game": {
+        "id": "01d924c1-dab3-4c01-ba74-714ce0fb1e9b",
+        "revision": 24
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:56.391932+00:00",
+      "finishedAtUTC": "2026-11-17T04:25:05.767585+00:00",
+      "latencySeconds": 9.374,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "boy_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "双线推进男学生与女学生暗跃，配合学校内医生能力确保日末杀手达成击杀，同时用上班族不安+1作佯动。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.011176425,
+            "normalizedUsage": {
+              "inputTokens": 11850,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 488,
+              "reasoningTokens": 433
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11850,
+              "completion_tokens": 488,
+              "total_tokens": 12338,
+              "cost": 0.011176425,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.011176425,
+                "upstream_inference_prompt_cost": 0.007516425,
+                "upstream_inference_completions_cost": 0.00366
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 433,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.011176425,
+            "latencyMs": 3371
+          }
+        ],
+        "spentEstimate": 0.01117642499999999
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "winningResponses": 80,
+        "responseCount": 80,
+        "reason": "One-card-response survival of the offensive plan"
+      }
+    },
+    "fs-mastermind-resilient-three-cards@2": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 2,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "b3071c05-430d-49e7-9492-2c1235bd1bb3",
+      "game": {
+        "id": "ed94b70e-2dbc-4930-b8d2-b7fd57dee614",
+        "revision": 24
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:24:56.379288+00:00",
+      "finishedAtUTC": "2026-11-17T04:25:06.623476+00:00",
+      "latencySeconds": 10.241,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "boy_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "双线施压确保本轮回失败：暗跃+2给女学生、暗跃+1给男学生，配合医生在学校的幕后黑手能力，无论主人公防哪一路或移动谁，日末都能达成杀手杀关键人物或杀主人公条件；不安+1给上班族作干扰。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.012458925,
+            "normalizedUsage": {
+              "inputTokens": 11850,
+              "cachedInputTokens": 7199,
+              "cacheWriteTokens": 0,
+              "outputTokens": 659,
+              "reasoningTokens": 572
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11850,
+              "completion_tokens": 659,
+              "total_tokens": 12509,
+              "cost": 0.012458925,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7199,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.012458925,
+                "upstream_inference_prompt_cost": 0.007516425,
+                "upstream_inference_completions_cost": 0.0049425
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 572,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.012458925,
+            "latencyMs": 4254
+          }
+        ],
+        "spentEstimate": 0.01245892500000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "winningResponses": 80,
+        "responseCount": 80,
+        "reason": "One-card-response survival of the offensive plan"
+      }
+    },
+    "mc-hero-infer-y-before-silver@1": {
+      "id": "mc-hero-infer-y-before-silver",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "avoid_known_early_failure",
+      "description": "由公开杀手身份、隔离病栋和六人配额推断钢丝上的计划；EX 1 时避免银弹立即导致失败。",
+      "creationId": "e6c48086-414c-49a9-ac55-5b05f76af463",
+      "game": {
+        "id": "27cdbc03-cc83-4df4-b1b0-bb80beb5d8f4",
+        "revision": 50
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:25:17.082396+00:00",
+      "finishedAtUTC": "2026-11-17T04:25:26.467255+00:00",
+      "latencySeconds": 9.383,
+      "decision": {
+        "commands": [
+          {
+            "type": "pass"
+          }
+        ],
+        "reason": "保留人工智能每轮回一次的能力至第5日，避免误触发银色子弹导致EX=1直接败北；第5日需促成前兆发生使EX达到2以破解钢丝上的计划。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.026784,
+            "normalizedUsage": {
+              "inputTokens": 14151,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 741,
+              "reasoningTokens": 602
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14151,
+              "completion_tokens": 741,
+              "total_tokens": 14892,
+              "cost": 0.026784,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.026784,
+                "upstream_inference_prompt_cost": 0.0212265,
+                "upstream_inference_completions_cost": 0.0055575
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 602,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.026784,
+            "latencyMs": 4712
+          }
+        ],
+        "spentEstimate": 0.026784000000000002
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "day": 5,
+        "extraGauge": 1,
+        "winner": null,
+        "reason": "Continue the live loop instead of a publicly inferable EX-1 defeat"
+      }
+    },
+    "mc-hero-infer-y-before-silver@2": {
+      "id": "mc-hero-infer-y-before-silver",
+      "replicate": 2,
+      "seat": "A",
+      "criterion": "avoid_known_early_failure",
+      "description": "由公开杀手身份、隔离病栋和六人配额推断钢丝上的计划；EX 1 时避免银弹立即导致失败。",
+      "creationId": "0af63dac-b045-467c-8a96-8cd9e3c8def0",
+      "game": {
+        "id": "20435f80-31dc-4f7b-9deb-6f06e47b6e8a",
+        "revision": 50
+      },
+      "fixtureReady": true,
+      "startedAtUTC": "2026-11-17T04:25:16.861298+00:00",
+      "finishedAtUTC": "2026-11-17T04:25:26.344331+00:00",
+      "latencySeconds": 9.481,
+      "decision": {
+        "commands": [
+          {
+            "type": "pass"
+          }
+        ],
+        "reason": "当前EX为1，需等第5日前兆实际发生以达成EX≥2；模拟银色子弹会立即因钢丝上的计划失败，其余能力暂无收益，保留AI每轮回能力直接结束阶段。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "google/gemini-4-hydrogen",
+            "modelLabel": "Gemini 4 Hydrogen",
+            "costKind": "provider_reported",
+            "actualCost": 0.0266715,
+            "normalizedUsage": {
+              "inputTokens": 14151,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 726,
+              "reasoningTokens": 666
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14151,
+              "completion_tokens": 726,
+              "total_tokens": 14877,
+              "cost": 0.0266715,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0266715,
+                "upstream_inference_prompt_cost": 0.0212265,
+                "upstream_inference_completions_cost": 0.005445
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 666,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0266715,
+            "latencyMs": 4671
+          }
+        ],
+        "spentEstimate": 0.026671500000000015
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "day": 5,
+        "extraGauge": 1,
+        "winner": null,
+        "reason": "Continue the live loop instead of a publicly inferable EX-1 defeat"
+      }
+    }
+  },
+  "summary": {
+    "scheduled": 22,
+    "scored": 22,
+    "passed": 22,
+    "legal": 22,
+    "errors": 0,
+    "spentEstimate": 0.40711905000000004,
+    "repairAttempts": 0,
+    "bySide": {
+      "mastermind": {
+        "scored": 12,
+        "passed": 12
+      },
+      "heroes": {
+        "scored": 10,
+        "passed": 10
+      }
+    },
+    "scope": "One decision per legal fixture with fixed local suffix; not full-game win rate."
+  },
+  "testedSiteSourceCommit": "c3191a9c2e037c379f9b888b2bd0871e9cd8b69b"
+}

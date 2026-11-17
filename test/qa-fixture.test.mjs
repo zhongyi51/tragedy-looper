@@ -141,3 +141,14 @@ test('paired model probes use only isolated historical frames, settle invoices a
  assert.equal((await f.request('/api/games/'+normal.id+'/ai-step',{revision:0,qaProfile:'luna-history'},{owner:'normal'})).data.code,'INVALID_QA_PROFILE');
  f.env.SITES_QA_ENABLED='false';assert.equal((await f.request('/api/qa/games/'+game.id+'/ai-step',{revision:game.revision,qaProfile:'luna-history'})).status,401);
 });
+
+test('only enabled isolated QA may reconcile a nonterminal invoice after transport uncertainty',async t=>{
+ const f=fixture();t.after(()=>f.sql.close());
+ const own=(await f.request('/api/games',{mode:'observe'},{owner:'normal'})).data;
+ assert.equal((await f.request('/api/games/'+own.id+'/usage',undefined,{owner:'normal'})).status,403);
+ const qa=(await f.request('/api/qa/games',{mode:'observe'})).data;
+ f.sql.prepare('INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)').run('uncertain-call',qa.id,'completed',JSON.stringify({status:'completed',estimatedCost:.001}));
+ const receipt=await f.request('/api/qa/games/'+qa.id+'/usage');assert.equal(receipt.status,200);assert.equal(receipt.data[0].estimatedCost,.001);
+ assert.equal((await f.request('/api/qa/games/'+own.id+'/usage')).status,404);
+ f.env.SITES_QA_ENABLED='false';assert.equal((await f.request('/api/qa/games/'+qa.id+'/usage')).status,401);
+});

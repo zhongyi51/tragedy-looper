@@ -45,8 +45,8 @@ export function reserveFor(messages,maxTokens=1800,provider='deepseek'){
  return (bytes*Math.max(prices.input,prices.cacheWrite||0)+maxTokens*prices.output)/1e6;
 }
 export async function requestJson(messages,{provider='deepseek',userId='local',cacheKey,maxTokens=1800,thinking='disabled',reasoningEffort='low',timeoutMs=90000,onReserve=()=>{},onUsage=()=>{},apiKey,model:requestedModel,cacheLayout='legacy',benchmarkModel}={}){
- const selectedModel=benchmarkModel||modelFor(provider),modelLabel=benchmarkModel==='openai/gpt-6-luna'?'GPT-6 Luna':providerLabel(provider),sol=provider==='openrouter';
- if((benchmarkModel!==undefined&&(provider!=='openrouter'||benchmarkModel!=='openai/gpt-6-luna'))||!['legacy','system','history'].includes(cacheLayout))throw new AiError('MODEL_OPTIONS','实验模型或缓存布局无效');
+ const selectedModel=benchmarkModel||modelFor(provider),modelLabel=benchmarkModel==='openai/gpt-6-luna'?'GPT-6 Luna':benchmarkModel==='google/gemini-4-hydrogen'?'Gemini 4 Hydrogen':providerLabel(provider),sol=provider==='openrouter',hydrogen=benchmarkModel==='google/gemini-4-hydrogen';
+ if((benchmarkModel!==undefined&&(provider!=='openrouter'||!['openai/gpt-6-luna','google/gemini-4-hydrogen'].includes(benchmarkModel)))||!['legacy','system','history'].includes(cacheLayout))throw new AiError('MODEL_OPTIONS','实验模型或缓存布局无效');
  if(!Number.isInteger(maxTokens)||maxTokens<1||maxTokens>16384||!['enabled','disabled'].includes(thinking)||!['low','high','max'].includes(reasoningEffort)||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>90000||(requestedModel!==undefined&&requestedModel!==selectedModel)||typeof userId!=='string'||(cacheKey!==undefined&&typeof cacheKey!=='string'))throw new AiError('MODEL_OPTIONS','模型推理设置无效');
  const credential=apiKey===undefined?keys[provider]:apiKey;
  if(typeof credential!=='string'||!credential)throw new AiError('NO_KEY',`还没有配置 ${modelLabel} 密钥，可以改用离线机器人。`);
@@ -54,10 +54,13 @@ export async function requestJson(messages,{provider='deepseek',userId='local',c
  // to a redirect service or to the other provider's API.
  if(!sol){let target;try{target=new URL(base);}catch{}if(!target||target.origin!=='https://api.deepseek.com'||!['','/','/v1'].includes(target.pathname)||target.username||target.password||target.search||target.hash)throw new AiError('BASE_URL','只能连接 DeepSeek 的官方地址');}
  const session=createHash('sha256').update(cacheKey||userId).digest('hex');
- const transport=sol?cacheDecisionMessages(messages,cacheLayout):{messages};
+ let transport=sol?cacheDecisionMessages(messages,cacheLayout):{messages};
+ // Hydrogen currently supports implicit caching, not OpenAI explicit markers.
+ // Keep identical text/information, and let its own backend manage caching.
+ if(hydrogen)transport={messages:transport.messages.map(m=>({...m,...(Array.isArray(m.content)?{content:m.content.map(({type,text})=>({type,text}))}:{})}))};
  const body={model:selectedModel,...transport,response_format:{type:'json_object'},max_tokens:maxTokens,stream:false,...(sol?{
-  reasoning:{effort:'low',exclude:true},session_id:session,prompt_cache_key:session,
-  provider:{only:['openai'],ignore:['openai/flex','openai/fast','openai/ultrafast'],sort:'price',allow_fallbacks:false,require_parameters:true,max_price:{prompt:2,completion:10}}
+  reasoning:{effort:hydrogen?reasoningEffort:'low',exclude:true},session_id:session,prompt_cache_key:session,
+  provider:hydrogen?{only:['google-vertex/global'],allow_fallbacks:false,require_parameters:true,max_price:{prompt:1.5,completion:7.5}}:{only:['openai'],ignore:['openai/flex','openai/fast','openai/ultrafast'],sort:'price',allow_fallbacks:false,require_parameters:true,max_price:{prompt:2,completion:10}}
  }:{thinking:{type:thinking},...(thinking==='enabled'?{reasoning_effort:reasoningEffort}:{}),user_id:cacheKey?session:userId})};
  const reserved=reserveFor(transport.messages,maxTokens,provider);await onReserve(reserved);
  const started=Date.now(),metadata={provider,model:selectedModel,modelLabel,reserved};let response,data;
@@ -74,7 +77,7 @@ export async function requestJson(messages,{provider='deepseek',userId='local',c
  const actualCost=sol&&Number.isFinite(usage.cost)&&usage.cost>=0?usage.cost:undefined;
  const hasUsage=Number.isFinite(usage.prompt_tokens)&&Number.isFinite(usage.completion_tokens);
  const cost=actualCost??(hasUsage?estimateUsage(usage,provider):reserved),costKind=actualCost!==undefined?'provider_reported':hasUsage?'conservative_estimate':'reservation_estimate';
- await onUsage({...metadata,status:'completed',model:data.model||selectedModel,requestId:data.id,thinking:sol?'enabled':thinking,reasoningEffort:sol?'low':thinking==='enabled'?reasoningEffort:undefined,usage,normalizedUsage,costKind,...(actualCost===undefined?{}:{actualCost}),estimatedCost:cost,latencyMs:Date.now()-started});
+ await onUsage({...metadata,status:'completed',model:data.model||selectedModel,requestId:data.id,thinking:sol?'enabled':thinking,reasoningEffort:sol?(hydrogen?reasoningEffort:'low'):thinking==='enabled'?reasoningEffort:undefined,usage,normalizedUsage,costKind,...(actualCost===undefined?{}:{actualCost}),estimatedCost:cost,latencyMs:Date.now()-started});
  if(data.choices?.[0]?.finish_reason==='length')throw new AiError('TRUNCATED','模型的回答太长被截断了，这一步没有执行。');
  const parsed=parseModelJson(data.choices?.[0]?.message?.content);if(parsed===undefined)throw new AiError('BAD_JSON','模型的回答格式不对，这一步没有执行。');return parsed;
 }

@@ -140,3 +140,17 @@ test('malformed and truncated outputs retain actual Sol billing before rejection
  for(const code of ['BAD_JSON','TRUNCATED'])await assert.rejects(requestJson(messages,{provider:'openrouter',apiKey:'fake_test_key',onUsage:x=>reports.push(x)}),e=>e.code===code);
  assert.deepEqual(reports.map(x=>x.estimatedCost),[.002,.003]);assert.ok(reports.every(x=>x.status==='completed'));
 });
+
+test('Hydrogen QA pins the standard Google endpoint and strips unsupported OpenAI cache controls',async t=>{
+ const sent=[];t.mock.method(globalThis,'fetch',async(url,init)=>{sent.push({url,body:JSON.parse(init.body)});return reply();});
+ const gameMessages=[{role:'system',content:'JSON full rules'},{role:'user',content:'{"seat":"A"}'},{role:'user',content:JSON.stringify({visibleHistory:[{n:1,text:'public history'}],observation:{script:{title:'sample'},actions:[{choice:0,command:{type:'pass'}}]},privateMemory:{goals:[]}})}];
+ for(const reasoningEffort of ['low','high'])await requestJson(gameMessages,{provider:'openrouter',apiKey:'fake-openrouter-key',benchmarkModel:'google/gemini-4-hydrogen',reasoningEffort,cacheLayout:'history',maxTokens:8192});
+ for(const [i,{url,body}]of sent.entries()){
+  assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(body.model,'google/gemini-4-hydrogen');
+  assert.deepEqual(body.provider,{only:['google-vertex/global'],allow_fallbacks:false,require_parameters:true,max_price:{prompt:1.5,completion:7.5}});
+  assert.equal(body.reasoning.effort,i?'high':'low');assert.equal(body.prompt_cache_options,undefined);assert.ok(!JSON.stringify(body).includes('prompt_cache_breakpoint'));
+  assert.ok(JSON.stringify(body).includes('public history'));assert.ok(JSON.stringify(body).includes('sample'));assert.equal(body.max_tokens,8192);
+ }
+ await assert.rejects(requestJson(gameMessages,{provider:'deepseek',benchmarkModel:'google/gemini-4-hydrogen'}),e=>e.code==='MODEL_OPTIONS');
+ assert.deepEqual(providersInfo().map(x=>x.id),['deepseek','openrouter']);
+});

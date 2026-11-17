@@ -83,6 +83,8 @@ DeepSeek 的 UI 金额是保守费率估算：每百万 token 普通输入 $0.30
 
 ## 测试
 
+2026-11-17 的 Hydrogen 与 DeepSeek 双身份、四模型费用及连续缓存对照见 [四模型比较](reports/HYDROGEN-DEEPSEEK-20261117.md)。生产仍保留 Sol 与 DeepSeek 两个选择。
+
 2026-11-17 的显式缓存对照与 Luna 双身份质量测试见 [缓存与 Luna 对照报告](reports/CACHE-LUNA-20261117.md)。Luna 仅用于隔离测试，未更换现有对局的模型。
 
 2026-11-17 的 Sol 双身份完整剧本费用审计与额度修改验证见 [费用与额度报告](reports/SOL-COST-BUDGET-20261117.md)。
