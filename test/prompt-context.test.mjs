@@ -6,6 +6,19 @@ import {decisionContext,decisionProfile,decide,AI_DECISION_VERSION,decisionSumma
 import {commonGameInstructions,gameRulesPrefix,rulesForPrompt} from '../src/game-prompt.mjs';
 
 const output=answer=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer)}}],usage:{prompt_tokens:100,completion_tokens:50}}));
+test('compact placement candidates preserve every legal command and its original index',()=>{
+ for(const ruleset of ['FS','BTX','MZ','MC']){
+  let s=createGame(generateScript({ruleset,seed:14877}));
+  for(let n=0;n<6;n++){
+   const seat=turn(s),actions=legalActions(s,seat),ctx=decisionContext(s,seat);
+   const wire=JSON.parse(ctx.messages[2].content).observation.actions;
+   assert.deepEqual(wire.map(a=>Array.isArray(a)?{type:'place',card:a[1],target:a[2]}:a.command),actions.map(a=>a.command));
+   assert.deepEqual(wire.map(a=>Array.isArray(a)?a[0]:a.choice),actions.map((_,i)=>i));
+   if(actions.every(a=>a.command.type==='place'))assert.ok(JSON.stringify(wire).length<JSON.stringify(ctx.payload.observation.actions).length*.55);
+   s=applyCommand(s,seat,actions[0].command);
+  }
+ }
+});
 for(const ruleset of ['FS','BTX','MZ','MC'])test(`${ruleset} rules prefix is independent of phase, cast, seat and secret truth`,()=>{
  const s=createGame(generateScript({ruleset,seed:14877})),original=decisionContext(s,'M').messages[0].content;
  assert.ok(original.startsWith(gameRulesPrefix(ruleset)));
@@ -23,7 +36,7 @@ for(const ruleset of ['FS','BTX','MZ','MC'])test(`${ruleset} rules prefix is ind
 test('whole-game instructions include lifecycle, information, resource and final-battle rules',()=>{
  const text=commonGameInstructions();
  for(const required of ['轮回开始','日开始','剧作家暗置三张牌','主人公领导者','当日日程事件','领导者轮换','day_end','loop_end','一次性行动牌','每轮回能力恢复','原始配役、事件犯人和日程不随重置随机改变','公开日志','提前进入最后的战斗','一名人物猜错即失败','none=不能拒绝','optional=剧作家可选择拒绝','mandatory=必须拒绝','三种方向同时出现互相抵消','事件名称公开不代表犯人公开'])assert.ok(text.includes(required),required);
- assert.equal(AI_DECISION_VERSION,'decision-5');
+ assert.equal(AI_DECISION_VERSION,'decision-6');
 });
 
 test('normal phase transitions keep a substantial identical complete-rules prefix',()=>{

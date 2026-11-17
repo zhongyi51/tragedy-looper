@@ -64,7 +64,7 @@ for(const phase of ['cultist','refusal','incident'])test(`advance preserves subs
 
 test('a paid last-card choice and its forced aftermath share one idempotent commit',async t=>{
  const {request,store,sql}=fixture(),{id}=await store(fiveCards(),'observe');let calls=0;
- t.mock.method(globalThis,'fetch',async(_url,init)=>{calls++;const messages=JSON.parse(init.body).messages,observation=JSON.parse(messages[2].content).observation;assert.equal(observation.phaseId,'hero_cards');const choice=observation.actions.find(a=>a.command.card==='goodwill_1#0'&&a.command.target==='doctor').choice;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:JSON.stringify({choice,note:'仅当前公开证据'})}}]}),{status:200});});
+ t.mock.method(globalThis,'fetch',async(_url,init)=>{calls++;const messages=JSON.parse(init.body).messages,observation=JSON.parse(messages[2].content).observation;assert.equal(observation.phaseId,'hero_cards');const choice=observation.actions.find(a=>a[1]==='goodwill_1#0'&&a[2]==='doctor')[0];return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:JSON.stringify({choice,note:'仅当前公开证据'})}}]}),{status:200});});
  const body={revision:0,commandId:'paid-choice-and-settlement'};
  // Treat this response as lost: recover by GET and a same-receipt retry.
  const first=await request('/api/games/'+id+'/ai-step',body);assert.equal(first.status,200);assert.ok(first.data.revision>=2);assert.equal(first.data.phaseId,'mm_ability');assert.equal(calls,1);

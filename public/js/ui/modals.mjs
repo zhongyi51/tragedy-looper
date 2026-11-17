@@ -130,3 +130,7 @@ export function bannerHtml(banner){
    ${banner.recap?.length?recapHtml(banner.recap):''}
    ${banner.lines.map(l=>`<p>${esc(l)}</p>`).join('')}<small class="banner-go">点击继续</small></div></div>`;
 }
+
+export function budgetModal(game){
+ return frame('调整本局额度',`${head('调整本局额度')}<p class="hint">设置这一局累计可用的 AI 费用上限，已产生的费用不会清零。下一次请求会先预留费用，回答后再结算。</p><label class="field"><span>总上限（美元）</span><input id="game-budget" type="number" min=".01" max="10" step=".01" required value="${esc(game.budget)}" data-expected="${esc(game.budget)}" data-game="${esc(game.id)}"></label><footer class="modal-foot">${btn('保存额度','save-budget','primary')}</footer>`);
+}

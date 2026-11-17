@@ -6,7 +6,7 @@ export {configureKey,configured,model,rates,estimateUsage,reserveFor,requestJson
 export {generateWithAi,polishWithAi} from './author.mjs';
 
 export const AI_MEMORY_VERSION=1;
-export const AI_DECISION_VERSION='decision-5';
+export const AI_DECISION_VERSION='decision-6';
 const aiSeats=['A','B','C'];
 const aiRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const aiText=(value,max)=>typeof value==='string'&&value.length<=max;
@@ -21,6 +21,7 @@ const DECISION_PROTOCOL=`【决策协议】你负责当前 seat 的一次选择�
 【当前阶段检查】先读取 phaseId、turn、loop/day、日程与剩余资源，再判断行动能影响哪一个尚未结算的时点。盖牌比较共同作用后的局面及对手常见反制；初始三张尚未盖放时优先用 choices 选完整协同三牌。剧作家能力按计数改变前后→事件触发值与临界→EX→轮回末条件核对。能力/事件比较全部目标、放弃与提前结束的实际收益。最后的战斗联合核对所有未猜人物、角色配额及公开证据，不能对未知者统一猜普通人。
 【局势简报与参考】urgency 提供公开日程、剩余出牌机会和有条件的即时风险，不证明隐藏身份。briefing、suggestion、tacticalOptions 是启发式提示，可能漏算，不是规则裁定或必胜证明。ruleBeliefs 是公开约束的候选筛选，不是秘密答案或概率；contradiction 时不得采信其排除结果。strategyPlans 只模拟列出的少数应对，不能代表全部反制；先核对事实与规则，再比较计划，不要因 suggestion 忽略可获胜能力或救命动作。
 【证据与记忆】observation.evidence 是从公开记录提取的事实/宣告。privateNote、privateMemory 和讨论里的旧计划都不是规则事实；先按当前位置、计数、日程和可用资源复核，再决定延续或改换目标。新证据矛盾时修正或丢弃旧假说，不把自己的未揭牌面写进共享假说；剧作家记忆绝不与主人公共享。permittedDiscussion 只包含讨论设置允许共享的结构化笔记；仅轮回间讨论时，本轮新私有笔记不共享。
+【候选编码】observation.actions 中的盖牌候选用三元组 [choice,card,target] 表示，对应 command={type:"place",card,target}；choice 仍是原候选编号，牌与人物/地点名称、效果见完整词典。地点只有暗跃及暗跃禁止有效，其余牌均是合法无效果佯动。非盖牌候选保留完整对象。两种表示的选择方式相同，不得把三元组误当成要输出的 choices。
 【输出】只返回短 JSON：{"choice":0,"reason":"不超过100字的行动依据"}。choice 是 observation.actions 的整数编号，从0开始；observation.batch 存在时可用 "choices":[a,b,c] 替代 choice，牌和目标均须不同且按顺序全部合法。先完成选择，再简述其对本方胜负的作用；不要返回 command、自造候选或思维链。memory 非必填；没有新增证据或目标时省略 memory 和 note。必要时 memory 为 {"hypotheses":[],"goals":[],"questions":[]}：hypotheses 最多8条，每条 {"claim":"最多160字","evidence":[公开日志编号],"confidence":"low|medium|high"}，evidence 最多8个，必须引用 visibleHistory 已有 n；无证据时 evidence 可空但 confidence 必须 low。goals 最多3条、questions 最多4条，每条最多160字。
 【修复协议】仅当后续消息明确标记 repairMode="compiled-plan" 并提供顶层 plans 时，上一段 choice/choices 输出协议由计划选择协议取代：只返回 {"plan":0,"reason":"不超过100字的依据"}，plan 为所给完整合法方案编号。其余正常请求不得返回 plan。`;
 const decisionSystems=new Map();
@@ -104,7 +105,7 @@ export function decisionContext(s,seat,actions=legalActions(s,seat)){
  // The secret is sent exactly once in its own seat-scoped message. Keeping the
  // public payload separate makes the boundary auditable without duplicating it.
  const {secret,script,...currentObservation}=observation;
- const publicObservation={script,...currentObservation};
+ const publicObservation={script,...currentObservation,actions:observation.actions.map(action=>action.command.type==='place'?[action.choice,action.command.card,action.command.target]:action)};
  const messages=[{role:'system',content:aiSystem(s)},{role:'user',content:JSON.stringify({seat,...(seat==='M'?{secret}:{})})},{role:'user',content:JSON.stringify({visibleHistory,observation:publicObservation,privateNote,privateMemory,permittedDiscussion})}];
  return {messages,payload,batch,discussion,policyCurrent};
 }

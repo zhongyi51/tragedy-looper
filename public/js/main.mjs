@@ -15,7 +15,7 @@ import {homeHtml} from './ui/home.mjs';
 import {rulesHtml} from './ui/rules.mjs';
 import {editorHtml} from './ui/editor.mjs';
 import {replayIntroHtml,replayBarHtml} from './ui/replay.mjs';
-import {newGameModal,characterModal,guideModal,truthModal,reviewModal,bannerHtml} from './ui/modals.mjs';
+import {budgetModal,newGameModal,characterModal,guideModal,truthModal,reviewModal,bannerHtml} from './ui/modals.mjs';
 import {analyze,emptyMarks,markRole,markPlot,markCulprit} from './deduce.mjs';
 
 const PAGES=[['home','首页','home'],['game','对局','board'],['editor','剧本','pen'],['replay','回放','film'],['rules','规则','book']];
@@ -212,6 +212,15 @@ const actions={
  'sheet-reset'(){if(confirm('清空这一局的全部推理标记？'))editMarks(emptyMarks);},
  reconnect(){rememberGame();location.reload();},
  'sync-state':()=>session.syncState(),
+ 'edit-budget'(){
+  state.auto=false;
+  if(state.working||state.g?.busy){toast('当前请求仍在处理，请完成后调整。');return;}
+  openModal(budgetModal(state.g));
+ },
+ async 'save-budget'(){
+  const input=$('#game-budget');if(!input||!input.reportValidity())return;
+  if(await session.updateBudget(Number(input.value),Number(input.dataset.expected),input.dataset.game)){closeModal();toast('额度已保存，可继续对局。');}
+ },
  async truth(){
   const g=state.g;if(!g?.winner)return;
   if(state.truth?.id!==g.id)state.truth={id:g.id,script:await api(`/games/${g.id}/script?full=1`)};

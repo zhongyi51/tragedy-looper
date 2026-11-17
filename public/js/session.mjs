@@ -120,12 +120,25 @@ export function createSession({state,api,render,animate=async()=>{},land=()=>{},
   }finally{state.auto=false;render();}
  }
 
+ async function updateBudget(budget,expectedBudget,gameId){
+  if(state.working||state.g?.id!==gameId)return false;
+  state.auto=false;state.working=true;state.requestKind='budget';render();
+  try{
+   await confirming;
+   const updated=await api(`/games/${gameId}/budget`,{budget,expectedBudget});
+   if(state.g?.id!==gameId)return false;
+   state.g=updated;state.selected=null;state.syncRequired=Boolean(updated.busy);
+   if(state.actionErrorCode==='BUDGET_RESERVATION'){state.actionError='';state.actionErrorCode='';}
+   return true;
+  }finally{state.working=false;state.requestKind='';render();}
+ }
+
  function kick(){
   const g=state.g;
-  if(!state.autoPlay||state.page!=='game'||!g||g.winner||humanTurn(g)||state.working||state.auto||state.syncRequired||state.actionError||g.busy)return;
+  if(state.modal||!state.autoPlay||state.page!=='game'||!g||g.winner||humanTurn(g)||state.working||state.auto||state.syncRequired||state.actionError||g.busy)return;
   const id=g.id;
   wait(350).then(()=>{
-   if(state.g?.id===id&&state.page==='game'&&!state.working&&!state.auto&&!humanTurn(state.g))runAuto().catch(error=>{toast(error.message,'error');sound('error_001');render();});
+   if(!state.modal&&state.g?.id===id&&state.page==='game'&&!state.working&&!state.auto&&!humanTurn(state.g))runAuto().catch(error=>{toast(error.message,'error');sound('error_001');render();});
   });
  }
 
@@ -135,5 +148,5 @@ export function createSession({state,api,render,animate=async()=>{},land=()=>{},
   try{await step(undefined,'advance');}catch(error){toast(error.message,'error');}
  }
 
- return {step,syncState,runAuto,kick,resumeRules,aiRoute};
+ return {step,syncState,runAuto,kick,resumeRules,aiRoute,updateBudget};
 }

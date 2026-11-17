@@ -2,6 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const base=process.env.TEST_URL||'http://127.0.0.1:4317';
 function client(){let cookie='';return async(p,b,headers={})=>{const r=await fetch(base+p,{method:b===undefined?'GET':'POST',headers:{'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{}),...headers},...(b===undefined?{}:{body:JSON.stringify(b)})});if(r.headers.get('set-cookie'))cookie=r.headers.get('set-cookie').split(';')[0];return {status:r.status,body:await r.json()};};}
+test('HTTP can change a running game budget and resume with unchanged play history',async()=>{
+ const c=client(),g=(await c('/api/games',{budget:.5})).body,path='/api/games/'+g.id;
+ const before=(await c(path+'/replay')).body;
+ const changed=await c(path+'/budget',{budget:1.2,expectedBudget:.5});assert.equal(changed.status,200);assert.equal(changed.body.budget,1.2);assert.equal(changed.body.revision,g.revision);
+ assert.equal((await c(path)).body.budget,1.2);
+ assert.deepEqual((await c(path+'/replay')).body,before);
+ assert.equal((await c(path+'/budget',{budget:2,expectedBudget:.5})).status,409);
+ assert.equal((await c(path+'/budget',{budget:-1,expectedBudget:1.2})).status,400);
+ assert.equal((await c(path+'/bot-step',{revision:g.revision})).status,200);
+});
 test('HTTP privacy, seats, idempotency, revision conflict and public export',async()=>{
  const request=client(),other=client();let {body:g,status}=await request('/api/games',{mode:'heroes',budget:.1});assert.equal(status,201);assert.equal(g.secret,undefined);assert.equal(g.spent,null);
  assert.equal((await other('/api/games/'+g.id)).status,400);

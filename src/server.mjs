@@ -1,3 +1,4 @@
+import {budgetChange} from './game-budget.mjs';
 import http from 'node:http';
 import {existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -35,7 +36,7 @@ function persist(g,frames,commandId){
   db.exec('COMMIT');
  }catch(e){db.exec('ROLLBACK');throw e;}
 }
-function usageHooks(g){let callId;return {onReserve:async amount=>{const current=getGame(g.id,g.owner);if(current.spent+amount>current.budget)throw Error('这一局的 AI 花费已到上限，没有发送请求。');callId=randomUUID();db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(amount,g.id);db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}},onUsage:async data=>{db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(data.estimatedCost-data.reserved,g.id);db.prepare('UPDATE calls SET status=?,data=? WHERE id=?').run(data.status,JSON.stringify(data),callId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}};}
+function usageHooks(g){let callId;return {onReserve:async amount=>{const current=getGame(g.id,g.owner);if(current.spent+amount>current.budget)throw Object.assign(Error('剩余额度不足以预留下一次请求；并非全部已消费。可调整本局上限后继续，没有发送请求。'),{code:'BUDGET_RESERVATION'});callId=randomUUID();db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(amount,g.id);db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}},onUsage:async data=>{db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(data.estimatedCost-data.reserved,g.id);db.prepare('UPDATE calls SET status=?,data=? WHERE id=?').run(data.status,JSON.stringify(data),callId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}};}
 function replay(g,full=false){const seat=full?'M':'public';return {format:'tragedy-replay-1',engineVersion:VERSION,contentHash,perspective:seat,script:full?g.state.script:publicScript(g.state.script),frames:db.prepare('SELECT state,hash FROM frames WHERE game=? ORDER BY revision').all(g.id).map((r,i)=>({index:i,view:view(JSON.parse(r.state),seat),...(full?{stateHash:r.hash}:{})})),note:'离线回放：只含每一步的局面，不会再调用模型，也不含密钥和模型的推理原文。'};}
 async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/info')return json(res,200,{version:VERSION,...runtimeAiInfo(),contentHash,authorVersion:AUTHOR_VERSION,aiVersion:AI_DECISION_VERSION});
@@ -65,7 +66,7 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(['/api/scripts/ai-generate','/api/scripts/ai-polish'].includes(p)&&req.method==='POST'){
   const b=await body(req),provider=selectedProvider(b.provider??'deepseek',undefined,{required:true});let cost=0,actual=true;const s=await (p.endsWith('/ai-polish')?polishWithAi:generateWithAi)(b,{...providerOptions(provider),authorBudget:p.endsWith('/ai-polish')?polishBudgetFor(provider):authorBudgetFor(provider),onUsage:data=>{cost+=data.estimatedCost;actual&&=data.costKind==='provider_reported';db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return json(res,200,{script:s,estimatedCost:cost,costKind:actual?'provider_reported':'conservative_estimate',provider});
  }
- const match=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|branch|review|feedback))?$/);if(!match)return json(res,404,{error:'接口不存在'});const id=match[1],route=match[2];let g=getGame(id,owner);
+ const match=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|budget|branch|review|feedback))?$/);if(!match)return json(res,404,{error:'接口不存在'});const id=match[1],route=match[2];let g=getGame(id,owner);
  if(!route)return json(res,200,response(g));
  if(route==='review'&&req.method==='GET')return json(res,200,gameReview(g.state,db.prepare('SELECT rating,updated FROM script_feedback WHERE game=? AND owner=?').get(id,owner)));
  if(route==='feedback'&&req.method==='POST'){
@@ -80,6 +81,12 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(busy.has(id))return json(res,409,{error:'这一局正在处理上一步，请稍候'});
  const b=await body(req);g=getGame(id,owner);
  if(busy.has(id))return json(res,409,{error:'这一局正在处理上一步，请稍候'});
+ if(route==='budget'){
+  const {budget,expectedBudget}=budgetChange(b);
+  const changed=db.prepare('UPDATE games SET budget=? WHERE id=? AND owner=? AND budget=? AND spent<=?').run(budget,id,owner,expectedBudget,budget);
+  if(!changed.changes)return json(res,409,{error:'额度已被修改，或新上限低于已结算／预留费用；请同步后再调整。',code:'BUDGET_CONFLICT'});
+  return json(res,200,response(getGame(id,owner)));
+ }
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))throw Error('提交标识无效');
  if(route==='branch'){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')return json(res,403,{error:'对局结束后才能从回放里重玩'});

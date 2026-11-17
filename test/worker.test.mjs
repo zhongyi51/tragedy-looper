@@ -13,6 +13,21 @@ function fixture(){
  return {sql,DB,request,worker,env};
 }
 test('hosted identity required for UI, assets and every API; cross-origin rejected',async()=>{const {request}=fixture();for(const p of ['/','/js/main.mjs','/api/info','/api/games'])assert.equal((await request(p,undefined,null)).status,401);assert.equal((await request('/')).status,200);assert.equal((await request('/api/games',{},'owner-1',{Origin:'https://evil.test'})).status,403);});
+test('budget changes preserve play and ledger, reject stale, overspent, invalid and other-owner writes',async()=>{
+ const {request,sql}=fixture();const g=(await request('/api/games',{budget:.5})).data,path='/api/games/'+g.id+'/budget';
+ const before=sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state;
+ sql.prepare('UPDATE games SET spent=.2 WHERE id=?').run(g.id);
+ const changed=await request(path,{budget:1,expectedBudget:.5});assert.equal(changed.status,200);assert.equal(changed.data.budget,1);assert.equal(changed.data.spent,null);assert.equal(changed.data.revision,0);
+ assert.equal((await request(path,{budget:2,expectedBudget:.5})).status,409);
+ assert.equal((await request(path,{budget:.1,expectedBudget:1})).status,409);
+ for(const budget of [null,'2',0,11])assert.equal((await request(path,{budget,expectedBudget:1})).status,400);
+ assert.equal((await request(path,{budget:2,expectedBudget:1},'owner-2')).status,404);
+ assert.equal((await request(path,{budget:.3,expectedBudget:1})).status,200);
+ assert.deepEqual(sql.prepare('SELECT state,spent,budget FROM games WHERE id=?').get(g.id),Object.assign(Object.create(null),{state:before,spent:.2,budget:.3}));
+ assert.equal(sql.prepare('SELECT count(*) n FROM frames WHERE game=?').get(g.id).n,1);
+ sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()+100000,g.id);
+ assert.equal((await request(path,{budget:1,expectedBudget:.3})).status,409);
+});
 test('cloud storage ownership, public exports and forbidden source downloads',async()=>{const {request}=fixture();const g=(await request('/api/games',{mode:'mastermind'})).data;assert.ok(g.secret);assert.equal((await request('/api/games/'+g.id,undefined,'owner-2')).status,404);const r=(await request('/api/games/'+g.id+'/replay')).data;assert.equal(r.frames[0].view.secret,undefined);for(const p of ['/src/ai.mjs','/.env','/.openai/hosting.json','/runtime/games.sqlite'])assert.equal((await request(p)).status,404);});
 test('cloud revision compare-and-swap rejects concurrent duplicate advances',async()=>{const {request}=fixture();const g=(await request('/api/games',{})).data;const results=await Promise.all(Array.from({length:8},(_,i)=>request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'c'+i})));assert.equal(results.filter(r=>r.status===200).length,1);assert.equal((await request('/api/games/'+g.id)).data.revision,1);});
 test('cloud receipt retry preserves revision; illegal actions release lock',async()=>{const {request}=fixture();let g=(await request('/api/games',{mode:'mastermind'})).data;assert.equal((await request('/api/games/'+g.id+'/command',{revision:0,command:{type:'bad'}})).status,400);const a=await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'});assert.equal(a.status,200);assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'})).data.revision,1);});

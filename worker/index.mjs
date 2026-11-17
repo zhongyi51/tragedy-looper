@@ -1,3 +1,4 @@
+import {budgetChange} from '../src/game-budget.mjs';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
 import {createGame,view,hash,VERSION,applyCommand,turn} from '../src/engine.mjs';
 import {generateWithAi,polishWithAi,AI_DECISION_VERSION} from '../src/ai.mjs';
@@ -32,7 +33,7 @@ async function exportReplay(db,g,full){const records=await rows(db,'SELECT state
 function usageHooks(db,g,token,diagnostics){let callId;return {
  async onReserve(amount){
   const reserved=await one(db,'UPDATE games SET spent=spent+? WHERE id=? AND owner=? AND lock_token=? AND spent+?<=budget RETURNING id',amount,g.id,g.owner,token,amount);
-  if(!reserved)fail(409,'AI 花费已到上限，或这一步已经过期；没有发送请求。');callId=crypto.randomUUID();
+  if(!reserved)fail(409,'剩余额度不足以预留下一次请求，或操作已过期；并非全部已消费。可调整本局上限后继续，没有发送请求。','BUDGET_RESERVATION');callId=crypto.randomUUID();
   // If ledger insert fails the reservation remains conservatively charged; no API call occurs.
   await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));
  },
@@ -72,7 +73,7 @@ export async function handleApi(req,env,owner){
   if(p.endsWith('/generate'))return reply(generateScript(b));
   if(p.endsWith('/ai-generate')||p.endsWith('/ai-polish')){const provider=selectedProvider(b.provider??'deepseek',env,{required:true});let cost=0,actual=true;const script=await (p.endsWith('/ai-polish')?polishWithAi:generateWithAi)(b,{...providerOptions(provider,env),authorBudget:p.endsWith('/ai-polish')?polishBudgetFor(provider):authorBudgetFor(provider),onUsage:async data=>{cost+=data.estimatedCost;actual&&=data.costKind==='provider_reported';await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',crypto.randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return reply({script,estimatedCost:cost,costKind:actual?'provider_reported':'conservative_estimate',provider});}
  }
- const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|fixture-step|replay|script|usage|branch|review|feedback))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;
+ const m=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|fixture-step|replay|script|usage|budget|branch|review|feedback))?$/);if(!m)fail(404,'接口不存在');const [,id,route]=m;
  if(route==='fixture-step'&&(owner!==QA_OWNER||env.SITES_QA_ENABLED!=='true'))fail(404,'接口不存在');
  let g=await getGame(db,id,owner);
  if(route==='fixture-step'&&g.mode!=='observe')fail(404,'测试接口不存在');
@@ -86,6 +87,12 @@ export async function handleApi(req,env,owner){
  if(['replay','script'].includes(route)&&req.method==='GET'){const full=u.searchParams.get('full')==='1';if(full&&g.mode!=='mastermind'&&g.state.phase!=='over')fail(403,'对局结束后才能查看真相');return reply(route==='replay'?await exportReplay(db,g,full):full?g.state.script:publicScript(g.state.script));}
  if(route==='usage'&&req.method==='GET'){if(g.state.phase!=='over')fail(403,'用量明细在对局结束后才能查看');return reply((await rows(db,'SELECT data FROM calls WHERE game=?',id)).map(r=>JSON.parse(r.data)));}
  if(req.method!=='POST')fail(405,'这个接口只接受 POST');const b=await readBody(req);
+ if(route==='budget'){
+  const {budget,expectedBudget}=budgetChange(b);
+  const changed=await one(db,'UPDATE games SET budget=? WHERE id=? AND owner=? AND budget=? AND spent<=? AND locked_until<=? RETURNING id',budget,id,owner,expectedBudget,budget,Date.now());
+  if(!changed)fail(409,'正在处理请求、额度已被修改，或新上限低于已结算／预留费用；请同步后再调整。','BUDGET_CONFLICT');
+  return reply(projection(await getGame(db,id,owner),env));
+ }
  if(route==='branch'){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')fail(403,'对局结束后才能从回放里重玩');
   const f=await one(db,'SELECT state FROM frames WHERE game=? AND revision=?',id,b.revision);if(!f)fail(400,'找不到回放里的这一步');const state=JSON.parse(f.state);state.revision=0;return reply(projection(await createStored(db,owner,g.mode,state,g.budget),env),201);
@@ -133,7 +140,7 @@ function qaRequest(req){
  const u=new URL(req.url);u.pathname=u.pathname.replace(/^\/api\/qa\//,'/api/');
  const game='/api/games/[a-f0-9-]+';
  const allowed=req.method==='GET'&&(['/api/info','/api/scripts/library'].includes(u.pathname)||new RegExp('^'+game+'(?:/(?:replay|usage|review))?$').test(u.pathname))
-  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step|advance|fixture-step|feedback)$').test(u.pathname));
+  ||req.method==='POST'&&(u.pathname==='/api/games'||new RegExp('^'+game+'/(?:command|ai-step|bot-step|advance|fixture-step|feedback|budget)$').test(u.pathname));
  if(!allowed)fail(404,'测试接口不存在');
  return new Request(u,req);
 }

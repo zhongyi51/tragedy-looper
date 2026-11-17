@@ -58,7 +58,8 @@ test('AI receives explicit location bluff rules and can legally select a locatio
   assert.equal(next.revision,1);assert.deepEqual(next.locations,s.locations);assert.equal(next.placements[0].target,'school');
  });
  const context=JSON.parse(payload.messages[2].content);
- assert.match(context.observation.actions[choice].effectHint,/合法佯动/);
+ assert.deepEqual(context.observation.actions[choice],[choice,'move_h#0','school']);
+ assert.match(payload.messages[0].content,/合法无效果佯动/);
  assert.match(payload.messages[0].content,/地点本身永远不移动/);
  assert.ok(payload.messages[0].content.includes('actionDeckEntries'));
  assert.equal(payload.user_id,'local_M');

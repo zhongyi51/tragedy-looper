@@ -186,6 +186,17 @@ function session(overrides={}){
   api:async(url,data)=>{calls.push({url,data});return overrides.api(url,data,state,calls);},...overrides.inject});
  return {state,calls,...s};
 }
+test('changing budget pauses autoplay, preserves unrelated errors and clears only budget pauses',async()=>{
+ for(const code of ['BUDGET_RESERVATION','NETWORK']){
+  const c=session({state:{auto:true,actionError:'paused',actionErrorCode:code},api:(_url,_data,state)=>({...state.g,budget:1,spent:null})});
+  assert.equal(await c.updateBudget(1,.5,'game'),true);
+  assert.deepEqual(c.calls,[{url:'/games/game/budget',data:{budget:1,expectedBudget:.5}}]);
+  assert.equal(c.state.g.revision,6);assert.equal(c.state.g.budget,1);assert.equal(c.state.auto,false);assert.equal(c.state.working,false);
+  assert.equal(c.state.actionError,code==='BUDGET_RESERVATION'?'':'paused');
+ }
+ const failed=session({api:()=>{throw Error('conflict');}});
+ await assert.rejects(failed.updateBudget(1,.5,'game'),/conflict/);assert.equal(failed.state.working,false);assert.equal(failed.state.g.budget,undefined);
+});
 test('automatic continuation stops after forced victory or a pause during settlement',async()=>{
  for(const finish of ['victory','pause']){
   const c=session({api:(url,data,state)=>{if(finish==='pause')state.auto=false;return {...state.g,revision:7,winner:finish==='victory'?'heroes':null};}});
