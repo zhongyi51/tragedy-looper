@@ -6,7 +6,7 @@ export const state={
  page:'home',modal:'',
  g:null,transitionView:null,playback:null,selected:null,peekSeat:null,
  working:false,requestKind:'',auto:false,creating:false,
- syncRequired:false,actionError:'',actionErrorCode:'',advancedRevision:'',
+ syncRequired:false,recoveryPaused:false,actionError:'',actionErrorCode:'',advancedRevision:'',
  aiFeed:[],truth:null,banner:null,pendingOutcome:null,
  sideTab:'intel',sideOpen:false,sideWide:false,sheetTool:'no',
  sound:stored('tl-sound','on')!=='off',

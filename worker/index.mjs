@@ -15,6 +15,9 @@ const statement=(db,sql,...args)=>db.prepare(sql).bind(...args);
 const one=(db,sql,...args)=>statement(db,sql,...args).first();
 const run=(db,sql,...args)=>statement(db,sql,...args).run();
 const rows=async(db,sql,...args)=>(await statement(db,sql,...args).all()).results;
+// Each model call times out after 90s. Renew before a possible repair call;
+// a canceled Worker must not strand the game behind a five-minute lease.
+const STEP_LEASE_MS=120000;
 async function readBody(req){
  if(!req.headers.get('content-type')?.startsWith('application/json'))fail(415,'请求必须是 JSON');
  const reader=req.body?.getReader();if(!reader)return {};let size=0,chunks=[];
@@ -32,7 +35,7 @@ async function createStored(db,owner,mode,state,budget,id=crypto.randomUUID()){a
 async function exportReplay(db,g,full){const records=await rows(db,'SELECT state,hash FROM frames WHERE game=? ORDER BY revision',g.id);return {format:'tragedy-replay-1',engineVersion:VERSION,contentHash,perspective:full?'M':'public',script:full?g.state.script:publicScript(g.state.script),frames:records.map((r,index)=>({index,view:view(JSON.parse(r.state),full?'M':'public'),...(full?{stateHash:r.hash}:{})})),note:'公开视角的回放：不含密钥。'};}
 function usageHooks(db,g,token,diagnostics){let callId;return {
  async onReserve(amount){
-  const reserved=await one(db,'UPDATE games SET spent=spent+? WHERE id=? AND owner=? AND lock_token=? AND spent+?<=budget RETURNING id',amount,g.id,g.owner,token,amount);
+  const reserved=await one(db,'UPDATE games SET spent=spent+?,locked_until=? WHERE id=? AND owner=? AND lock_token=? AND locked_until>? AND spent+?<=budget RETURNING id',amount,Date.now()+STEP_LEASE_MS,g.id,g.owner,token,Date.now(),amount);
   if(!reserved)fail(409,'剩余额度不足以预留下一次请求，或操作已过期；并非全部已消费。可调整本局上限后继续，没有发送请求。','BUDGET_RESERVATION');callId=crypto.randomUUID();
   // If ledger insert fails the reservation remains conservatively charged; no API call occurs.
   await run(db,'INSERT INTO calls(id,game,status,data) VALUES(?,?,?,?)',callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));
@@ -101,7 +104,7 @@ export async function handleApi(req,env,owner){
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))fail(400,'提交标识无效');
  if(b.commandId&&await one(db,'SELECT revision FROM receipts WHERE game=? AND command_id=?',id,b.commandId))return reply(projection(await getGame(db,id,owner),env));
  if(!Number.isInteger(b.revision))fail(400,'需要局面版本');const token=crypto.randomUUID();
- const locked=await one(db,"UPDATE games SET lock_token=?,locked_until=? WHERE id=? AND owner=? AND locked_until<? AND json_extract(state,'$.revision')=? RETURNING id",token,Date.now()+300000,id,owner,Date.now(),b.revision);
+ const locked=await one(db,"UPDATE games SET lock_token=?,locked_until=? WHERE id=? AND owner=? AND locked_until<=? AND json_extract(state,'$.revision')=? RETURNING id",token,Date.now()+STEP_LEASE_MS,id,owner,Date.now(),b.revision);
  if(!locked)fail(409,'局面已经变了，或还在处理上一步，请先同步','STATE_CONFLICT');
  try{
   g=await getGame(db,id,owner);
@@ -131,9 +134,9 @@ export async function handleApi(req,env,owner){
    outcome={seat:frames[0].seat,frames,answer:null};
   }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...providerOptions(g.state.aiProvider??'deepseek',env),cacheKey:'game:'+id,...qaOptions,...usageHooks(db,g,token,qaUsage),...(qaUsage&&b.qaFirstMaxTokens!==undefined?{maxTokens:b.qaFirstMaxTokens}:{}),userId:'g_'+id.replaceAll('-','')}});
   const {seat,frames,answer}=outcome;
-  const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
-  if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));
-  queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=?',state,id,token));
+  const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),commitAt=Date.now(),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=? AND locked_until>?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token,commitAt));
+  if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=? AND locked_until>?',b.commandId,next.revision,id,token,commitAt));
+  queries.push(statement(db,'UPDATE games SET state=?,lock_token=NULL,locked_until=0 WHERE id=? AND lock_token=? AND locked_until>?',state,id,token,commitAt));
   const results=await db.batch(queries);if(results.at(-1).meta.changes!==1)fail(409,'这一步已经过期，局面没有变化');
   const saved=await getGame(db,id,owner);
   return reply({...projection(saved,env),...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,env,v)}),
@@ -154,7 +157,7 @@ function qaRequest(req){
  if(!allowed)fail(404,'测试接口不存在');
  return new Request(u,req);
 }
-export function createWorker(assets){return {async fetch(req,env){
+export function createWorker(assets){return {async fetch(req,env,ctx){
  const requestId=crypto.randomUUID();let result;
  try{result=await(async()=>{
  const u=new URL(req.url),owner=req.headers.get('oai-authenticated-user-id');
@@ -166,7 +169,14 @@ export function createWorker(assets){return {async fetch(req,env){
  // Fail closed even if the platform gate is accidentally changed later.
  if(!owner)return reply({error:'请用站点所有者的 ChatGPT 账号登录',code:'AUTH_REQUIRED'},401);
  if(req.headers.get('origin')&&new URL(req.headers.get('origin')).origin!==u.origin)return reply({error:'不接受来自其他网站的请求'},403);
- if(u.pathname.startsWith('/api/'))return await handleApi(req,env,owner);
+ if(u.pathname.startsWith('/api/')){
+  const work=handleApi(req,env,owner);
+  // Preserve the same operation (not a retry) briefly after disconnect so it
+  // can settle its bill, save the move and release its lease. This is only a
+  // 30s runtime grace period; lease expiry still handles hard cancellation.
+  if(req.method==='POST')ctx?.waitUntil(work.then(()=>{},()=>{}));
+  return await work;
+ }
  if(!['GET','HEAD'].includes(req.method))return reply({error:'不支持这种请求方式'},405);
  const asset=assets[u.pathname];if(!asset)return reply({error:'找不到这个文件'},404);
  return new Response(req.method==='HEAD'?null:Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0)),{headers:{...security,'Content-Type':asset.type,'Cache-Control':u.pathname.startsWith('/assets/')?'private,max-age=86400':'no-cache'}});

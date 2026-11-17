@@ -105,6 +105,58 @@ test('cloud expired lease can be recovered while an active lease prevents duplic
  assert.equal(sql.prepare('SELECT count(*) AS n FROM frames WHERE game=?').get(g.id).n,2);
 });
 
+test('disconnected HTTP requests retain the same in-flight operation in waitUntil',async t=>{
+ const {request,worker,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';
+ let ready,finish,calls=0;const started=new Promise(r=>ready=r),gate=new Promise(r=>finish=r),background=[];
+ t.mock.method(globalThis,'fetch',async()=>{calls++;ready();await gate;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const g=(await request('/api/games',{mode:'heroes'})).data,controller=new AbortController();
+ const pending=worker.fetch(new Request('https://game.test/api/games/'+g.id+'/ai-step',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','oai-authenticated-user-id':'owner-1'},body:JSON.stringify({revision:0,commandId:'disconnected'})}),env,{waitUntil:p=>background.push(p)});
+ await started;assert.equal(background.length,1);controller.abort();
+ assert.equal((await request('/api/games/'+g.id)).data.busy,true);
+ finish();assert.equal((await pending).status,200);await Promise.all(background);
+ const latest=(await request('/api/games/'+g.id)).data;assert.equal(latest.revision,1);assert.equal(latest.busy,false);assert.equal(calls,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM receipts WHERE game=?').get(g.id).n,1);
+});
+test('a model repair renews its two-minute lease rather than inheriting an almost-expired one',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';let now=Date.now(),calls=0;
+ t.mock.method(Date,'now',()=>now);
+ const g=(await request('/api/games',{mode:'heroes'})).data;
+ t.mock.method(globalThis,'fetch',async()=>{
+  calls++;assert.equal(sql.prepare('SELECT locked_until FROM games WHERE id=?').get(g.id).locked_until,now+120000);
+  now+=80000;
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:calls===1?'length':'stop',message:{content:calls===1?'':'{"plan":0}'}}]}));
+ });
+ const result=await request('/api/games/'+g.id+'/ai-step',{revision:0});assert.equal(result.status,200);assert.equal(calls,2);assert.equal(result.data.busy,false);
+});
+test('expired work cannot commit frames or receipts, even before a replacement starts',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';const g=(await request('/api/games',{mode:'heroes'})).data;
+ t.mock.method(globalThis,'fetch',async()=>{
+  sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()-1,g.id);
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));
+ });
+ assert.equal((await request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'expired'})).status,409);
+ assert.equal((await request('/api/games/'+g.id)).data.revision,0);
+ assert.equal(sql.prepare('SELECT count(*) n FROM frames WHERE game=?').get(g.id).n,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM receipts WHERE game=?').get(g.id).n,0);
+ assert.equal(sql.prepare('SELECT count(*) n FROM calls WHERE game=? AND status=?').get(g.id,'completed').n,1);
+});
+test('late canceled work cannot overwrite or unlock its replacement and each bill settles once',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';const g=(await request('/api/games',{mode:'heroes'})).data;
+ const gates=[],starts=[];let calls=0;
+ for(let i=0;i<2;i++){let ready,finish;const started=new Promise(r=>ready=r),gate=new Promise(r=>finish=r);gates.push({gate,finish,ready});starts.push(started);}
+ t.mock.method(globalThis,'fetch',async()=>{const entry=gates[calls++];entry.ready();await entry.gate;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const old=request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'old'});await starts[0];
+ sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()-1,g.id);
+ const next=request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'new'});await starts[1];
+ const token=sql.prepare('SELECT lock_token FROM games WHERE id=?').get(g.id).lock_token;
+ gates[0].finish();assert.equal((await old).status,409);assert.equal((await request('/api/games/'+g.id)).data.busy,true);
+ assert.equal(sql.prepare('SELECT lock_token FROM games WHERE id=?').get(g.id).lock_token,token);
+ gates[1].finish();assert.equal((await next).status,200);assert.equal((await request('/api/games/'+g.id)).data.revision,1);
+ assert.deepEqual(sql.prepare('SELECT command_id FROM receipts WHERE game=?').all(g.id).map(r=>r.command_id),['new']);
+ const ledger=sql.prepare('SELECT data FROM calls WHERE game=?').all(g.id).map(r=>JSON.parse(r.data));assert.equal(ledger.length,2);assert.equal(calls,2);
+ assert.ok(Math.abs(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent-ledger.reduce((s,r)=>s+r.estimatedCost,0))<1e-9);
+});
+
 test('cloud QA prefix is disabled by default and never relaxes normal API authentication',async()=>{
  const {request,env}=fixture();
  assert.equal((await request('/api/qa/info',undefined,null)).status,401);

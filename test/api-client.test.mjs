@@ -50,3 +50,71 @@ test('manual sync only reads and clears the lock once the server is idle',async(
  c.calls.length=0;const idle=stepContext({id:'game',revision:9,log:[],busy:false});idle.state.syncRequired=true;idle.state.actionError='x';
  await idle.syncState();assert.deepEqual(idle.calls,[{url:'/games/game',data:undefined}]);assert.equal(idle.state.syncRequired,false);assert.equal(idle.state.actionError,'');assert.equal(idle.state.g.revision,9);
 });
+
+test('offline event ends an in-flight request promptly, with no mutation retry',async()=>{
+ const network=new EventTarget();let calls=0;
+ const api=createApi((_url,{signal})=>{calls++;return new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>reject(Object.assign(Error('abort'),{name:'AbortError'})),{once:true}));},network);
+ const pending=api('/games/game/ai-step',{revision:6});
+ network.dispatchEvent(new Event('offline'));
+ await assert.rejects(pending,e=>e.code==='NETWORK'&&e.uncertain);
+ assert.equal(calls,1);
+});
+
+function recoveryContext(api,store=new Map()){
+ const tasks=new Map(),calls=[];let next=0;
+ const state={page:'game',working:false,auto:false,autoPlay:true,syncRequired:true,actionError:'offline',actionErrorCode:'NETWORK',
+  g:{id:'game',mode:'heroes',turn:'M',phaseId:'mm_cards',revision:6,log:[],busy:false},info:{configured:true},aiFeed:[]};
+ const options={state,render(){},storage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+  schedule:(fn,ms)=>{tasks.set(++next,{fn,ms});return next;},cancel:id=>tasks.delete(id),wait:async()=>{},
+  api:async(url,data)=>{calls.push({url,data});return api(url,data,state);}};
+ const session=createSession(options);
+ const tick=async()=>{assert.equal(tasks.size,1);const [id,task]=tasks.entries().next().value;tasks.delete(id);await task.fn();};
+ return {state,session,calls,tasks,tick,store,options};
+}
+test('reconnection polls busy state to completion and never resumes paid autoplay on its own',async()=>{
+ let reads=0;
+ const c=recoveryContext((_url,data,state)=>{assert.equal(data,undefined);return {...state.g,busy:++reads===1,revision:reads===1?6:7};});
+ c.session.connectionRestored();assert.equal(c.tasks.values().next().value.ms,0);
+ await c.tick();assert.equal(c.state.syncRequired,true);assert.equal(c.state.g.busy,true);
+ await c.tick();assert.equal(c.state.syncRequired,false);assert.equal(c.state.g.revision,7);assert.equal(c.state.working,false);assert.equal(c.tasks.size,0);
+ c.session.kick();await Promise.resolve();assert.equal(c.calls.length,2);assert.ok(c.calls.every(c=>c.data===undefined));
+ assert.equal(c.state.recoveryPaused,true);assert.equal(c.store.get('tl-recovery-game'),'1');
+ // Reloading an idle game still waits for an explicit Continue, not a paid retry.
+ const reloaded=recoveryContext(()=>{throw Error('must not submit');},c.store);reloaded.state.syncRequired=false;reloaded.state.actionError='';
+ reloaded.session.kick();await reloaded.session.resumeRules();assert.equal(reloaded.calls.length,0);assert.equal(reloaded.state.recoveryPaused,true);
+});
+test('status failures back off, online resets the delay, and unchanged idle games unlock',async()=>{
+ let offline=true;
+ const c=recoveryContext((_url,_data,state)=>{if(offline)throw Object.assign(Error('offline'),{code:'NETWORK'});return {...state.g,busy:false};});
+ c.session.watchRecovery();await c.tick();assert.equal(c.tasks.values().next().value.ms,6000);
+ await c.tick();assert.equal(c.tasks.values().next().value.ms,12000);
+ offline=false;c.session.connectionRestored();assert.equal(c.tasks.size,1);assert.equal(c.tasks.values().next().value.ms,0);
+ await c.tick();assert.equal(c.state.syncRequired,false);assert.equal(c.state.g.revision,6);assert.equal(c.state.actionError,'');assert.equal(c.tasks.size,0);
+});
+test('busy saves start recovery after reload; manual Continue is the only new mutation',async()=>{
+ const c=recoveryContext((_url,data,state)=>({...state.g,busy:false,...(data?{revision:7,turn:'A',phaseId:'hero_cards'}:{})}));
+ c.state.syncRequired=false;c.state.g.busy=true;c.state.actionError='';
+ await c.session.resumeRules();assert.equal(c.tasks.size,1);assert.equal(c.calls.length,0);
+ await c.tick();c.session.kick();assert.equal(c.calls.length,1);
+ await c.session.runAuto();assert.equal(c.calls.filter(c=>c.data!==undefined).length,1);assert.equal(c.state.g.revision,7);assert.equal(c.store.get('tl-recovery-game'),'');
+});
+test('recovery cannot overwrite another loaded game, and authentication failure stops polling',async()=>{
+ let resolve;const c=recoveryContext(()=>new Promise(r=>resolve=r));
+ c.session.watchRecovery();const pending=c.tick();await Promise.resolve();await Promise.resolve();
+ c.state.g={...c.state.g,id:'other',revision:20};c.state.syncRequired=false;
+ resolve({id:'game',revision:7,busy:false});await pending;assert.equal(c.state.g.id,'other');assert.equal(c.state.g.revision,20);
+ const auth=recoveryContext(()=>{throw Object.assign(Error('login'),{code:'AUTH'});});
+ auth.session.watchRecovery();await auth.tick();assert.equal(auth.state.actionErrorCode,'AUTH');assert.equal(auth.tasks.size,0);
+});
+
+test('reload during a submitted request preserves uncertainty even after the server lease expires',async()=>{
+ let finish;
+ const c=recoveryContext((_url,_data,state)=>new Promise(r=>finish=()=>r({...state.g,revision:7,turn:'A',phaseId:'hero_cards'})));
+ c.state.syncRequired=false;c.state.actionError='';
+ const sending=c.session.step(undefined,'ai-step');await Promise.resolve();await Promise.resolve();
+ assert.ok(c.store.get('tl-inflight-game'));
+ const restored=recoveryContext(()=>{throw Error('no duplicate request');},c.store);
+ restored.state.syncRequired=false;restored.state.actionError='';restored.session.kick();
+ assert.equal(restored.state.recoveryPaused,true);assert.equal(restored.calls.length,0);
+ finish();await sending;assert.equal(c.store.get('tl-inflight-game'),'');
+});

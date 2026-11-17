@@ -274,6 +274,19 @@ test('a card the server does not confirm comes back off the table, and nothing q
  // The table is usable again and the next card is sent for the revision the server really has.
  c.state.actionError='';c.step(c.state.g.actions[0].command);await settle();assert.equal(c.calls.at(-1).data.revision,t.start.revision);
 });
+
+test('offline queued cards are discarded and a later sync restores an actionable real board',async()=>{
+ const t=heroTable(),c=session({state:{g:t.start},api:t.api});
+ c.step(c.state.g.actions[4].command);c.step(c.state.g.actions[4].command);
+ const final=c.step(c.state.g.actions[4].command);
+ await settle();t.replies[0](Object.assign(Error('offline'),{code:'NETWORK',uncertain:true}));
+ await settle();t.replies[1](Object.assign(Error('offline'),{code:'NETWORK'}));await final;
+ assert.equal(c.state.syncRequired,true);assert.equal(c.state.working,false);assert.equal(c.calls.filter(x=>x.data).length,1);
+ const sync=c.syncState();await settle();t.replies[2]();await sync;
+ assert.equal(c.state.syncRequired,false);assert.equal(c.state.g.placements.length,3);assert.equal(c.state.g.turn,'A');
+ c.step(c.state.g.actions[4].command);await settle();t.replies[3]();await settle();
+ assert.equal(t.server().revision,t.start.revision+1);assert.equal(c.calls.filter(x=>x.data).length,2);
+});
 test('final guess choices mark confirmed roles and the player\'s own deductions',()=>{
  const s=createGame(starter);s.script.ruleset='BTX';s.phase='guess';s.guessed={};s.knownRoles={office_worker:'killer'};
  const v=view(s,'A'),sheet=analyze(v,markRole(markRole(emptyMarks(),'doctor','brain','yes'),'doctor','cultist','no'));

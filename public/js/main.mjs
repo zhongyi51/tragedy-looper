@@ -98,7 +98,7 @@ function setPage(page,{push=true}={}){
  kick();
 }
 function openGame(game){
- animator.cancel();Object.assign(state,{g:game,page:'game',modal:'',selected:null,peekSeat:null,actionError:'',actionErrorCode:'',syncRequired:false,banner:null,pendingOutcome:null,sideOpen:false,sideTab:'intel'});
+ animator.cancel();Object.assign(state,{g:game,page:'game',modal:'',selected:null,peekSeat:null,actionError:'',actionErrorCode:'',syncRequired:false,recoveryPaused:false,banner:null,pendingOutcome:null,sideOpen:false,sideTab:'intel'});
  localStorage.setItem('tl-game',game.id);route('game');render();
 }
 const openModal=html=>{state.modal=html;render();};
@@ -403,6 +403,9 @@ document.addEventListener('keydown',e=>{
 });
 
 window.addEventListener('hashchange',()=>{const page=location.hash.replace(/^#\//,'');if(page!==state.page)setPage(page,{push:false});});
+window.addEventListener('online',()=>session.connectionRestored());
+window.addEventListener('focus',()=>session.connectionRestored());
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')session.connectionRestored();});
 
 /* ---------- start ---------- */
 try{
