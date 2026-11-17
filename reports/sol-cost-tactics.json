@@ -1,0 +1,211 @@
+{
+  "version": "strategy-v2",
+  "label": "compact-candidates",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "b0ec9a0daefb22bd9e84d7757d3bbb2b6936176a69d5594a0a2ae75047a88d8b",
+  "replicates": 1,
+  "provider": "openrouter",
+  "forcedFirstMaxTokens": null,
+  "httpRequests": 6,
+  "potentialProviderCalls": 4,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "7a51c8acbd36258ef580ba193e3aa2a78cb70c1925adb0beb1577dd9077075d2",
+    "src/model-provider.mjs": "df852c28d4ce9ba3a56597cf47e56dbe9feeeae094d2e74c443fd6bd803c518b",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "8f70dc5e-3e26-46dc-bdc7-03bbc8f7fb13",
+      "game": {
+        "id": "06e98881-1043-4ec2-a2dd-d27880512dca",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 10.018,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "将偶像纵移至医院，脱离已公开连环杀手上班族的独处杀人范围；医院届时有三人，也避免形成新的两人独处。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.035581,
+            "normalizedUsage": {
+              "inputTokens": 13781,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 13778,
+              "outputTokens": 113,
+              "reasoningTokens": 55
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13781,
+              "completion_tokens": 113,
+              "total_tokens": 13894,
+              "cost": 0.035581,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 13778,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.035581,
+                "upstream_inference_prompt_cost": 0.034451,
+                "upstream_inference_completions_cost": 0.00113
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 55,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.035581,
+            "latencyMs": 4350
+          }
+        ],
+        "spentEstimate": 0.035581
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    },
+    "fs-mastermind-resilient-three-cards@1": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "6a7ab9cd-6cd4-4bc2-94c5-87915e81205d",
+      "game": {
+        "id": "d9e7e1f7-57cd-4f20-99cb-dff3b808d99c",
+        "revision": 24
+      },
+      "fixtureReady": true,
+      "latencySeconds": 12.314,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "boy_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "同时推进女学生暗跃与杀手自身暗跃两条败北路线；医生再按揭牌后位置补暗跃，争取日结束击杀。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.031701,
+            "normalizedUsage": {
+              "inputTokens": 12209,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12206,
+              "outputTokens": 118,
+              "reasoningTokens": 61
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12209,
+              "completion_tokens": 118,
+              "total_tokens": 12327,
+              "cost": 0.031701,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12206,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.031701,
+                "upstream_inference_prompt_cost": 0.030521,
+                "upstream_inference_completions_cost": 0.00118
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 61,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.031701,
+            "latencyMs": 5983
+          }
+        ],
+        "spentEstimate": 0.03170100000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "winningResponses": 80,
+        "responseCount": 80,
+        "reason": "One-card-response survival of the offensive plan"
+      }
+    }
+  },
+  "summary": {
+    "scheduled": 2,
+    "scored": 2,
+    "passed": 2,
+    "legal": 2,
+    "errors": 0,
+    "spentEstimate": 0.06728200000000001,
+    "repairAttempts": 0,
+    "bySide": {
+      "mastermind": {
+        "scored": 1,
+        "passed": 1
+      },
+      "heroes": {
+        "scored": 1,
+        "passed": 1
+      }
+    },
+    "scope": "One decision per legal fixture with fixed local suffix; not full-game win rate."
+  }
+}

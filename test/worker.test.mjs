@@ -28,6 +28,17 @@ test('budget changes preserve play and ledger, reject stale, overspent, invalid 
  sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()+100000,g.id);
  assert.equal((await request(path,{budget:1,expectedBudget:.3})).status,409);
 });
+test('exhausted reservation can resume after increasing budget without resetting costs',async t=>{
+ const {request,sql,env}=fixture();env.OPENROUTER_API_KEY='test_only_not_a_secret';let calls=0;
+ t.mock.method(globalThis,'fetch',async()=>{calls++;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:20,cost:.005},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const g=(await request('/api/games',{mode:'heroes',opponent:'ai',aiProvider:'openrouter',budget:.01})).data,path='/api/games/'+g.id;
+ const blocked=await request(path+'/ai-step',{revision:0});assert.equal(blocked.data.code,'BUDGET_RESERVATION');assert.equal(calls,0);
+ assert.equal(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent,0);
+ assert.equal((await request(path+'/budget',{budget:1,expectedBudget:.01})).status,200);
+ const advanced=await request(path+'/ai-step',{revision:0});assert.equal(advanced.status,200);assert.equal(advanced.data.revision,1);assert.equal(calls,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM calls WHERE game=?').get(g.id).n,1);
+ assert.ok(Math.abs(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent-.005)<1e-9);
+});
 test('cloud storage ownership, public exports and forbidden source downloads',async()=>{const {request}=fixture();const g=(await request('/api/games',{mode:'mastermind'})).data;assert.ok(g.secret);assert.equal((await request('/api/games/'+g.id,undefined,'owner-2')).status,404);const r=(await request('/api/games/'+g.id+'/replay')).data;assert.equal(r.frames[0].view.secret,undefined);for(const p of ['/src/ai.mjs','/.env','/.openai/hosting.json','/runtime/games.sqlite'])assert.equal((await request(p)).status,404);});
 test('cloud revision compare-and-swap rejects concurrent duplicate advances',async()=>{const {request}=fixture();const g=(await request('/api/games',{})).data;const results=await Promise.all(Array.from({length:8},(_,i)=>request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'c'+i})));assert.equal(results.filter(r=>r.status===200).length,1);assert.equal((await request('/api/games/'+g.id)).data.revision,1);});
 test('cloud receipt retry preserves revision; illegal actions release lock',async()=>{const {request}=fixture();let g=(await request('/api/games',{mode:'mastermind'})).data;assert.equal((await request('/api/games/'+g.id+'/command',{revision:0,command:{type:'bad'}})).status,400);const a=await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'});assert.equal(a.status,200);assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'})).data.revision,1);});
