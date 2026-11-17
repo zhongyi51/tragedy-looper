@@ -1,7 +1,7 @@
 import {budgetChange} from '../src/game-budget.mjs';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
 import {createGame,view,hash,VERSION,applyCommand,turn} from '../src/engine.mjs';
-import {generateWithAi,polishWithAi,AI_DECISION_VERSION} from '../src/ai.mjs';
+import {generateWithAi,polishWithAi,AI_DECISION_VERSION,decide} from '../src/ai.mjs';
 import {MODES,STEP_ROUTES,PlayError,project,playStep,stepReport,saveSummary} from '../src/play.mjs';
 import {prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from '../src/game-services.mjs';
 import {listCuratedScripts} from '../src/script-library.mjs';
@@ -107,6 +107,16 @@ export async function handleApi(req,env,owner){
   g=await getGame(db,id,owner);
   let outcome;const qaUsage=owner===QA_OWNER&&route==='ai-step'&&env.SITES_QA_ENABLED==='true'?[]:undefined;
   if(b.qaFirstMaxTokens!==undefined&&(!qaUsage||![1,64,128].includes(b.qaFirstMaxTokens)))fail(400,'仅隔离测试可限制首个请求以验证截断恢复','INVALID_QA_LIMIT');
+  const profiles={'sol-legacy':{cacheLayout:'legacy'},'sol-system':{cacheLayout:'system'},'sol-history':{cacheLayout:'history'},'luna-history':{cacheLayout:'history',benchmarkModel:'openai/gpt-6-luna'}};
+  if((b.qaProfile!==undefined||b.qaProbeRevision!==undefined)&&(!qaUsage||!profiles[b.qaProfile]||g.state.aiProvider!=='openrouter'||g.mode!=='observe'))fail(400,'仅隔离观察局可运行固定模型对照','INVALID_QA_PROFILE');
+  const qaOptions=qaUsage&&b.qaProfile?profiles[b.qaProfile]:{};
+  if(b.qaProbeRevision!==undefined){
+   if(!Number.isInteger(b.qaProbeRevision))fail(400,'需要历史版本','INVALID_QA_PROFILE');
+   const frame=await one(db,'SELECT state FROM frames WHERE game=? AND revision=?',id,b.qaProbeRevision);if(!frame)fail(400,'历史局面不存在');
+   const state=JSON.parse(frame.state),seat=turn(state);if(!seat)fail(400,'局面已结束');
+   const diagnostics=[],answer=await decide(state,seat,{...providerOptions('openrouter',env),...qaOptions,cacheKey:'probe:'+id+':'+b.qaProfile+':'+(seat==='M'?'M':'heroes'),...usageHooks(db,g,token,diagnostics)});
+   return reply({revision:g.state.revision,probeRevision:state.revision,seat,phase:state.phase,loop:state.loop,day:state.day,qaDecision:{commands:answer.commands,reason:answer.reason,automatic:!!answer.automatic,repairAttempts:answer.repairAttempts||0,repairCauses:answer.repairCauses||[],usage:diagnostics}});
+  }
   if(route==='fixture-step'){
    // Isolated QA only: reproduce a bounded legal history atomically, before
    // any model request. Never change ordinary player control permissions.
@@ -119,7 +129,7 @@ export async function handleApi(req,env,owner){
     const beats=[];current=applyCommand(current,seat,command,beats);frames.push({seat,command,state:current,beats});
    }
    outcome={seat:frames[0].seat,frames,answer:null};
-  }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...providerOptions(g.state.aiProvider??'deepseek',env),cacheKey:'game:'+id,...usageHooks(db,g,token,qaUsage),...(qaUsage&&b.qaFirstMaxTokens!==undefined?{maxTokens:b.qaFirstMaxTokens}:{}),userId:'g_'+id.replaceAll('-','')}});
+  }else outcome=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...providerOptions(g.state.aiProvider??'deepseek',env),cacheKey:'game:'+id,...qaOptions,...usageHooks(db,g,token,qaUsage),...(qaUsage&&b.qaFirstMaxTokens!==undefined?{maxTokens:b.qaFirstMaxTokens}:{}),userId:'g_'+id.replaceAll('-','')}});
   const {seat,frames,answer}=outcome;
   const next=frames.at(-1)?.state||g.state,state=JSON.stringify(next),queries=frames.map(frame=>statement(db,'INSERT INTO frames(game,revision,command,state,hash) SELECT id,?,?,?,? FROM games WHERE id=? AND lock_token=?',frame.state.revision,JSON.stringify(frame.command),JSON.stringify(frame.state),hash(frame.state),id,token));
   if(b.commandId)queries.push(statement(db,'INSERT INTO receipts(game,command_id,revision) SELECT id,?,? FROM games WHERE id=? AND lock_token=?',b.commandId,next.revision,id,token));

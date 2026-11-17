@@ -1,0 +1,5322 @@
+{
+  "version": "cache-layout-1",
+  "profiles": [
+    "sol-legacy",
+    "sol-system",
+    "sol-history"
+  ],
+  "trace": {
+    "script": {
+      "author": "时隙 · 原创",
+      "source": "curated",
+      "communication": "between_loops_only",
+      "loops": 3,
+      "settings": {
+        "incidentVisibility": "public"
+      },
+      "specialRules": [],
+      "libraryVersion": "1",
+      "id": "curated-last-ward",
+      "title": "长夜未熄的灯",
+      "ruleset": "FS",
+      "days": 4,
+      "difficulty": "beginner",
+      "intro": "医院的窗灯一直亮着。有人迟迟没有归来，留下的几句话却指向了不同的地方。",
+      "characters": [
+        "boy_student",
+        "girl_student",
+        "shrine_maiden",
+        "office_worker",
+        "doctor",
+        "police"
+      ],
+      "mainPlot": "avenger",
+      "subPlots": [
+        "unsettling_rumor"
+      ],
+      "roles": {
+        "boy_student": "person",
+        "girl_student": "person",
+        "shrine_maiden": "person",
+        "office_worker": "misleader",
+        "doctor": "brain",
+        "police": "person"
+      },
+      "incidents": [
+        {
+          "day": 2,
+          "type": "missing",
+          "culprit": "office_worker"
+        },
+        {
+          "day": 4,
+          "type": "hospital_incident",
+          "culprit": "girl_student"
+        }
+      ],
+      "privateDesign": {
+        "premise": "第一条线索不在尸体，而在反复增加暗跃的地点。",
+        "threatPlan": "医生是幕后黑手，医院是复仇者之灯的初始地点。用暗跃牌、医生能力和一次不安的传闻把医院推到 2；医院事件是第二条公开压力线。",
+        "counterplay": "观察暗跃能力的作用范围，用移动改变医生所在地点，并用暗跃禁止抵消对医院的行动牌。要为一次性的传闻留下余量；女学生不安接近临界时可以另行压制事件。",
+        "cluePlan": "上班族的调查能力可测试其误导者身份，医生离开医院后能力作用范围改变，可缩小幕后黑手与地点败北条件的范围。事件日程从开局公开。",
+        "loopPlan": "首轮观察暗跃在哪里增长和上班族行踪不明的效果；第二轮尝试移动医生；第三轮集中保护真正的地点，不必拯救所有无关计数。",
+        "intendedDifficulty": "beginner",
+        "intentionalExceptions": []
+      }
+    },
+    "commands": [
+      {
+        "type": "place",
+        "card": "intrigue_2#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_intrigue#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "boy_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "plot",
+        "ability": "rumor",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "brain",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "office_worker",
+        "ability": "misleader",
+        "target": "office_worker"
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_paranoia#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "incident",
+        "target": "city"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "city"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "school"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "police"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "police"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "next_loop"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_2#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_intrigue#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "boy_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "plot",
+        "ability": "rumor",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "brain",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "office_worker",
+        "ability": "misleader",
+        "target": "office_worker"
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_paranoia#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "boy_student"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "incident",
+        "target": "city"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "doctor"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "shrine"
+      },
+      {
+        "type": "place",
+        "card": "move_v#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "shrine_maiden"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "doctor"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "doctor",
+        "target": "office_worker",
+        "amount": 1
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "doctor",
+        "index": 0,
+        "target": "office_worker",
+        "amount": -1
+      },
+      {
+        "type": "refusal",
+        "refuse": true
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "next_loop"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_2#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "forbid_intrigue#0",
+        "target": "hospital"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "boy_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "plot",
+        "ability": "rumor",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "brain",
+        "target": "hospital"
+      },
+      {
+        "type": "mm",
+        "actor": "office_worker",
+        "ability": "misleader",
+        "target": "office_worker"
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#1",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "school"
+      },
+      {
+        "type": "place",
+        "card": "move_d#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_2#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "doctor",
+        "target": "girl_student",
+        "amount": 1
+      },
+      {
+        "type": "mm",
+        "actor": "office_worker",
+        "ability": "misleader",
+        "target": "office_worker"
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "doctor",
+        "index": 0,
+        "target": "girl_student",
+        "amount": -1
+      },
+      {
+        "type": "refusal",
+        "refuse": true
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "incident",
+        "target": "city"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "school"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "office_worker"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_minus_1#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "doctor"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "doctor",
+        "target": "girl_student",
+        "amount": 1
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "doctor",
+        "index": 0,
+        "target": "girl_student",
+        "amount": -1
+      },
+      {
+        "type": "refusal",
+        "refuse": true
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "place",
+        "card": "paranoia_1#0",
+        "target": "girl_student"
+      },
+      {
+        "type": "place",
+        "card": "forbid_goodwill#0",
+        "target": "doctor"
+      },
+      {
+        "type": "place",
+        "card": "intrigue_1#0",
+        "target": "school"
+      },
+      {
+        "type": "place",
+        "card": "forbid_intrigue#0",
+        "target": "school"
+      },
+      {
+        "type": "place",
+        "card": "goodwill_1#0",
+        "target": "shrine_maiden"
+      },
+      {
+        "type": "place",
+        "card": "forbid_move#0",
+        "target": "doctor"
+      },
+      {
+        "type": "cultist",
+        "mask": 0
+      },
+      {
+        "type": "mm",
+        "actor": "doctor",
+        "ability": "doctor",
+        "target": "girl_student",
+        "amount": 1
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "goodwill",
+        "actor": "doctor",
+        "index": 0,
+        "target": "girl_student",
+        "amount": -1
+      },
+      {
+        "type": "refusal",
+        "refuse": true
+      },
+      {
+        "type": "goodwill",
+        "actor": "boy_student",
+        "index": 0,
+        "target": "girl_student"
+      },
+      {
+        "type": "refusal",
+        "refuse": false
+      },
+      {
+        "type": "pass"
+      },
+      {
+        "type": "end_area",
+        "territory": false
+      },
+      {
+        "type": "pass"
+      }
+    ],
+    "positions": [
+      {
+        "revision": 0,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 3,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 4,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 5,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 7,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 8,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 9,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 11,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 1
+      },
+      {
+        "revision": 16,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 19,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 20,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 21,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 23,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 24,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 26,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 27,
+        "seat": "M",
+        "phase": "incident",
+        "loop": 1,
+        "day": 2
+      },
+      {
+        "revision": 30,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 33,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 34,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 35,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 37,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 38,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 40,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 3
+      },
+      {
+        "revision": 43,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 46,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 47,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 48,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 50,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 51,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 1,
+        "day": 4
+      },
+      {
+        "revision": 55,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 58,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 59,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 60,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 62,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 63,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 64,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 66,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 1
+      },
+      {
+        "revision": 71,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 74,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 75,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 76,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 78,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 79,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 81,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 82,
+        "seat": "M",
+        "phase": "incident",
+        "loop": 2,
+        "day": 2
+      },
+      {
+        "revision": 85,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 88,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 89,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 90,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 92,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 93,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 95,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 3
+      },
+      {
+        "revision": 98,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 101,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 102,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 103,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 105,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 106,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 107,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 108,
+        "seat": "M",
+        "phase": "refusal",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 109,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 2,
+        "day": 4
+      },
+      {
+        "revision": 113,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 116,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 117,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 118,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 120,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 121,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 122,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 124,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 1
+      },
+      {
+        "revision": 129,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 132,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 133,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 134,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 136,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 137,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 138,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 139,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 140,
+        "seat": "M",
+        "phase": "refusal",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 141,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 143,
+        "seat": "A",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 144,
+        "seat": "M",
+        "phase": "incident",
+        "loop": 3,
+        "day": 2
+      },
+      {
+        "revision": 147,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 150,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 151,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 152,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 154,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 155,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 156,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 157,
+        "seat": "M",
+        "phase": "refusal",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 158,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 160,
+        "seat": "B",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 3
+      },
+      {
+        "revision": 163,
+        "seat": "M",
+        "phase": "mm_cards",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 166,
+        "seat": "C",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 167,
+        "seat": "A",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 168,
+        "seat": "B",
+        "phase": "hero_cards",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 170,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 171,
+        "seat": "M",
+        "phase": "mm_ability",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 172,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 173,
+        "seat": "M",
+        "phase": "refusal",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 174,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 4
+      },
+      {
+        "revision": 176,
+        "seat": "C",
+        "phase": "hero_ability",
+        "loop": 3,
+        "day": 4
+      }
+    ],
+    "winner": "mastermind"
+  },
+  "rows": [
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 0,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃推进复仇者轮回末败北条件，并与幕后黑手、传闻能力形成冗余；同时提高两名事件犯人不安，保留行踪不明及医院事件的备用路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.029611,
+            "normalizedUsage": {
+              "inputTokens": 11037,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 11034,
+              "outputTokens": 202,
+              "reasoningTokens": 130
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11037,
+              "completion_tokens": 202,
+              "total_tokens": 11239,
+              "cost": 0.029611,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 11034,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.029611,
+                "upstream_inference_prompt_cost": 0.027591,
+                "upstream_inference_completions_cost": 0.00202
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 130,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.029611,
+            "latencyMs": 8264
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 7,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医生向医院增加暗跃，绕过已结算的禁止，推进复仇者轮回末败北条件；保留传闻应对医生被移走。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0081386,
+            "normalizedUsage": {
+              "inputTokens": 10461,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 2732,
+              "outputTokens": 53,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10461,
+              "completion_tokens": 53,
+              "total_tokens": 10514,
+              "cost": 0.0081386,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 2732,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0081386,
+                "upstream_inference_prompt_cost": 0.0076086,
+                "upstream_inference_completions_cost": 0.00053
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0081386,
+            "latencyMs": 3306
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 8,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "将医院暗跃提升至2，建立复仇者之灯的轮回末败北条件，同时强化第4日医院事件的致死威胁。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0078061,
+            "normalizedUsage": {
+              "inputTokens": 10336,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 2607,
+              "outputTokens": 51,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10336,
+              "completion_tokens": 51,
+              "total_tokens": 10387,
+              "cost": 0.0078061,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 2607,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0078061,
+                "upstream_inference_prompt_cost": 0.0072961,
+                "upstream_inference_completions_cost": 0.00051
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0078061,
+            "latencyMs": 3258
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 55,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "forbid_goodwill#0",
+            "target": "shrine_maiden"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "集中医院暗跃推进轮回末败北，封锁巫女友好以延缓消暗跃能力，同时提升上班族不安准备行踪不明。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0189961,
+            "normalizedUsage": {
+              "inputTokens": 14220,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 6491,
+              "outputTokens": 199,
+              "reasoningTokens": 140
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14220,
+              "completion_tokens": 199,
+              "total_tokens": 14419,
+              "cost": 0.0189961,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 6491,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0189961,
+                "upstream_inference_prompt_cost": 0.0170061,
+                "upstream_inference_completions_cost": 0.00199
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 140,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0189961,
+            "latencyMs": 7742
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 62,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医生能力直接增加医院暗跃，不受已结算的禁止牌影响；随后可用传闻补至2，锁定轮回末失败条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0160561,
+            "normalizedUsage": {
+              "inputTokens": 13644,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 5915,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13644,
+              "completion_tokens": 49,
+              "total_tokens": 13693,
+              "cost": 0.0160561,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 5915,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0160561,
+                "upstream_inference_prompt_cost": 0.0155661,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0160561,
+            "latencyMs": 2786
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 63,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医院暗跃增至2，立即建立复仇者之灯的轮回末失败条件；能力不受今日暗跃禁止影响。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0157136,
+            "normalizedUsage": {
+              "inputTokens": 13519,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 5790,
+              "outputTokens": 46,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13519,
+              "completion_tokens": 46,
+              "total_tokens": 13565,
+              "cost": 0.0157136,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 5790,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0157136,
+                "upstream_inference_prompt_cost": 0.0152536,
+                "upstream_inference_completions_cost": 0.00046
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0157136,
+            "latencyMs": 2463
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 113,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃牌牵制禁止，随后以幕后黑手和传闻能力推进医院至2；两名犯人加不安，保留事件备用路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0262886,
+            "normalizedUsage": {
+              "inputTokens": 17493,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9764,
+              "outputTokens": 110,
+              "reasoningTokens": 52
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17493,
+              "completion_tokens": 110,
+              "total_tokens": 17603,
+              "cost": 0.0262886,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9764,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0262886,
+                "upstream_inference_prompt_cost": 0.0251886,
+                "upstream_inference_completions_cost": 0.0011
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 52,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0262886,
+            "latencyMs": 4737
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 120,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "用幕后黑手能力增加医院暗跃，推进复仇者的轮回末失败条件；另可接传闻立即补至2，避免后续医生被移走。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0242986,
+            "normalizedUsage": {
+              "inputTokens": 16917,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9188,
+              "outputTokens": 55,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16917,
+              "completion_tokens": 55,
+              "total_tokens": 16972,
+              "cost": 0.0242986,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9188,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0242986,
+                "upstream_inference_prompt_cost": 0.0237486,
+                "upstream_inference_completions_cost": 0.00055
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0242986,
+            "latencyMs": 2994
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "M",
+      "revision": 121,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医院暗跃提升至2，直接满足复仇者之灯的轮回末败北条件；能力不受已结算的暗跃禁止影响。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0239361,
+            "normalizedUsage": {
+              "inputTokens": 16792,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9063,
+              "outputTokens": 50,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16792,
+              "completion_tokens": 50,
+              "total_tokens": 16842,
+              "cost": 0.0239361,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9063,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0239361,
+                "upstream_inference_prompt_cost": 0.0234361,
+                "upstream_inference_completions_cost": 0.0005
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0239361,
+            "latencyMs": 2815
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 0,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃推进复仇者胜线，同时提高两名事件犯人的不安，形成行踪不明与医院事件的备用压力。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.027137,
+            "normalizedUsage": {
+              "inputTokens": 11037,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 7726,
+              "outputTokens": 120,
+              "reasoningTokens": 67
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11037,
+              "completion_tokens": 120,
+              "total_tokens": 11157,
+              "cost": 0.027137,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 7726,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.027137,
+                "upstream_inference_prompt_cost": 0.025937,
+                "upstream_inference_completions_cost": 0.0012
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 67,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.027137,
+            "latencyMs": 6664
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 7,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "以幕后黑手能力给医院增加暗跃，绕过本日暗跃禁止，推进轮回末失败条件；保留传闻供医生被移走时补足。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0067826,
+            "normalizedUsage": {
+              "inputTokens": 10461,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 54,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10461,
+              "completion_tokens": 54,
+              "total_tokens": 10515,
+              "cost": 0.0067826,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0067826,
+                "upstream_inference_prompt_cost": 0.0062426,
+                "upstream_inference_completions_cost": 0.00054
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0067826,
+            "latencyMs": 3012
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 8,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "将医院暗跃提升至2，先落实复仇者之灯的轮回末败北条件，同时强化末日医院事件威胁。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0064726,
+            "normalizedUsage": {
+              "inputTokens": 10336,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 48,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10336,
+              "completion_tokens": 48,
+              "total_tokens": 10384,
+              "cost": 0.0064726,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0064726,
+                "upstream_inference_prompt_cost": 0.0059926,
+                "upstream_inference_completions_cost": 0.00048
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0064726,
+            "latencyMs": 2597
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 55,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "forbid_goodwill#0",
+            "target": "shrine_maiden"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃配合幕后黑手与传闻推进轮回末败北；压制巫女友好，延缓清除暗跃，并提高上班族不安准备行踪不明。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0159106,
+            "normalizedUsage": {
+              "inputTokens": 14220,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 215,
+              "reasoningTokens": 149
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14220,
+              "completion_tokens": 215,
+              "total_tokens": 14435,
+              "cost": 0.0159106,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0159106,
+                "upstream_inference_prompt_cost": 0.0137606,
+                "upstream_inference_completions_cost": 0.00215
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 149,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0159106,
+            "latencyMs": 8495
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 62,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医生给医院增加暗跃，不受已结算的暗跃禁止影响；随后可用传闻补至2，锁定复仇者轮回末败北条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0131486,
+            "normalizedUsage": {
+              "inputTokens": 13644,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 54,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13644,
+              "completion_tokens": 54,
+              "total_tokens": 13698,
+              "cost": 0.0131486,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0131486,
+                "upstream_inference_prompt_cost": 0.0126086,
+                "upstream_inference_completions_cost": 0.00054
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0131486,
+            "latencyMs": 3432
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 63,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "将医院暗跃推至2，直接满足复仇者之灯的轮回末失败条件；当前禁止牌不阻止能力加暗跃。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0128486,
+            "normalizedUsage": {
+              "inputTokens": 13519,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13519,
+              "completion_tokens": 49,
+              "total_tokens": 13568,
+              "cost": 0.0128486,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0128486,
+                "upstream_inference_prompt_cost": 0.0123586,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0128486,
+            "latencyMs": 2938
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 113,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃施压，配合幕后黑手与传闻能力争取首日达到轮回末败北阈值；两名犯人增不安，保留事件备用路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0220166,
+            "normalizedUsage": {
+              "inputTokens": 17493,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 171,
+              "reasoningTokens": 107
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17493,
+              "completion_tokens": 171,
+              "total_tokens": 17664,
+              "cost": 0.0220166,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0220166,
+                "upstream_inference_prompt_cost": 0.0203066,
+                "upstream_inference_completions_cost": 0.00171
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 107,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0220166,
+            "latencyMs": 7079
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 120,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "用幕后黑手能力增加医院暗跃，绕过已结算的禁止；随后可配合传闻立即达到轮回末失败阈值。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0196446,
+            "normalizedUsage": {
+              "inputTokens": 16917,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16917,
+              "completion_tokens": 49,
+              "total_tokens": 16966,
+              "cost": 0.0196446,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0196446,
+                "upstream_inference_prompt_cost": 0.0191546,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0196446,
+            "latencyMs": 3968
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "M",
+      "revision": 121,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "将医院暗跃增至2，立即锁定复仇者轮回末失败条件；场上没有降低医院暗跃的友好能力。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0193846,
+            "normalizedUsage": {
+              "inputTokens": 16792,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 48,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16792,
+              "completion_tokens": 48,
+              "total_tokens": 16840,
+              "cost": 0.0193846,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0193846,
+                "upstream_inference_prompt_cost": 0.0189046,
+                "upstream_inference_completions_cost": 0.00048
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0193846,
+            "latencyMs": 3695
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 0,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "集中推进医院暗跃的轮回末败北条件，同时提高女学生与上班族不安，准备医院事件及行踪不明两条辅助路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0272175,
+            "normalizedUsage": {
+              "inputTokens": 11117,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 7947,
+              "outputTokens": 101,
+              "reasoningTokens": 44
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11117,
+              "completion_tokens": 101,
+              "total_tokens": 11218,
+              "cost": 0.0272175,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 7947,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0272175,
+                "upstream_inference_prompt_cost": 0.0262075,
+                "upstream_inference_completions_cost": 0.00101
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 44,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0272175,
+            "latencyMs": 4001
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 7,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "幕后黑手能力直接增加医院暗跃，绕过已结算的禁止牌，推进轮回末失败条件，并保留传闻能力应对后续移动。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0065027,
+            "normalizedUsage": {
+              "inputTokens": 10541,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 0,
+              "outputTokens": 52,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10541,
+              "completion_tokens": 52,
+              "total_tokens": 10593,
+              "cost": 0.0065027,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0065027,
+                "upstream_inference_prompt_cost": 0.0059827,
+                "upstream_inference_completions_cost": 0.00052
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0065027,
+            "latencyMs": 3051
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 8,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医院暗跃升至2，建立复仇者之灯的轮回末败北条件，同时为第4日医院事件准备主人公死亡条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0062227,
+            "normalizedUsage": {
+              "inputTokens": 10416,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 0,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10416,
+              "completion_tokens": 49,
+              "total_tokens": 10465,
+              "cost": 0.0062227,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0062227,
+                "upstream_inference_prompt_cost": 0.0057327,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0062227,
+            "latencyMs": 2203
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 55,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃集中推进轮回末败北，配合幕后黑手与传闻能力；两名事件犯人同时加不安，保留事件备用压力。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0172047,
+            "normalizedUsage": {
+              "inputTokens": 14328,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 2956,
+              "outputTokens": 217,
+              "reasoningTokens": 159
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14328,
+              "completion_tokens": 217,
+              "total_tokens": 14545,
+              "cost": 0.0172047,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 2956,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0172047,
+                "upstream_inference_prompt_cost": 0.0150347,
+                "upstream_inference_completions_cost": 0.00217
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 159,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0172047,
+            "latencyMs": 8890
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 62,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "幕后黑手给医院增加暗跃，直接推进复仇者之灯的轮回末失败条件，且不受今日暗跃禁止影响。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0076513,
+            "normalizedUsage": {
+              "inputTokens": 13759,
+              "cachedInputTokens": 10903,
+              "cacheWriteTokens": 738,
+              "outputTokens": 48,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13759,
+              "completion_tokens": 48,
+              "total_tokens": 13807,
+              "cost": 0.0076513,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 10903,
+                "cache_write_tokens": 738,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0076513,
+                "upstream_inference_prompt_cost": 0.0071713,
+                "upstream_inference_completions_cost": 0.00048
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0076513,
+            "latencyMs": 2193
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 63,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医院暗跃升至2，立即建立复仇者之灯的轮回末失败条件，也为医院事件备妥致命阈值。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0056401,
+            "normalizedUsage": {
+              "inputTokens": 13634,
+              "cachedInputTokens": 11641,
+              "cacheWriteTokens": 0,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13634,
+              "completion_tokens": 49,
+              "total_tokens": 13683,
+              "cost": 0.0056401,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 11641,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0056401,
+                "upstream_inference_prompt_cost": 0.0051501,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0056401,
+            "latencyMs": 2647
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 113,
+      "seat": "M",
+      "phase": "mm_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "hospital"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "医院暗跃牌与幕后黑手、传闻能力叠加，争取首日锁定轮回末败北；两名犯人加不安维持事件备用威胁。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0241032,
+            "normalizedUsage": {
+              "inputTokens": 17628,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 5893,
+              "outputTokens": 100,
+              "reasoningTokens": 36
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17628,
+              "completion_tokens": 100,
+              "total_tokens": 17728,
+              "cost": 0.0241032,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 5893,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0241032,
+                "upstream_inference_prompt_cost": 0.0231032,
+                "upstream_inference_completions_cost": 0.001
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 36,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0241032,
+            "latencyMs": 4541
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 120,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "先用幕后黑手能力令医院暗跃达到1，再用传闻补至2，直接建立轮回末失败条件，不受已结算的暗跃禁止影响。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.008668,
+            "normalizedUsage": {
+              "inputTokens": 17059,
+              "cachedInputTokens": 13840,
+              "cacheWriteTokens": 632,
+              "outputTokens": 53,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17059,
+              "completion_tokens": 53,
+              "total_tokens": 17112,
+              "cost": 0.008668,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 13840,
+                "cache_write_tokens": 632,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.008668,
+                "upstream_inference_prompt_cost": 0.008138,
+                "upstream_inference_completions_cost": 0.00053
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.008668,
+            "latencyMs": 2358
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "M",
+      "revision": 121,
+      "seat": "M",
+      "phase": "mm_ability",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "让医院暗跃达到2，立即建立复仇者之灯的轮回末失败条件；能力不受已揭示的暗跃禁止影响。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0068612,
+            "normalizedUsage": {
+              "inputTokens": 16934,
+              "cachedInputTokens": 14472,
+              "cacheWriteTokens": 0,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16934,
+              "completion_tokens": 49,
+              "total_tokens": 16983,
+              "cost": 0.0068612,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 14472,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0068612,
+                "upstream_inference_prompt_cost": 0.0063712,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0068612,
+            "latencyMs": 2593
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 3,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "领导者负责暗跃禁止，封锁医院可能的暗跃积累，压低第4日医院事件致命风险，同时保留一次性资源。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0265785,
+            "normalizedUsage": {
+              "inputTokens": 10436,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 10433,
+              "outputTokens": 49,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10436,
+              "completion_tokens": 49,
+              "total_tokens": 10485,
+              "cost": 0.0265785,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 10433,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0265785,
+                "upstream_inference_prompt_cost": 0.0260885,
+                "upstream_inference_completions_cost": 0.00049
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0265785,
+            "latencyMs": 2276
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 4,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "给医生友好+2，立即解锁不安调节能力，为压制后续事件作准备；不重复暗跃禁止，避免干扰领导者的防守。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0083636,
+            "normalizedUsage": {
+              "inputTokens": 10391,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 2662,
+              "outputTokens": 93,
+              "reasoningTokens": 37
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10391,
+              "completion_tokens": 93,
+              "total_tokens": 10484,
+              "cost": 0.0083636,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 2662,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0083636,
+                "upstream_inference_prompt_cost": 0.0074336,
+                "upstream_inference_completions_cost": 0.00093
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 37,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0083636,
+            "latencyMs": 4020
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 5,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "给上班族友好+2，争取次日达到3点并调查其角色，辨明都市潜在威胁；不重复暗跃禁止，以免抵消队友防守。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0085361,
+            "normalizedUsage": {
+              "inputTokens": 10344,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 2615,
+              "outputTokens": 122,
+              "reasoningTokens": 61
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10344,
+              "completion_tokens": 122,
+              "total_tokens": 10466,
+              "cost": 0.0085361,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 2615,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0085361,
+                "upstream_inference_prompt_cost": 0.0073161,
+                "upstream_inference_completions_cost": 0.00122
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 61,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0085361,
+            "latencyMs": 5437
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 58,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "领导者负责禁止医院暗跃，阻挡可能的暗跃＋2；上轮轮回末失败表明地点暗跃须优先控制，避免重复累积。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0174036,
+            "normalizedUsage": {
+              "inputTokens": 13619,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 5890,
+              "outputTokens": 190,
+              "reasoningTokens": 135
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13619,
+              "completion_tokens": 190,
+              "total_tokens": 13809,
+              "cost": 0.0174036,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 5890,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0174036,
+                "upstream_inference_prompt_cost": 0.0155036,
+                "upstream_inference_completions_cost": 0.0019
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 135,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0174036,
+            "latencyMs": 6674
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 59,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "上轮医院在能力阶段连续增加暗跃，医生疑为幕后黑手。横移医生到神社，切断其持续堆积医院暗跃的路线，配合领导者防守医院。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0169411,
+            "normalizedUsage": {
+              "inputTokens": 13574,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 5845,
+              "outputTokens": 155,
+              "reasoningTokens": 92
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13574,
+              "completion_tokens": 155,
+              "total_tokens": 13729,
+              "cost": 0.0169411,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 5845,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0169411,
+                "upstream_inference_prompt_cost": 0.0153911,
+                "upstream_inference_completions_cost": 0.00155
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 92,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0169411,
+            "latencyMs": 6426
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 60,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "boy_student"
+          }
+        ],
+        "reason": "让男学生立即达到能力门槛，可持续压低女学生不安，防范第4日医院事件；医院已由队友盖牌，避免重复暗跃禁止。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0171136,
+            "normalizedUsage": {
+              "inputTokens": 13527,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 5798,
+              "outputTokens": 184,
+              "reasoningTokens": 127
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13527,
+              "completion_tokens": 184,
+              "total_tokens": 13711,
+              "cost": 0.0171136,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 5798,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0171136,
+                "upstream_inference_prompt_cost": 0.0152736,
+                "upstream_inference_completions_cost": 0.00184
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 127,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0171136,
+            "latencyMs": 6755
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 116,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "前两轮禁止医院暗跃后仍被能力加至2并于轮回末失败，医生极可能是幕后黑手。先将医生横移出医院，切断持续加暗跃路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0255011,
+            "normalizedUsage": {
+              "inputTokens": 16890,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9161,
+              "outputTokens": 182,
+              "reasoningTokens": 120
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16890,
+              "completion_tokens": 182,
+              "total_tokens": 17072,
+              "cost": 0.0255011,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9161,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0255011,
+                "upstream_inference_prompt_cost": 0.0236811,
+                "upstream_inference_completions_cost": 0.00182
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 120,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0255011,
+            "latencyMs": 7727
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 117,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "前两轮医院在能力阶段连续增加暗跃，且医院高暗跃导致轮回末失败。横移医生离开医院，阻断疑似幕后黑手继续堆积医院暗跃。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0251386,
+            "normalizedUsage": {
+              "inputTokens": 16845,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9116,
+              "outputTokens": 157,
+              "reasoningTokens": 95
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16845,
+              "completion_tokens": 157,
+              "total_tokens": 17002,
+              "cost": 0.0251386,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9116,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0251386,
+                "upstream_inference_prompt_cost": 0.0235686,
+                "upstream_inference_completions_cost": 0.00157
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 95,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0251386,
+            "latencyMs": 6222
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-legacy",
+      "side": "heroes",
+      "revision": 118,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "boy_student"
+          }
+        ],
+        "reason": "男学生友好达到2后可每日降低同地点学生不安，压制女学生的事件风险，保留后续出牌应对医院威胁。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0257911,
+            "normalizedUsage": {
+              "inputTokens": 16798,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 9069,
+              "outputTokens": 234,
+              "reasoningTokens": 180
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16798,
+              "completion_tokens": 234,
+              "total_tokens": 17032,
+              "cost": 0.0257911,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 9069,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0257911,
+                "upstream_inference_prompt_cost": 0.0234511,
+                "upstream_inference_completions_cost": 0.00234
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 180,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0257911,
+            "latencyMs": 10103
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 3,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "领导者负责暗跃禁止，阻止医院可能的暗跃积累，压低第四日医院事件风险；医院暗牌尚不能证明具体牌面或规则。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.025255,
+            "normalizedUsage": {
+              "inputTokens": 10436,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 7726,
+              "outputTokens": 52,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10436,
+              "completion_tokens": 52,
+              "total_tokens": 10488,
+              "cost": 0.025255,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 7726,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.025255,
+                "upstream_inference_prompt_cost": 0.024735,
+                "upstream_inference_completions_cost": 0.00052
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.025255,
+            "latencyMs": 2647
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 4,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "医生友好达到2可解锁不安调整，便于后续压制医院事件犯人；今日无事件，先建立可持续的控制能力。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0076426,
+            "normalizedUsage": {
+              "inputTokens": 10391,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 154,
+              "reasoningTokens": 102
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10391,
+              "completion_tokens": 154,
+              "total_tokens": 10545,
+              "cost": 0.0076426,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0076426,
+                "upstream_inference_prompt_cost": 0.0061026,
+                "upstream_inference_completions_cost": 0.00154
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 102,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0076426,
+            "latencyMs": 6146
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 5,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "给上班族友好＋2，争取明日达到3点查明角色；其身份或拒绝能力的表现可帮助定位威胁，且不与领导者可能的暗跃禁止冲突。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0073886,
+            "normalizedUsage": {
+              "inputTokens": 10344,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 138,
+              "reasoningTokens": 73
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10344,
+              "completion_tokens": 138,
+              "total_tokens": 10482,
+              "cost": 0.0073886,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0073886,
+                "upstream_inference_prompt_cost": 0.0060086,
+                "upstream_inference_completions_cost": 0.00138
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 73,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0073886,
+            "latencyMs": 5342
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 58,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "领导者负责暗跃禁止，阻挡医院可能的暗跃+2；上轮轮回末败北且学校仅1暗跃，医院或都市更值得优先防守。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0143386,
+            "normalizedUsage": {
+              "inputTokens": 13619,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 178,
+              "reasoningTokens": 120
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13619,
+              "completion_tokens": 178,
+              "total_tokens": 13797,
+              "cost": 0.0143386,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0143386,
+                "upstream_inference_prompt_cost": 0.0125586,
+                "upstream_inference_completions_cost": 0.00178
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 120,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0143386,
+            "latencyMs": 7419
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 59,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "上轮无死亡且学校暗跃仅1仍在轮回末失败，指向复仇者之灯。横移医生离开医院，可阻断疑似幕后黑手继续为医院加暗跃。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0140386,
+            "normalizedUsage": {
+              "inputTokens": 13574,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 157,
+              "reasoningTokens": 93
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13574,
+              "completion_tokens": 157,
+              "total_tokens": 13731,
+              "cost": 0.0140386,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0140386,
+                "upstream_inference_prompt_cost": 0.0124686,
+                "upstream_inference_completions_cost": 0.00157
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 93,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0140386,
+            "latencyMs": 6245
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 60,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "boy_student"
+          }
+        ],
+        "reason": "让男学生立即达到能力门槛，可持续降低同校女学生不安，压制后续事件风险；避免重复暗跃禁止。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0152346,
+            "normalizedUsage": {
+              "inputTokens": 13527,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 286,
+              "reasoningTokens": 237
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13527,
+              "completion_tokens": 286,
+              "total_tokens": 13813,
+              "cost": 0.0152346,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0152346,
+                "upstream_inference_prompt_cost": 0.0123746,
+                "upstream_inference_completions_cost": 0.00286
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 237,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0152346,
+            "latencyMs": 11638
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 116,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "前两轮医院即使禁牌仍被能力堆至2；将疑似幕后黑手的医生横移至神社，阻断医院能力加暗跃，并让巫女有机会控制其新地点。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0211106,
+            "normalizedUsage": {
+              "inputTokens": 16890,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 201,
+              "reasoningTokens": 135
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16890,
+              "completion_tokens": 201,
+              "total_tokens": 17091,
+              "cost": 0.0211106,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0211106,
+                "upstream_inference_prompt_cost": 0.0191006,
+                "upstream_inference_completions_cost": 0.00201
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 135,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0211106,
+            "latencyMs": 8287
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 117,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "将医生横移至神社，阻止其疑似幕后黑手能力在首日把医院暗跃推至2；此前两轮表明医院暗跃是轮回末败因关键。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0213806,
+            "normalizedUsage": {
+              "inputTokens": 16845,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 237,
+              "reasoningTokens": 176
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16845,
+              "completion_tokens": 237,
+              "total_tokens": 17082,
+              "cost": 0.0213806,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0213806,
+                "upstream_inference_prompt_cost": 0.0190106,
+                "upstream_inference_completions_cost": 0.00237
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 176,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0213806,
+            "latencyMs": 9385
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-system",
+      "side": "heroes",
+      "revision": 118,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "boy_student"
+          }
+        ],
+        "reason": "男学生友好达到2后可持续降低同校女学生不安，压制事件风险；医院暗跃仍须靠迁离幕后黑手并禁止后续加暗跃处理。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0210166,
+            "normalizedUsage": {
+              "inputTokens": 16798,
+              "cachedInputTokens": 7726,
+              "cacheWriteTokens": 0,
+              "outputTokens": 210,
+              "reasoningTokens": 151
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16798,
+              "completion_tokens": 210,
+              "total_tokens": 17008,
+              "cost": 0.0210166,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7726,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0210166,
+                "upstream_inference_prompt_cost": 0.0189166,
+                "upstream_inference_completions_cost": 0.0021
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 151,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0210166,
+            "latencyMs": 8843
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 3,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "作为领导者负责暗跃禁止，封锁医院可能的暗跃积累，压低第四日医院事件的致命风险，保留一次性资源。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0255055,
+            "normalizedUsage": {
+              "inputTokens": 10516,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 7947,
+              "outputTokens": 50,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10516,
+              "completion_tokens": 50,
+              "total_tokens": 10566,
+              "cost": 0.0255055,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 7947,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0255055,
+                "upstream_inference_prompt_cost": 0.0250055,
+                "upstream_inference_completions_cost": 0.0005
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0255055,
+            "latencyMs": 2440
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 4,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "给医生友好+2，立即解锁不安调节能力，为后续压低事件犯人不安做准备；避免重复暗跃禁止干扰队友。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0068327,
+            "normalizedUsage": {
+              "inputTokens": 10471,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 0,
+              "outputTokens": 99,
+              "reasoningTokens": 44
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10471,
+              "completion_tokens": 99,
+              "total_tokens": 10570,
+              "cost": 0.0068327,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0068327,
+                "upstream_inference_prompt_cost": 0.0058427,
+                "upstream_inference_completions_cost": 0.00099
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 44,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0068327,
+            "latencyMs": 4243
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 5,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 1,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "为上班族积累2点友好，争取次日达到3点并查明其角色，为后续轮回锁定规则与威胁；不重复暗跃禁止，避免抵消队友防守。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0069187,
+            "normalizedUsage": {
+              "inputTokens": 10424,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 0,
+              "outputTokens": 117,
+              "reasoningTokens": 50
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 10424,
+              "completion_tokens": 117,
+              "total_tokens": 10541,
+              "cost": 0.0069187,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0069187,
+                "upstream_inference_prompt_cost": 0.0057487,
+                "upstream_inference_completions_cost": 0.00117
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 50,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0069187,
+            "latencyMs": 4386
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 58,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "禁止医院暗跃，防止剧作家再次用暗跃+2快速堆高。上轮轮回末医院、都市均达2而败北，本轮仍需配合移动疑似幕后黑手来遏制能力累积。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0151127,
+            "normalizedUsage": {
+              "inputTokens": 13727,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 2956,
+              "outputTokens": 128,
+              "reasoningTokens": 56
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13727,
+              "completion_tokens": 128,
+              "total_tokens": 13855,
+              "cost": 0.0151127,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 2956,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0151127,
+                "upstream_inference_prompt_cost": 0.0138327,
+                "upstream_inference_completions_cost": 0.00128
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 56,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0151127,
+            "latencyMs": 5208
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 59,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "上轮医院两次能力加暗跃且轮回末失败，医生疑为幕后黑手。横移医生离开医院，限制继续堆积其初始地点暗跃，优先破解败北路线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0081383,
+            "normalizedUsage": {
+              "inputTokens": 13682,
+              "cachedInputTokens": 10903,
+              "cacheWriteTokens": 0,
+              "outputTokens": 149,
+              "reasoningTokens": 84
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13682,
+              "completion_tokens": 149,
+              "total_tokens": 13831,
+              "cost": 0.0081383,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 10903,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0081383,
+                "upstream_inference_prompt_cost": 0.0066483,
+                "upstream_inference_completions_cost": 0.00149
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 84,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0081383,
+            "latencyMs": 5710
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 60,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 2,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "上轮无死亡却轮回末失败，优先调查地点型败因；提升上班族友好，后续补至3即可查明角色，避免重复无效防守。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0098843,
+            "normalizedUsage": {
+              "inputTokens": 13635,
+              "cachedInputTokens": 10903,
+              "cacheWriteTokens": 0,
+              "outputTokens": 333,
+              "reasoningTokens": 274
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13635,
+              "completion_tokens": 333,
+              "total_tokens": 13968,
+              "cost": 0.0098843,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 10903,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0098843,
+                "upstream_inference_prompt_cost": 0.0065543,
+                "upstream_inference_completions_cost": 0.00333
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 274,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0098843,
+            "latencyMs": 12624
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 116,
+      "seat": "C",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "forbid_intrigue#0",
+            "target": "hospital"
+          }
+        ],
+        "reason": "阻止医院暗跃+2。前两轮末败北指向医院的复仇条件，后续须尽快移走医生，阻止其继续增加医院暗跃。",
+        "automatic": false,
+        "repairAttempts": 1,
+        "repairCauses": [
+          "INVALID_DECISION"
+        ],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0251772,
+            "normalizedUsage": {
+              "inputTokens": 17025,
+              "cachedInputTokens": 7947,
+              "cacheWriteTokens": 5893,
+              "outputTokens": 328,
+              "reasoningTokens": 152
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17025,
+              "completion_tokens": 328,
+              "total_tokens": 17353,
+              "cost": 0.0251772,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 7947,
+                "cache_write_tokens": 5893,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0251772,
+                "upstream_inference_prompt_cost": 0.0218972,
+                "upstream_inference_completions_cost": 0.00328
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 152,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0251772,
+            "latencyMs": 11228
+          },
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.008808,
+            "normalizedUsage": {
+              "inputTokens": 17272,
+              "cachedInputTokens": 13840,
+              "cacheWriteTokens": 0,
+              "outputTokens": 56,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 17272,
+              "completion_tokens": 56,
+              "total_tokens": 17328,
+              "cost": 0.008808,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 13840,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.008808,
+                "upstream_inference_prompt_cost": 0.008248,
+                "upstream_inference_completions_cost": 0.00056
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.008808,
+            "latencyMs": 3184
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 117,
+      "seat": "A",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_h#0",
+            "target": "doctor"
+          }
+        ],
+        "reason": "前两轮医院在能力阶段连增暗跃，且医生拒绝能力，强烈指向医生为幕后黑手。立即将其横移至神社，阻断医院暗跃累积，避免复仇者之灯轮回末失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.009044,
+            "normalizedUsage": {
+              "inputTokens": 16980,
+              "cachedInputTokens": 13840,
+              "cacheWriteTokens": 0,
+              "outputTokens": 138,
+              "reasoningTokens": 64
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16980,
+              "completion_tokens": 138,
+              "total_tokens": 17118,
+              "cost": 0.009044,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 13840,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.009044,
+                "upstream_inference_prompt_cost": 0.007664,
+                "upstream_inference_completions_cost": 0.00138
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 64,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.009044,
+            "latencyMs": 5012
+          }
+        ]
+      }
+    },
+    {
+      "profile": "sol-history",
+      "side": "heroes",
+      "revision": 118,
+      "seat": "B",
+      "phase": "hero_cards",
+      "loop": 3,
+      "day": 1,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "goodwill_2#0",
+            "target": "boy_student"
+          }
+        ],
+        "reason": "男学生友好达到2，可持续压低女学生不安，防范末日医院事件；不重复暗跃禁止，避免抵消队友防线。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.01153,
+            "normalizedUsage": {
+              "inputTokens": 16933,
+              "cachedInputTokens": 13840,
+              "cacheWriteTokens": 0,
+              "outputTokens": 396,
+              "reasoningTokens": 343
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 16933,
+              "completion_tokens": 396,
+              "total_tokens": 17329,
+              "cost": 0.01153,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 13840,
+                "cache_write_tokens": 0,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.01153,
+                "upstream_inference_prompt_cost": 0.00757,
+                "upstream_inference_completions_cost": 0.00396
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 343,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.01153,
+            "latencyMs": 15550
+          }
+        ]
+      }
+    }
+  ],
+  "gameId": "ecc4a456-71c9-465d-bfe0-2db554ef05de",
+  "terminalRevision": 179,
+  "complete": true,
+  "testedSiteSourceCommit": "5cd5ea9e978a4a24d1cdbf8b9d5db8db9c173974",
+  "ledgerVerified": {
+    "callCount": 55,
+    "ledgerTotal": 0.8699865,
+    "gameSpent": 0.8699864999999998,
+    "receiptTotal": 0.8699865
+  }
+}

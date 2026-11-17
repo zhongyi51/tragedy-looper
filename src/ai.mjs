@@ -6,7 +6,7 @@ export {configureKey,configured,model,rates,estimateUsage,reserveFor,requestJson
 export {generateWithAi,polishWithAi} from './author.mjs';
 
 export const AI_MEMORY_VERSION=1;
-export const AI_DECISION_VERSION='decision-6';
+export const AI_DECISION_VERSION='decision-7';
 const aiSeats=['A','B','C'];
 const aiRecord=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const aiText=(value,max)=>typeof value==='string'&&value.length<=max;
@@ -146,7 +146,7 @@ export async function decide(s,seat,options={}){
  if(forced){const command=currentCommand({command:forced});return {command,commands:[command],reason:'按规则自动结算。',note:privateNote,automatic:true,repairCauses:[],resetHeroMemory:!policyCurrent};}
  const {messages,payload,batch,discussion}=decisionContext(s,seat,actions),history=payload.visibleHistory;
  const format=batch?`{"choices":[整数,整数,整数],"reason":"简短理由"}，choices 是 1–${batch} 个互不相同、位于0至${actions.length-1}的候选编号`:`{"choice":整数,"reason":"简短理由"}，choice 必须为0至${actions.length-1}`;
- const requestOptions={...decisionProfile(s,actions,batch,options.provider),...options,userId:(options.userId||'local')+'_'+seat};
+ const requestOptions={cacheLayout:options.provider==='openrouter'?'history':'legacy',...decisionProfile(s,actions,batch,options.provider),...options,userId:(options.userId||'local')+'_'+seat};
  const repairProfile=requestOptions.provider==='openrouter'?{thinking:'enabled',reasoningEffort:'low',maxTokens:2048}:requestOptions.thinking==='enabled'?{thinking:'enabled',reasoningEffort:'low',maxTokens:8192}:{thinking:'disabled',maxTokens:1800},repairCauses=[];
  let compiledRepair=null,directJsonRepair=false;
  for(let attempt=0;attempt<2;attempt++){

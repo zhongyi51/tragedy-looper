@@ -80,12 +80,12 @@ class Runner:
         manifest = hashlib.sha256(json.dumps(specs, sort_keys=True).encode()).hexdigest()
         self.data = json.loads(self.output.read_text()) if self.output.exists() else {
             'version': VERSION, 'label': args.label, 'base': base, 'manifestHash': manifest,
-            'replicates': args.replicates, 'provider': args.provider, 'forcedFirstMaxTokens': args.first_max_tokens, 'httpRequests': 0, 'potentialProviderCalls': 0,
+            'replicates': args.replicates, 'provider': args.provider, 'qaProfile':args.qa_profile, 'forcedFirstMaxTokens': args.first_max_tokens, 'httpRequests': 0, 'potentialProviderCalls': 0,
             'sourceHashes': {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
-                             for p in ['src/engine.mjs', 'src/ai.mjs', 'src/model-provider.mjs', 'src/game-prompt.mjs', 'test/fixtures/strategy-v2.mjs']},
+                             for p in ['src/engine.mjs', 'src/ai.mjs', 'src/model-provider.mjs', 'src/game-prompt.mjs', 'src/prompt-cache.mjs', 'test/fixtures/strategy-v2.mjs'] if (ROOT/p).exists()},
             'cases': {}}
         for key, expected in [('version', VERSION), ('label', args.label), ('base', base),
-                              ('manifestHash', manifest), ('replicates', args.replicates), ('provider', args.provider)]:
+                              ('manifestHash', manifest), ('replicates', args.replicates), ('provider', args.provider), ('qaProfile',args.qa_profile)]:
             if self.data.get(key) != expected:
                 raise ValueError('Checkpoint mismatch: ' + key)
         if self.data.get('forcedFirstMaxTokens') != args.first_max_tokens:
@@ -157,6 +157,7 @@ class Runner:
                     record['fixtureReady'] = True
                     self.save()
                 body = {'revision': record['game']['revision'], 'commandId': str(uuid.uuid4())}
+                if self.args.qa_profile: body['qaProfile']=self.args.qa_profile
                 if self.args.first_max_tokens is not None:
                     body['qaFirstMaxTokens'] = self.args.first_max_tokens
                 record['pendingPaid'] = body
@@ -214,6 +215,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--label', default='candidate')
     parser.add_argument('--provider', choices=['deepseek', 'openrouter'], default='deepseek')
+    parser.add_argument('--qa-profile',choices=['sol-legacy','sol-system','sol-history','luna-history'])
     parser.add_argument('--replicates', type=int, choices=[1, 2, 3], default=1)
     parser.add_argument('--workers', type=int, choices=[1, 2], default=2)
     parser.add_argument('--ids', nargs='*')

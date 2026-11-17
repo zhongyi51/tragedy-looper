@@ -27,7 +27,7 @@ function invalidPlan(s,duplicate){
 test('large protagonist rescue decisions enable bounded thinking in the actual request',async t=>{
  const {state:s,targetSeat:seat}=rescueMovementFixture(),actions=legalActions(s,seat),requests=[];
  assert.equal(s.phase,'hero_cards');assert.ok(actions.length>50);
- assert.equal(AI_DECISION_VERSION,'decision-6');
+ assert.equal(AI_DECISION_VERSION,'decision-7');
  assert.deepEqual(decisionProfile(s,actions,0),{thinking:'enabled',reasoningEffort:'low',maxTokens:8192});
  t.mock.method(globalThis,'fetch',async(_url,init)=>{requests.push(JSON.parse(init.body));return response({choice:0});});
  await decide(s,seat,options);

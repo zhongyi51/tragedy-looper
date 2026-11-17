@@ -125,3 +125,19 @@ test('only isolated QA can force first-request truncation, then use one model-se
  assert.equal(done.data.qaDecision.repairMode,'compiled-plan');assert.deepEqual(done.data.qaDecision.repairCauses,['TRUNCATED']);assert.equal(done.data.qaDecision.commands.length,3);
  assert.equal(done.data.qaDecision.usage.length,2);assert.equal(f.sql.prepare('SELECT count(*) n FROM calls WHERE game=?').get(game.id).n,2);
 });
+
+test('paired model probes use only isolated historical frames, settle invoices and preserve state',async t=>{
+ const f=fixture();t.after(()=>f.sql.close());f.env.OPENROUTER_API_KEY='fake-test-key';
+ const requests=[];t.mock.method(globalThis,'fetch',async(url,init)=>{const b=JSON.parse(init.body);requests.push(b);return new Response(JSON.stringify({model:b.model,id:'test-probe',usage:{prompt_tokens:100,completion_tokens:5,cost:.0001},choices:[{message:{content:'{"choice":0}'}}]}));});
+ const spec=silverBulletFixture();let game=(await f.request('/api/qa/games',{mode:'observe',aiProvider:'openrouter',opponent:'ai',script:spec.script})).data;
+ game=(await f.request('/api/qa/games/'+game.id+'/fixture-step',{revision:0,commands:spec.commands.map(x=>x.command)})).data;
+ const before=f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state;
+ const r=await f.request('/api/qa/games/'+game.id+'/ai-step',{revision:game.revision,qaProbeRevision:game.revision,qaProfile:'luna-history'});
+ assert.equal(r.status,200,JSON.stringify(r.data));assert.equal(r.data.qaDecision.usage[0].model,'openai/gpt-6-luna');assert.equal(requests[0].model,'openai/gpt-6-luna');
+ assert.deepEqual(requests[0].prompt_cache_options,{mode:'explicit',ttl:'30m'});
+ assert.equal(f.sql.prepare('SELECT state FROM games WHERE id=?').get(game.id).state,before);assert.ok(f.sql.prepare('SELECT spent FROM games WHERE id=?').get(game.id).spent>0);
+ for(const qaProfile of ['arbitrary-model','http://elsewhere'])assert.equal((await f.request('/api/qa/games/'+game.id+'/ai-step',{revision:game.revision,qaProfile,qaProbeRevision:0})).data.code,'INVALID_QA_PROFILE');
+ const normal=(await f.request('/api/games',{mode:'observe',aiProvider:'openrouter',opponent:'ai',script:spec.script},{owner:'normal'})).data;
+ assert.equal((await f.request('/api/games/'+normal.id+'/ai-step',{revision:0,qaProfile:'luna-history'},{owner:'normal'})).data.code,'INVALID_QA_PROFILE');
+ f.env.SITES_QA_ENABLED='false';assert.equal((await f.request('/api/qa/games/'+game.id+'/ai-step',{revision:game.revision,qaProfile:'luna-history'})).status,401);
+});

@@ -36,7 +36,7 @@ for(const ruleset of ['FS','BTX','MZ','MC'])test(`${ruleset} rules prefix is ind
 test('whole-game instructions include lifecycle, information, resource and final-battle rules',()=>{
  const text=commonGameInstructions();
  for(const required of ['轮回开始','日开始','剧作家暗置三张牌','主人公领导者','当日日程事件','领导者轮换','day_end','loop_end','一次性行动牌','每轮回能力恢复','原始配役、事件犯人和日程不随重置随机改变','公开日志','提前进入最后的战斗','一名人物猜错即失败','none=不能拒绝','optional=剧作家可选择拒绝','mandatory=必须拒绝','三种方向同时出现互相抵消','事件名称公开不代表犯人公开'])assert.ok(text.includes(required),required);
- assert.equal(AI_DECISION_VERSION,'decision-6');
+ assert.equal(AI_DECISION_VERSION,'decision-7');
 });
 
 test('normal phase transitions keep a substantial identical complete-rules prefix',()=>{
@@ -85,7 +85,11 @@ test('Sol uses a 2048-token low-reasoning decision cap while DeepSeek retains it
  const answer=await decide(s,'M',{provider:'openrouter',apiKey:'not_a_real_test_key'});
  assert.equal(requests[0].max_tokens,2048);assert.equal(requests[0].reasoning.effort,'low');
  assert.equal(answer.provider,'openrouter');assert.equal(answer.modelLabel,'GPT-6.1 Sol');
- assert.deepEqual(requests[0].messages,decisionContext(s,'M').messages);
+ assert.deepEqual(requests[0].prompt_cache_options,{mode:'explicit',ttl:'30m'});
+ const original=decisionContext(s,'M').messages;
+ assert.ok(requests[0].messages[0].content[0].text.startsWith(original[0].content));
+ assert.equal(requests[0].messages.at(-2).content,original[1].content);
+ assert.deepEqual(JSON.parse(requests[0].messages.at(-1).content).observation.actions,JSON.parse(original[2].content).observation.actions);
 });
 
 test('Sol ordinary repairs retain the 2048-token cap and explicit first-call overrides still win',async t=>{
