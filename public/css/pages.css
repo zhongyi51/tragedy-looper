@@ -197,5 +197,4 @@
 .work-sections .btn{font-size:13px;min-height:30px;padding:4px 10px}
 .editor .form-block{scroll-margin-top:calc(var(--nav-h) + 12px)}
 .editor .form-block textarea{min-height:68px;resize:vertical}
-body[data-skin=summer] .hero-art{display:flex;align-items:stretch;gap:3px;isolation:isolate;background:var(--line)}
-body[data-skin=summer] .hero-art img{position:static;width:20%;height:100%;flex:1;min-width:0;object-fit:cover;object-position:50% 20%;transform:none;filter:none}
+body[data-skin=summer] .detail-card{height:min(340px,45dvh);object-fit:contain;box-shadow:none}
