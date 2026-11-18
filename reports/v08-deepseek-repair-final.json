@@ -1,0 +1,139 @@
+{
+  "version": "strategy-v2",
+  "label": "v08-ds-direct-json-repair",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "2fb17952b358d0c1e2bb8c2595a250fdba77fdf056c5eb0986dabb85660ae1f1",
+  "replicates": 1,
+  "provider": "deepseek",
+  "forcedFirstMaxTokens": 64,
+  "httpRequests": 3,
+  "potentialProviderCalls": 2,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "5a85c4b0def8ea846e336a1ee1111a4b436489c3fb0f4e8de049bdcde66e95fa",
+    "src/model-provider.mjs": "df852c28d4ce9ba3a56597cf47e56dbe9feeeae094d2e74c443fd6bd803c518b",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "c7da328d-35ae-4c84-8384-1c8fc23b6302",
+      "game": {
+        "id": "44e026cc-f919-4dc0-a3a6-809e0eca8062",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 11.315,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "上班族公开为连环杀手，与偶像在都市独处，日末偶像会死。纵移上班族离开都市可破坏独处，救下偶像；移动对地点无效，故移人。",
+        "automatic": false,
+        "repairAttempts": 1,
+        "repairCauses": [
+          "TRUNCATED"
+        ],
+        "repairMode": "direct-json",
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 15450,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 64,
+              "reasoningTokens": 64
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 15450,
+              "completion_tokens": 64,
+              "total_tokens": 15514,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 64
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 15450
+            },
+            "estimatedCost": 0.0047118,
+            "latencyMs": 1839
+          },
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 15519,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 52,
+              "reasoningTokens": 0
+            },
+            "thinking": "disabled",
+            "usage": {
+              "prompt_tokens": 15519,
+              "completion_tokens": 52,
+              "total_tokens": 15571,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 15519
+            },
+            "estimatedCost": 0.004718099999999999,
+            "latencyMs": 1698
+          }
+        ],
+        "spentEstimate": 0.009429899999999998
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    }
+  },
+  "summary": {
+    "scheduled": 1,
+    "scored": 1,
+    "passed": 1,
+    "legal": 1,
+    "errors": 0,
+    "spentEstimate": 0.009429899999999998,
+    "repairAttempts": 1,
+    "bySide": {
+      "mastermind": {
+        "scored": 0,
+        "passed": 0
+      },
+      "heroes": {
+        "scored": 1,
+        "passed": 1
+      }
+    },
+    "scope": "One decision per legal fixture with fixed local suffix; not full-game win rate."
+  }
+}

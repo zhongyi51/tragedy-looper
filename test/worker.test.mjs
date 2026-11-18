@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createWorker} from '../worker/index.mjs';
 function fixture(){
- const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('../drizzle/0000_initial.sql',import.meta.url),'utf8'));
+ const sql=new DatabaseSync(':memory:');for(const migration of ['0000_initial.sql','0001_script_feedback.sql','0002_workshop_drafts.sql'])sql.exec(readFileSync(new URL('../drizzle/'+migration,import.meta.url),'utf8'));
  const wrap=(query,args=[])=>({bind(...values){return wrap(query,values);},async first(){return sql.prepare(query).get(...args)||null;},async all(){return {results:sql.prepare(query).all(...args)};},async run(){const r=sql.prepare(query).run(...args);return {meta:{changes:Number(r.changes)}};}});
  const DB={prepare:q=>wrap(q),async batch(statements){sql.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sql.exec('COMMIT');return out;}catch(e){sql.exec('ROLLBACK');throw e;}}};
  const worker=createWorker({'/':{type:'text/html',data:Buffer.from('<h1>Game</h1>').toString('base64')}});
@@ -13,6 +13,32 @@ function fixture(){
  return {sql,DB,request,worker,env};
 }
 test('hosted identity required for UI, assets and every API; cross-origin rejected',async()=>{const {request}=fixture();for(const p of ['/','/js/main.mjs','/api/info','/api/games'])assert.equal((await request(p,undefined,null)).status,401);assert.equal((await request('/')).status,200);assert.equal((await request('/api/games',{},'owner-1',{Origin:'https://evil.test'})).status,403);});
+test('budget changes preserve play and ledger, reject stale, overspent, invalid and other-owner writes',async()=>{
+ const {request,sql}=fixture();const g=(await request('/api/games',{budget:.5})).data,path='/api/games/'+g.id+'/budget';
+ const before=sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state;
+ sql.prepare('UPDATE games SET spent=.2 WHERE id=?').run(g.id);
+ const changed=await request(path,{budget:1,expectedBudget:.5});assert.equal(changed.status,200);assert.equal(changed.data.budget,1);assert.equal(changed.data.spent,null);assert.equal(changed.data.revision,0);
+ assert.equal((await request(path,{budget:2,expectedBudget:.5})).status,409);
+ assert.equal((await request(path,{budget:.1,expectedBudget:1})).status,409);
+ for(const budget of [null,'2',0,11])assert.equal((await request(path,{budget,expectedBudget:1})).status,400);
+ assert.equal((await request(path,{budget:2,expectedBudget:1},'owner-2')).status,404);
+ assert.equal((await request(path,{budget:.3,expectedBudget:1})).status,200);
+ assert.deepEqual(sql.prepare('SELECT state,spent,budget FROM games WHERE id=?').get(g.id),Object.assign(Object.create(null),{state:before,spent:.2,budget:.3}));
+ assert.equal(sql.prepare('SELECT count(*) n FROM frames WHERE game=?').get(g.id).n,1);
+ sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()+100000,g.id);
+ assert.equal((await request(path,{budget:1,expectedBudget:.3})).status,409);
+});
+test('exhausted reservation can resume after increasing budget without resetting costs',async t=>{
+ const {request,sql,env}=fixture();env.OPENROUTER_API_KEY='test_only_not_a_secret';let calls=0;
+ t.mock.method(globalThis,'fetch',async()=>{calls++;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:20,cost:.005},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const g=(await request('/api/games',{mode:'heroes',opponent:'ai',aiProvider:'openrouter',budget:.01})).data,path='/api/games/'+g.id;
+ const blocked=await request(path+'/ai-step',{revision:0});assert.equal(blocked.data.code,'BUDGET_RESERVATION');assert.equal(calls,0);
+ assert.equal(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent,0);
+ assert.equal((await request(path+'/budget',{budget:1,expectedBudget:.01})).status,200);
+ const advanced=await request(path+'/ai-step',{revision:0});assert.equal(advanced.status,200);assert.equal(advanced.data.revision,1);assert.equal(calls,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM calls WHERE game=?').get(g.id).n,1);
+ assert.ok(Math.abs(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent-.005)<1e-9);
+});
 test('cloud storage ownership, public exports and forbidden source downloads',async()=>{const {request}=fixture();const g=(await request('/api/games',{mode:'mastermind'})).data;assert.ok(g.secret);assert.equal((await request('/api/games/'+g.id,undefined,'owner-2')).status,404);const r=(await request('/api/games/'+g.id+'/replay')).data;assert.equal(r.frames[0].view.secret,undefined);for(const p of ['/src/ai.mjs','/.env','/.openai/hosting.json','/runtime/games.sqlite'])assert.equal((await request(p)).status,404);});
 test('cloud revision compare-and-swap rejects concurrent duplicate advances',async()=>{const {request}=fixture();const g=(await request('/api/games',{})).data;const results=await Promise.all(Array.from({length:8},(_,i)=>request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'c'+i})));assert.equal(results.filter(r=>r.status===200).length,1);assert.equal((await request('/api/games/'+g.id)).data.revision,1);});
 test('cloud receipt retry preserves revision; illegal actions release lock',async()=>{const {request}=fixture();let g=(await request('/api/games',{mode:'mastermind'})).data;assert.equal((await request('/api/games/'+g.id+'/command',{revision:0,command:{type:'bad'}})).status,400);const a=await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'});assert.equal(a.status,200);assert.equal((await request('/api/games/'+g.id+'/bot-step',{revision:0,commandId:'same'})).data.revision,1);});
@@ -79,6 +105,58 @@ test('cloud expired lease can be recovered while an active lease prevents duplic
  assert.equal(sql.prepare('SELECT count(*) AS n FROM frames WHERE game=?').get(g.id).n,2);
 });
 
+test('disconnected HTTP requests retain the same in-flight operation in waitUntil',async t=>{
+ const {request,worker,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';
+ let ready,finish,calls=0;const started=new Promise(r=>ready=r),gate=new Promise(r=>finish=r),background=[];
+ t.mock.method(globalThis,'fetch',async()=>{calls++;ready();await gate;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const g=(await request('/api/games',{mode:'heroes'})).data,controller=new AbortController();
+ const pending=worker.fetch(new Request('https://game.test/api/games/'+g.id+'/ai-step',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','oai-authenticated-user-id':'owner-1'},body:JSON.stringify({revision:0,commandId:'disconnected'})}),env,{waitUntil:p=>background.push(p)});
+ await started;assert.equal(background.length,1);controller.abort();
+ assert.equal((await request('/api/games/'+g.id)).data.busy,true);
+ finish();assert.equal((await pending).status,200);await Promise.all(background);
+ const latest=(await request('/api/games/'+g.id)).data;assert.equal(latest.revision,1);assert.equal(latest.busy,false);assert.equal(calls,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM receipts WHERE game=?').get(g.id).n,1);
+});
+test('a model repair renews its two-minute lease rather than inheriting an almost-expired one',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';let now=Date.now(),calls=0;
+ t.mock.method(Date,'now',()=>now);
+ const g=(await request('/api/games',{mode:'heroes'})).data;
+ t.mock.method(globalThis,'fetch',async()=>{
+  calls++;assert.equal(sql.prepare('SELECT locked_until FROM games WHERE id=?').get(g.id).locked_until,now+120000);
+  now+=80000;
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:calls===1?'length':'stop',message:{content:calls===1?'':'{"plan":0}'}}]}));
+ });
+ const result=await request('/api/games/'+g.id+'/ai-step',{revision:0});assert.equal(result.status,200);assert.equal(calls,2);assert.equal(result.data.busy,false);
+});
+test('expired work cannot commit frames or receipts, even before a replacement starts',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';const g=(await request('/api/games',{mode:'heroes'})).data;
+ t.mock.method(globalThis,'fetch',async()=>{
+  sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()-1,g.id);
+  return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));
+ });
+ assert.equal((await request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'expired'})).status,409);
+ assert.equal((await request('/api/games/'+g.id)).data.revision,0);
+ assert.equal(sql.prepare('SELECT count(*) n FROM frames WHERE game=?').get(g.id).n,1);
+ assert.equal(sql.prepare('SELECT count(*) n FROM receipts WHERE game=?').get(g.id).n,0);
+ assert.equal(sql.prepare('SELECT count(*) n FROM calls WHERE game=? AND status=?').get(g.id,'completed').n,1);
+});
+test('late canceled work cannot overwrite or unlock its replacement and each bill settles once',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-test-only';const g=(await request('/api/games',{mode:'heroes'})).data;
+ const gates=[],starts=[];let calls=0;
+ for(let i=0;i<2;i++){let ready,finish;const started=new Promise(r=>ready=r),gate=new Promise(r=>finish=r);gates.push({gate,finish,ready});starts.push(started);}
+ t.mock.method(globalThis,'fetch',async()=>{const entry=gates[calls++];entry.ready();await entry.gate;return new Response(JSON.stringify({usage:{prompt_tokens:100,completion_tokens:10},choices:[{finish_reason:'stop',message:{content:'{"choice":0}'}}]}));});
+ const old=request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'old'});await starts[0];
+ sql.prepare('UPDATE games SET locked_until=? WHERE id=?').run(Date.now()-1,g.id);
+ const next=request('/api/games/'+g.id+'/ai-step',{revision:0,commandId:'new'});await starts[1];
+ const token=sql.prepare('SELECT lock_token FROM games WHERE id=?').get(g.id).lock_token;
+ gates[0].finish();assert.equal((await old).status,409);assert.equal((await request('/api/games/'+g.id)).data.busy,true);
+ assert.equal(sql.prepare('SELECT lock_token FROM games WHERE id=?').get(g.id).lock_token,token);
+ gates[1].finish();assert.equal((await next).status,200);assert.equal((await request('/api/games/'+g.id)).data.revision,1);
+ assert.deepEqual(sql.prepare('SELECT command_id FROM receipts WHERE game=?').all(g.id).map(r=>r.command_id),['new']);
+ const ledger=sql.prepare('SELECT data FROM calls WHERE game=?').all(g.id).map(r=>JSON.parse(r.data));assert.equal(ledger.length,2);assert.equal(calls,2);
+ assert.ok(Math.abs(sql.prepare('SELECT spent FROM games WHERE id=?').get(g.id).spent-ledger.reduce((s,r)=>s+r.estimatedCost,0))<1e-9);
+});
+
 test('cloud QA prefix is disabled by default and never relaxes normal API authentication',async()=>{
  const {request,env}=fixture();
  assert.equal((await request('/api/qa/info',undefined,null)).status,401);
@@ -124,7 +202,7 @@ test('cloud AI persistence never restores legacy protagonist notes after visibil
  const next=await request('/api/games/'+g.id+'/ai-step',{revision:g.revision});assert.equal(next.status,200);
  const persisted=JSON.parse(sql.prepare('SELECT state FROM games WHERE id=?').get(g.id).state);
  assert.deepEqual(persisted.notes,{A:'',B:'',C:'',M:'mastermind private evidence'});
- assert.equal(persisted.visibilityPolicy,'hidden_incident_names_v1');
+ assert.equal(persisted.visibilityPolicy,'failure_timing_v2');
 });
 
 test('cloud errors are JSON with stable codes and request identifiers matching response headers',async t=>{
@@ -136,4 +214,88 @@ test('cloud errors are JSON with stable codes and request identifiers matching r
  assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,0);
  assert.equal(logs.length,2);for(const entry of logs){assert.equal(entry.event,'api_error');assert.ok(entry.requestId);assert.ok(!JSON.stringify(entry).includes('sensitive-user-identifier'));assert.ok(!JSON.stringify(entry).includes('Not JSON'));}
  const ok=await worker.fetch(new Request('https://game.test/api/info',{headers:{'oai-authenticated-user-id':'owner-1'}}),env);assert.equal(ok.status,200);assert.ok(ok.headers.get('x-request-id'));
+});
+
+test('cloud advertises both model providers without disclosing credentials',async()=>{
+ const {request,env}=fixture();env.DEEPSEEK_API_KEY='unit-deepseek-secret';env.OPENROUTER_API_KEY='unit-openrouter-secret';
+ const r=await request('/api/info');assert.equal(r.status,200);
+ assert.equal(r.data.defaultProvider,'deepseek');assert.equal(r.data.providers.length,2);
+ assert.deepEqual(r.data.providers.map(p=>[p.id,p.configured]),[['deepseek',true],['openrouter',true]]);
+ assert.equal(r.data.providers.find(p=>p.id==='openrouter').model,'openai/gpt-6.2-sol');
+ assert.equal(r.data.authorBudgets.deepseek,.12);assert.equal(r.data.authorBudgets.openrouter,.50);
+ assert.doesNotMatch(JSON.stringify(r.data),/unit-deepseek-secret|unit-openrouter-secret|API_KEY/);
+ delete env.DEEPSEEK_API_KEY;const onlySol=(await request('/api/info')).data;assert.equal(onlySol.configured,true);assert.equal(onlySol.defaultProvider,'openrouter');
+});
+
+test('cloud rejects unsupported or unconfigured explicit models before creating or charging',async()=>{
+ const {request,sql}=fixture();
+ for(const input of [{aiProvider:'anything',opponent:'ai'},{aiProvider:'openrouter',opponent:'ai'},{opponent:'anything'},{authorProvider:'anything'}]){
+  const r=await request('/api/games',input);assert.equal(r.status,400);assert.ok(['MODEL_PROVIDER','NO_KEY','INVALID_SETUP'].includes(r.data.code));
+ }
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,0);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls').get().n,0);
+ const author=await request('/api/scripts/ai-generate',{provider:'openrouter'});assert.equal(author.data.code,'NO_KEY');
+});
+
+test('cloud saves Sol choice through reload and branch and settles actual provider cost once',async t=>{
+ const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-deepseek-secret';env.OPENROUTER_API_KEY='unit-openrouter-secret';let calls=0;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls++;assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(options.headers.Authorization,'Bearer '+env.OPENROUTER_API_KEY);
+  const body=JSON.parse(options.body);assert.equal(body.model,'openai/gpt-6.2-sol');assert.equal(body.reasoning.effort,'low');assert.ok(body.session_id||body.prompt_cache_key);
+  return new Response(JSON.stringify({id:'provider-test',model:body.model,usage:{prompt_tokens:1000,completion_tokens:100,cost:.012345,prompt_tokens_details:{cached_tokens:800,cache_write_tokens:100},completion_tokens_details:{reasoning_tokens:40}},choices:[{finish_reason:'stop',message:{content:'{"choice":0,"reason":"选择合法行动"}'}}]}));
+ });
+ const created=await request('/api/games',{mode:'mastermind',aiProvider:'openrouter',opponent:'ai',budget:1});assert.equal(created.status,201);let g=created.data;
+ assert.equal(g.aiProvider,'openrouter');assert.equal(g.opponent,'ai');assert.equal(g.modelLabel,'GPT-6.2 Sol');
+ for(let n=0;n<3;n++)g=(await request('/api/games/'+g.id+'/bot-step',{revision:g.revision})).data;
+ assert.equal(g.phaseId,'hero_cards');
+ const requestBody={revision:g.revision,commandId:'sol-once'};const step=await request('/api/games/'+g.id+'/ai-step',requestBody);assert.equal(step.status,200);assert.equal(step.data.decision.controller,'GPT-6.2 Sol');assert.equal(calls,1);
+ assert.equal((await request('/api/games/'+g.id+'/ai-step',requestBody)).status,200);assert.equal(calls,1);
+ const saved=sql.prepare('SELECT spent,state FROM games WHERE id=?').get(g.id);assert.ok(Math.abs(saved.spent-.012345)<1e-10);
+ const ledger=JSON.parse(sql.prepare('SELECT data FROM calls WHERE game=?').get(g.id).data);assert.equal(ledger.costKind,'provider_reported');assert.equal(ledger.actualCost,.012345);assert.equal(ledger.normalizedUsage.cachedInputTokens,800);
+ const reload=(await request('/api/games/'+g.id)).data;assert.equal(reload.aiProvider,'openrouter');assert.equal(reload.opponent,'ai');
+ const branch=await request('/api/games/'+g.id+'/branch',{revision:0});assert.equal(branch.status,201);assert.equal(branch.data.aiProvider,'openrouter');assert.equal(branch.data.opponent,'ai');
+ delete env.OPENROUTER_API_KEY;const resumed=(await request('/api/games/'+g.id)).data;assert.equal(resumed.aiProvider,'openrouter');assert.equal(resumed.aiConfigured,false);
+ const failed=await request('/api/games/'+g.id+'/ai-step',{revision:resumed.revision});assert.equal(failed.data.code,'NO_KEY');assert.equal(calls,1);
+});
+
+test('cloud author endpoints route the independently selected provider and label reported cost',async t=>{
+ const {request,env}=fixture();env.OPENROUTER_API_KEY='unit-openrouter-secret';let calls=0;
+ const script=(await request('/api/scripts/starter')).data;
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls++;assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(options.headers.Authorization,'Bearer '+env.OPENROUTER_API_KEY);
+  return new Response(JSON.stringify({usage:{prompt_tokens:500,completion_tokens:40,cost:.0015},choices:[{finish_reason:'stop',message:{content:'{"title":"雨夜灯火","intro":"灯火映着雨幕，钟声再次响起。"}'}}]}));
+ });
+ const result=await request('/api/scripts/ai-polish',{provider:'openrouter',script,theme:'雨夜'});
+ assert.equal(result.status,200);assert.equal(result.data.provider,'openrouter');assert.equal(result.data.costKind,'provider_reported');assert.equal(result.data.estimatedCost,.0015);assert.equal(result.data.script.title,'雨夜灯火');assert.equal(calls,1);
+ const missing=await request('/api/scripts/ai-polish',{provider:'deepseek',script,theme:'雨夜'});assert.equal(missing.data.code,'NO_KEY');assert.equal(calls,1);
+});
+
+
+test('completed creation recovery does not require the former model credential or create another game',async()=>{
+ const {request,env,sql}=fixture();env.OPENROUTER_API_KEY='unit-openrouter-secret';
+ const input={requestId:'completed-model-recovery',aiProvider:'openrouter',opponent:'ai'};
+ const first=await request('/api/games',input);assert.equal(first.status,201);delete env.OPENROUTER_API_KEY;
+ const recovered=await request('/api/games',input);assert.equal(recovered.status,200);assert.equal(recovered.data.id,first.data.id);assert.equal(recovered.data.aiConfigured,false);
+ assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,1);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls').get().n,0);
+ const fresh=await request('/api/games',{...input,requestId:'another-model-recovery'});assert.equal(fresh.data.code,'NO_KEY');
+});
+
+test('private workshop drafts can be resumed incomplete, copied, and played with their own schedule',async()=>{
+ const {request}=fixture(),base='/api/scripts/drafts',id=crypto.randomUUID(),url=base+'/'+id;
+ const write=(content,revision)=>request(url,{content,revision});
+ const incomplete=JSON.stringify({title:'海风草稿',characters:[]});
+ assert.equal((await write(incomplete,0)).data.revision,1);
+ assert.equal((await write(incomplete,0)).data.revision,1);
+ assert.equal((await request(url,undefined,'another-owner')).status,404);
+ assert.deepEqual((await request(base,undefined,'another-owner')).data,[]);
+ const script=(await request('/api/scripts/starter')).data;
+ script.settings.incidentVisibility='hidden';script.intro='晴天。';script.privateDesign={premise:'秘密'};
+ const saved=JSON.stringify(script);
+ assert.equal((await write(saved,1)).data.revision,2);
+ assert.equal((await write(incomplete,1)).status,409);
+ const loaded=JSON.parse((await request(url)).data.content);assert.deepEqual(loaded,script);
+ const copy=base+'/'+crypto.randomUUID();assert.equal((await request(copy,{content:saved,revision:0})).data.revision,1);
+ assert.equal((await request(base)).data.length,2);
+ const game=await request('/api/games',{mode:'heroes',opponent:'bot',script:loaded});
+ assert.equal(game.status,201);assert.equal(game.data.script.intro,'晴天。');
+ assert.deepEqual(game.data.script.incidents,[{day:3}]);assert.equal(game.data.script.privateDesign,undefined);
 });

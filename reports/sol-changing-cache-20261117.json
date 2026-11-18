@@ -1,0 +1,374 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 6,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "openrouter",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:30:01.223412+00:00",
+          "latencySeconds": 11.516,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "医院暗跃直压轮回末失败条件，医生能力可补进度；同时提高上班族与女学生不安，准备行踪不明和医院事件两条后续路线。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0271775,
+                "normalizedUsage": {
+                  "inputTokens": 11117,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 7947,
+                  "outputTokens": 97,
+                  "reasoningTokens": 33
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11117,
+                  "completion_tokens": 97,
+                  "total_tokens": 11214,
+                  "cost": 0.0271775,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 7947,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0271775,
+                    "upstream_inference_prompt_cost": 0.0262075,
+                    "upstream_inference_completions_cost": 0.00097
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 33,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0271775,
+                "latencyMs": 4506
+              }
+            ],
+            "spentEstimate": 0.027177499999999993
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:30:12.740627+00:00",
+          "latencySeconds": 9.916,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "领导者负责暗跃禁止，封锁医院可能的暗跃积累，压低末日医院事件与复仇者之灯的风险，保留一次性资源。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0064727,
+                "normalizedUsage": {
+                  "inputTokens": 10516,
+                  "cachedInputTokens": 7947,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 54,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10516,
+                  "completion_tokens": 54,
+                  "total_tokens": 10570,
+                  "cost": 0.0064727,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7947,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0064727,
+                    "upstream_inference_prompt_cost": 0.0059327,
+                    "upstream_inference_completions_cost": 0.00054
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0064727,
+                "latencyMs": 2801
+              }
+            ],
+            "spentEstimate": 0.03365019999999998
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:30:22.659396+00:00",
+          "latencySeconds": 14.979,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "shrine_maiden"
+              }
+            ],
+            "reason": "先积累巫女友好，后续可达3点压制神社暗跃、5点调查角色；避免重复暗跃禁止，并保留移动与减不安资源。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0071827,
+                "normalizedUsage": {
+                  "inputTokens": 10471,
+                  "cachedInputTokens": 7947,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 134,
+                  "reasoningTokens": 75
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10471,
+                  "completion_tokens": 134,
+                  "total_tokens": 10605,
+                  "cost": 0.0071827,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7947,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0071827,
+                    "upstream_inference_prompt_cost": 0.0058427,
+                    "upstream_inference_completions_cost": 0.00134
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 75,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0071827,
+                "latencyMs": 5730
+              }
+            ],
+            "spentEstimate": 0.040832899999999964
+          },
+          "nextRevision": 5,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 5,
+          "phase": "hero_cards",
+          "seat": "C",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:30:37.640803+00:00",
+          "latencySeconds": 15.359,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "doctor"
+              }
+            ],
+            "reason": "医生未被剧作家盖牌，先以友好+2解锁不安调整能力，为后续控制事件犯人不安作准备，也可观察是否拒绝能力。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0074727,
+                "normalizedUsage": {
+                  "inputTokens": 10406,
+                  "cachedInputTokens": 7947,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 176,
+                  "reasoningTokens": 119
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10406,
+                  "completion_tokens": 176,
+                  "total_tokens": 10582,
+                  "cost": 0.0074727,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7947,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0074727,
+                    "upstream_inference_prompt_cost": 0.0057127,
+                    "upstream_inference_completions_cost": 0.00176
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 119,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0074727,
+                "latencyMs": 8327
+              }
+            ],
+            "spentEstimate": 0.04830559999999996
+          },
+          "nextRevision": 7,
+          "nextPhase": "mm_ability"
+        }
+      ],
+      "gameId": "6c211f86-1679-436e-94d6-34aa1ecc8bff",
+      "completedRealDecisions": 4,
+      "passed": true
+    }
+  ],
+  "authors": [],
+  "qaProfile": null,
+  "sourceHashes": {
+    "src/ai.mjs": "90d36cc397375ffe972830509439d2848fb19c6eee32fac9b643e3c6363d3db7",
+    "src/model-provider.mjs": "eeb29826b016dcf3ab898d9b9c182f8e5ce1a447103646e71c0a0897a05ba64c",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "src/author.mjs": "5d53ec59e25123ef75cb6c37fba30a24263ab37d8f4550908bd122331c7cb018"
+  },
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-7"
+  },
+  "testedSiteSourceCommit": "172e8aa2393055f2eebf3e234e32c6d23817f06d"
+}

@@ -1,0 +1,452 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 6,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "deepseek",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:12.783362+00:00",
+          "latencySeconds": 31.46,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "用暗跃+2推医院暗跃，配合医生能力与传闻使复仇者之灯在轮回末触发；同时对女学生与上班族加不安，为后续事件铺垫。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 10663,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 4191,
+                  "reasoningTokens": 4139
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10663,
+                  "completion_tokens": 4191,
+                  "total_tokens": 14854,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 4139
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 10663
+                },
+                "estimatedCost": 0.0082281,
+                "latencyMs": 25959
+              }
+            ],
+            "spentEstimate": 0.0082281
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:44.252608+00:00",
+          "latencySeconds": 60.874,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_1#0",
+                "target": "doctor"
+              }
+            ],
+            "reason": "先给医生友好+1，凑到门槛2可解锁治疗能力；后续日补友好，为第4日医院事件保留减不安/调整手段，同时不暴露关键身份。",
+            "automatic": false,
+            "repairAttempts": 1,
+            "repairCauses": [
+              "TRUNCATED"
+            ],
+            "repairMode": "direct-json",
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 10046,
+                  "cachedInputTokens": 7040,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 8192,
+                  "reasoningTokens": 8192
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10046,
+                  "completion_tokens": 8192,
+                  "total_tokens": 18238,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7040
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 8192
+                  },
+                  "prompt_cache_hit_tokens": 7040,
+                  "prompt_cache_miss_tokens": 3006
+                },
+                "estimatedCost": 0.010774439999999998,
+                "latencyMs": 53815
+              },
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 10115,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 48,
+                  "reasoningTokens": 0
+                },
+                "thinking": "disabled",
+                "usage": {
+                  "prompt_tokens": 10115,
+                  "completion_tokens": 48,
+                  "total_tokens": 10163,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 10115
+                },
+                "estimatedCost": 0.0030921,
+                "latencyMs": 943
+              }
+            ],
+            "spentEstimate": 0.02209464
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:24:45.128421+00:00",
+          "latencySeconds": 31.818,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "第4日有医院事件，剧作家首日即指定医院，很可能是暗跃牌；用暗跃禁止抵消医院计数，防止后续团灭或主人公死亡。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 10003,
+                  "cachedInputTokens": 7040,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 3656,
+                  "reasoningTokens": 3610
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10003,
+                  "completion_tokens": 3656,
+                  "total_tokens": 13659,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7040
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 3610
+                  },
+                  "prompt_cache_hit_tokens": 7040,
+                  "prompt_cache_miss_tokens": 2963
+                },
+                "estimatedCost": 0.00531834,
+                "latencyMs": 26093
+              }
+            ],
+            "spentEstimate": 0.02741298
+          },
+          "nextRevision": 5,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 5,
+          "phase": "hero_cards",
+          "seat": "C",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:25:16.953726+00:00",
+          "pendingPaid": true
+        }
+      ],
+      "gameId": "fa5478fb-b53f-450f-9960-176ab3c3709f",
+      "error": "HTTP 503 NON_JSON; not retried"
+    }
+  ],
+  "authors": [],
+  "qaProfile": null,
+  "sourceHashes": {
+    "src/ai.mjs": "90d36cc397375ffe972830509439d2848fb19c6eee32fac9b643e3c6363d3db7",
+    "src/model-provider.mjs": "eeb29826b016dcf3ab898d9b9c182f8e5ce1a447103646e71c0a0897a05ba64c",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "src/author.mjs": "5d53ec59e25123ef75cb6c37fba30a24263ab37d8f4550908bd122331c7cb018"
+  },
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-7"
+  },
+  "reconciliation": {
+    "revision": 5,
+    "phase": "hero_cards",
+    "turn": "C",
+    "busy": false,
+    "ledger": [
+      {
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "reserved": 0.0223833,
+        "status": "completed",
+        "requestId": "16265196-8b0e-42e4-a5b4-5a5932ef28ed",
+        "thinking": "enabled",
+        "reasoningEffort": "low",
+        "usage": {
+          "prompt_tokens": 10663,
+          "completion_tokens": 4191,
+          "total_tokens": 14854,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 4139
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 10663
+        },
+        "normalizedUsage": {
+          "inputTokens": 10663,
+          "cachedInputTokens": 0,
+          "cacheWriteTokens": 0,
+          "outputTokens": 4191,
+          "reasoningTokens": 4139
+        },
+        "costKind": "conservative_estimate",
+        "estimatedCost": 0.0082281,
+        "latencyMs": 25959
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "reserved": 0.021822599999999998,
+        "status": "completed",
+        "requestId": "bc27e7b3-1e00-4417-a6f7-54c8bdc8f3c2",
+        "thinking": "enabled",
+        "reasoningEffort": "low",
+        "usage": {
+          "prompt_tokens": 10046,
+          "completion_tokens": 8192,
+          "total_tokens": 18238,
+          "prompt_tokens_details": {
+            "cached_tokens": 7040
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 8192
+          },
+          "prompt_cache_hit_tokens": 7040,
+          "prompt_cache_miss_tokens": 3006
+        },
+        "normalizedUsage": {
+          "inputTokens": 10046,
+          "cachedInputTokens": 7040,
+          "cacheWriteTokens": 0,
+          "outputTokens": 8192,
+          "reasoningTokens": 8192
+        },
+        "costKind": "conservative_estimate",
+        "estimatedCost": 0.010774439999999998,
+        "latencyMs": 53815
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "reserved": 0.013575299999999998,
+        "status": "completed",
+        "requestId": "3c8d85a1-4b62-4af0-ab71-8e7cfabab3da",
+        "thinking": "disabled",
+        "usage": {
+          "prompt_tokens": 10115,
+          "completion_tokens": 48,
+          "total_tokens": 10163,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 10115
+        },
+        "normalizedUsage": {
+          "inputTokens": 10115,
+          "cachedInputTokens": 0,
+          "cacheWriteTokens": 0,
+          "outputTokens": 48,
+          "reasoningTokens": 0
+        },
+        "costKind": "conservative_estimate",
+        "estimatedCost": 0.0030921,
+        "latencyMs": 943
+      },
+      {
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "reserved": 0.021799199999999998,
+        "status": "completed",
+        "requestId": "a4279077-bd4d-4616-b6e0-3552126493b7",
+        "thinking": "enabled",
+        "reasoningEffort": "low",
+        "usage": {
+          "prompt_tokens": 10003,
+          "completion_tokens": 3656,
+          "total_tokens": 13659,
+          "prompt_tokens_details": {
+            "cached_tokens": 7040
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3610
+          },
+          "prompt_cache_hit_tokens": 7040,
+          "prompt_cache_miss_tokens": 2963
+        },
+        "normalizedUsage": {
+          "inputTokens": 10003,
+          "cachedInputTokens": 7040,
+          "cacheWriteTokens": 0,
+          "outputTokens": 3656,
+          "reasoningTokens": 3610
+        },
+        "costKind": "conservative_estimate",
+        "estimatedCost": 0.00531834,
+        "latencyMs": 26093
+      },
+      {
+        "reserved": 0.0217716,
+        "estimatedCost": 0.0217716
+      }
+    ],
+    "ledgerEstimateUSD": 0.04918458,
+    "allCallsCompleted": false,
+    "priorAcknowledgedCalls": 4
+  },
+  "testedSiteSourceCommit": "c3191a9c2e037c379f9b888b2bd0871e9cd8b69b",
+  "reconciledSiteSourceCommit": "172e8aa2393055f2eebf3e234e32c6d23817f06d"
+}

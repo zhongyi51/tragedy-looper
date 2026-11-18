@@ -1,0 +1,877 @@
+{
+  "version": "strategy-v2",
+  "label": "v08-deepseek-fixed",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "d4d3619b19962d2b43834862768f2f4f0c2e4cdfa7b0b5492821c0901fb0d6bf",
+  "replicates": 1,
+  "provider": "deepseek",
+  "forcedFirstMaxTokens": null,
+  "httpRequests": 33,
+  "potentialProviderCalls": 22,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "66adfe78c477efab617c515a886606fd70899aefc84524af7815bc9608b5e12b",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "mc-silver-bullet@1": {
+      "id": "mc-silver-bullet",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "在没有当前败北条件时，用 A.I. 模拟银之子弹取得胜利。",
+      "creationId": "70425582-c434-445a-9cee-968ec62e99d4",
+      "game": {
+        "id": "33f36e48-4ae2-414f-88f4-9a2dc4551b27",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "latencySeconds": 31.437,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "ai_character",
+            "index": 0,
+            "target": "",
+            "day": 3
+          }
+        ],
+        "reason": "用人工智能模拟第3日银色子弹，当前EX=0且无死亡友人，多数规则下可立即通过本轮回；若为钢丝/黑学园则失败，仍有后续轮回。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 12059,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 3470,
+              "reasoningTokens": 3420
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12059,
+              "completion_tokens": 3470,
+              "total_tokens": 15529,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 3420
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12059
+            },
+            "estimatedCost": 0.0077817,
+            "latencyMs": 24562
+          }
+        ],
+        "spentEstimate": 0.007781699999999999
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "dafe603b-8d80-4265-a919-119ce0d61ce7",
+      "game": {
+        "id": "c4059c74-05d7-42e2-aea1-64526d3e7627",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 39.319,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "上班族已公开为连环杀手，且与偶像独处都市；日末会杀死偶像。纵移偶像到医院，与警察、医生同处，解除独处，避免关键人物/朋友死亡导致轮回失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 15450,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 4887,
+              "reasoningTokens": 4831
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 15450,
+              "completion_tokens": 4887,
+              "total_tokens": 20337,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 4831
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 15450
+            },
+            "estimatedCost": 0.010499399999999999,
+            "latencyMs": 32647
+          }
+        ],
+        "spentEstimate": 0.010499399999999999
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    },
+    "fs-hero-shrine-cleanup@1": {
+      "id": "fs-hero-shrine-cleanup",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "shrine_cleanup",
+      "description": "正确使用地点能力清除神社暗跃，减少公开威胁。",
+      "creationId": "406395ec-4e6c-4a38-8928-9447892fbb73",
+      "game": {
+        "id": "39b8372c-bf3d-4ee5-af57-a8ba65ba896d",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 12.718,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "shrine_maiden",
+            "index": 0,
+            "target": "shrine"
+          }
+        ],
+        "reason": "巫女在神社且友好3，用能力将神社暗跃从2降到1，破坏M暗置暗跃+2的意图，防止可能的复仇者之灯（幕后黑手初始地点暗跃2）轮回末失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 11889,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 993,
+              "reasoningTokens": 934
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11889,
+              "completion_tokens": 993,
+              "total_tokens": 12882,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 934
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 11889
+            },
+            "estimatedCost": 0.004758299999999999,
+            "latencyMs": 6729
+          }
+        ],
+        "spentEstimate": 0.0047583
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "shrine_cleanup"
+      }
+    },
+    "btx-hero-final-role-quota@1": {
+      "id": "btx-hero-final-role-quota",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "利用已正确作答的身份与规则配额，完成最后一项判断。",
+      "creationId": "8d808e3f-e770-4605-b2cb-ada7974640c2",
+      "game": {
+        "id": "d42514cc-f8e0-4628-984b-d46b7fffeb05",
+        "revision": 55
+      },
+      "fixtureReady": true,
+      "latencySeconds": 11.765,
+      "decision": {
+        "commands": [
+          {
+            "type": "guess",
+            "character": "girl_student",
+            "role": "killer"
+          }
+        ],
+        "reason": "已正确指认上班族连环杀手、警察普通人、偶像关键人物、男学生幕后黑手、巫女误导者、医生朋友；剩余唯一配役是杀手，女学生应为杀手。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 13299,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 696,
+              "reasoningTokens": 645
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13299,
+              "completion_tokens": 696,
+              "total_tokens": 13995,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 645
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 13299
+            },
+            "estimatedCost": 0.0048249,
+            "latencyMs": 4867
+          }
+        ],
+        "spentEstimate": 0.0048249
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "fs-mastermind-kill-heroes@1": {
+      "id": "fs-mastermind-kill-heroes",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "可立即杀死主人公时，不把一天白白结束。",
+      "creationId": "f7f64609-b219-42ff-bd9c-6e291121d33f",
+      "game": {
+        "id": "02cdb526-c0e3-410c-9327-f1c322b637d5",
+        "revision": 32
+      },
+      "fixtureReady": true,
+      "latencySeconds": 7.74,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "office_worker",
+            "ability": "heroes"
+          }
+        ],
+        "reason": "上班族暗跃已达4，触发杀手能力立即杀死主人公，第1轮回失败；启动最快失败路线，保留其余轮回资源。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 10947,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 37,
+              "reasoningTokens": 0
+            },
+            "thinking": "disabled",
+            "usage": {
+              "prompt_tokens": 10947,
+              "completion_tokens": 37,
+              "total_tokens": 10984,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 10947
+            },
+            "estimatedCost": 0.0033285,
+            "latencyMs": 1313
+          }
+        ],
+        "spentEstimate": 0.0033285
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-kill-key@1": {
+      "id": "fs-mastermind-kill-key",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "关键人物已满足杀手条件，选择死亡能力。",
+      "creationId": "e009ea9c-77f0-4c41-bbf5-fd36dc092d6d",
+      "game": {
+        "id": "cbb2c370-ddd1-4a15-9093-3f58c13fd60f",
+        "revision": 10
+      },
+      "fixtureReady": true,
+      "latencySeconds": 8.191,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "boy_student",
+            "ability": "kill",
+            "target": "girl_student"
+          }
+        ],
+        "reason": "杀手男学生可立即杀死同地点暗跃2的关键人物女学生，触发轮回立即失败，推进本轮回目标。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 9485,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 34,
+              "reasoningTokens": 0
+            },
+            "thinking": "disabled",
+            "usage": {
+              "prompt_tokens": 9485,
+              "completion_tokens": 34,
+              "total_tokens": 9519,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 9485
+            },
+            "estimatedCost": 0.0028863,
+            "latencyMs": 1095
+          }
+        ],
+        "spentEstimate": 0.0028862999999999996
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-location-finish@1": {
+      "id": "fs-mastermind-location-finish",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "最后一天把真正的败北地点从 1 暗跃推到 2。",
+      "creationId": "1e5cde1d-4c4d-43db-a583-beef561405fa",
+      "game": {
+        "id": "16e9e038-8262-4fef-bd78-12f4ddc6922c",
+        "revision": 40
+      },
+      "fixtureReady": true,
+      "latencySeconds": 16.802,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "doctor",
+            "ability": "brain",
+            "target": "hospital"
+          }
+        ],
+        "reason": "医生（幕后黑手）在医院，给医院暗跃+1至2；今日医院事件将致主人公死亡并立即失败，且轮回末复仇者之灯也满足。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 12144,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 1436,
+              "reasoningTokens": 1389
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12144,
+              "completion_tokens": 1436,
+              "total_tokens": 13580,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 1389
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12144
+            },
+            "estimatedCost": 0.0053663999999999995,
+            "latencyMs": 11096
+          }
+        ],
+        "spentEstimate": 0.0053664
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-low@1": {
+      "id": "mc-mastermind-therapy-low",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 1 时压住前兆，使钢丝上的计划保持 EX 1。",
+      "creationId": "7c74f7c5-78d7-4ef2-aee8-872959f45381",
+      "game": {
+        "id": "7a9aae33-4eec-4e9f-96cb-0e81da35167c",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "latencySeconds": 15.869,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "police"
+          }
+        ],
+        "reason": "EX=1且规则Y要求轮回结束时EX≤1，必须阻止第2日前兆发生。降低警察不安至1，使其低于临界，事件不发生，EX保持1，轮回结束触发主人公失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 12119,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 721,
+              "reasoningTokens": 668
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12119,
+              "completion_tokens": 721,
+              "total_tokens": 12840,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 668
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12119
+            },
+            "estimatedCost": 0.0045008999999999995,
+            "latencyMs": 6331
+          }
+        ],
+        "spentEstimate": 0.004500899999999999
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 1,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-high@1": {
+      "id": "mc-mastermind-therapy-high",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 2 时保留前兆，使拼凑事件达到 EX 3。",
+      "creationId": "6e3076a6-70a0-4768-97b2-487d19304a94",
+      "game": {
+        "id": "0d9288f9-e71a-4a5a-befe-9f43a8e2cf0b",
+        "revision": 21
+      },
+      "fixtureReady": true,
+      "latencySeconds": 11.28,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "idol"
+          }
+        ],
+        "reason": "治疗师必须移除同地他人1不安；选偶像（不安0）可避免降低警察不安，使今日「前兆」照常发生，EX 2→3，满足层叠事件拼图轮回末败北。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 12194,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 492,
+              "reasoningTokens": 434
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12194,
+              "completion_tokens": 492,
+              "total_tokens": 12686,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 434
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 12194
+            },
+            "estimatedCost": 0.004248599999999999,
+            "latencyMs": 4086
+          }
+        ],
+        "spentEstimate": 0.004248599999999998
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 3,
+        "reason": "loop_failure"
+      }
+    },
+    "fs-mastermind-resilient-three-cards@1": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "702501c6-1a1d-467b-af43-12bbd482782c",
+      "game": {
+        "id": "918840e2-8af1-474e-b7b4-979efb5fd9cc",
+        "revision": 24
+      },
+      "fixtureReady": true,
+      "latencySeconds": 60.69,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "boy_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "女学生暗跃+2至3，男学生暗跃+1至4触发杀手可杀主人公并保留杀关键人物能力；两路失败威胁叠加，末日一次结算更易令本轮回失败。",
+        "automatic": false,
+        "repairAttempts": 1,
+        "repairCauses": [
+          "TRUNCATED"
+        ],
+        "repairMode": "compiled-plan",
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 14439,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 8192,
+              "reasoningTokens": 8192
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14439,
+              "completion_tokens": 8192,
+              "total_tokens": 22631,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 8192
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 14439
+            },
+            "estimatedCost": 0.014162099999999999,
+            "latencyMs": 52896
+          },
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 15113,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 53,
+              "reasoningTokens": 0
+            },
+            "thinking": "disabled",
+            "usage": {
+              "prompt_tokens": 15113,
+              "completion_tokens": 53,
+              "total_tokens": 15166,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 15113
+            },
+            "estimatedCost": 0.0045975,
+            "latencyMs": 1218
+          }
+        ],
+        "spentEstimate": 0.018759599999999998
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "winningResponses": 80,
+        "responseCount": 80,
+        "reason": "One-card-response survival of the offensive plan"
+      }
+    },
+    "mc-hero-infer-y-before-silver@1": {
+      "id": "mc-hero-infer-y-before-silver",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "avoid_known_early_failure",
+      "description": "由公开杀手身份、隔离病栋和六人配额推断钢丝上的计划；EX 1 时避免银弹立即导致失败。",
+      "creationId": "b64896b6-c0fc-4298-a945-55be9fdd77f5",
+      "game": {
+        "id": "02583d0b-3707-4b17-bf62-7c96e22693b2",
+        "revision": 50
+      },
+      "fixtureReady": true,
+      "latencySeconds": 62.414,
+      "decision": {
+        "commands": [
+          {
+            "type": "pass"
+          }
+        ],
+        "reason": "上班族角色已知为杀手，模拟前兆只会增加不安且无信息收益，选择结束能力阶段。",
+        "automatic": false,
+        "repairAttempts": 1,
+        "repairCauses": [
+          "TRUNCATED"
+        ],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 14285,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 0,
+              "outputTokens": 8192,
+              "reasoningTokens": 8192
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14285,
+              "completion_tokens": 8192,
+              "total_tokens": 22477,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 8192
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 14285
+            },
+            "estimatedCost": 0.014115899999999999,
+            "latencyMs": 51433
+          },
+          {
+            "status": "completed",
+            "provider": "deepseek",
+            "model": "deepseek-flash",
+            "modelLabel": "DeepSeek",
+            "costKind": "conservative_estimate",
+            "normalizedUsage": {
+              "inputTokens": 14340,
+              "cachedInputTokens": 14080,
+              "cacheWriteTokens": 0,
+              "outputTokens": 442,
+              "reasoningTokens": 410
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14340,
+              "completion_tokens": 442,
+              "total_tokens": 14782,
+              "prompt_tokens_details": {
+                "cached_tokens": 14080
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 410
+              },
+              "prompt_cache_hit_tokens": 14080,
+              "prompt_cache_miss_tokens": 260
+            },
+            "estimatedCost": 0.00069288,
+            "latencyMs": 3776
+          }
+        ],
+        "spentEstimate": 0.014808779999999997
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "day": 5,
+        "extraGauge": 1,
+        "winner": null,
+        "reason": "Continue the live loop instead of a publicly inferable EX-1 defeat"
+      }
+    }
+  },
+  "summary": {
+    "scheduled": 11,
+    "scored": 11,
+    "passed": 11,
+    "legal": 11,
+    "errors": 0,
+    "spentEstimate": 0.08176338,
+    "repairAttempts": 2,
+    "bySide": {
+      "mastermind": {
+        "scored": 6,
+        "passed": 6
+      },
+      "heroes": {
+        "scored": 5,
+        "passed": 5
+      }
+    },
+    "scope": "One decision per legal fixture with fixed local suffix; not full-game win rate."
+  }
+}

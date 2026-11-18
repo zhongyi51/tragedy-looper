@@ -1,0 +1,140 @@
+{
+  "gameId": "02b311cb-d28b-4877-ad4a-5858c9d83d40",
+  "purpose": "Retrieve failed-call billing after completing isolated QA game with offline bot; no new model requests",
+  "winner": "mastermind",
+  "terminalRevision": 179,
+  "usage": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "modelLabel": "DeepSeek",
+      "reserved": 0.026149199999999997,
+      "status": "completed",
+      "requestId": "b392a6cf-f54f-41b0-a5cb-d01227c4d415",
+      "thinking": "enabled",
+      "reasoningEffort": "low",
+      "usage": {
+        "prompt_tokens": 13509,
+        "completion_tokens": 3480,
+        "total_tokens": 16989,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3418
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 13509
+      },
+      "normalizedUsage": {
+        "inputTokens": 13509,
+        "cachedInputTokens": 0,
+        "cacheWriteTokens": 0,
+        "outputTokens": 3480,
+        "reasoningTokens": 3418
+      },
+      "costKind": "conservative_estimate",
+      "estimatedCost": 0.0082287,
+      "latencyMs": 23182
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "modelLabel": "DeepSeek",
+      "reserved": 0.0248523,
+      "status": "completed",
+      "requestId": "3a69393b-a110-419b-abd6-4e0f8d093c60",
+      "thinking": "enabled",
+      "reasoningEffort": "low",
+      "usage": {
+        "prompt_tokens": 12328,
+        "completion_tokens": 721,
+        "total_tokens": 13049,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 674
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 12328
+      },
+      "normalizedUsage": {
+        "inputTokens": 12328,
+        "cachedInputTokens": 0,
+        "cacheWriteTokens": 0,
+        "outputTokens": 721,
+        "reasoningTokens": 674
+      },
+      "costKind": "conservative_estimate",
+      "estimatedCost": 0.004563599999999999,
+      "latencyMs": 6117
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "modelLabel": "DeepSeek",
+      "reserved": 0.024396599999999997,
+      "status": "completed",
+      "requestId": "c60007e5-bf95-4e83-bddd-cca458838369",
+      "thinking": "enabled",
+      "reasoningEffort": "low",
+      "usage": {
+        "prompt_tokens": 11957,
+        "completion_tokens": 8192,
+        "total_tokens": 20149,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 8192
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 11957
+      },
+      "normalizedUsage": {
+        "inputTokens": 11957,
+        "cachedInputTokens": 0,
+        "cacheWriteTokens": 0,
+        "outputTokens": 8192,
+        "reasoningTokens": 8192
+      },
+      "costKind": "conservative_estimate",
+      "estimatedCost": 0.0134175,
+      "latencyMs": 53955
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "modelLabel": "DeepSeek",
+      "reserved": 0.024481199999999998,
+      "status": "completed",
+      "requestId": "dd5b26a3-9307-4329-a130-795a7d9ab449",
+      "thinking": "enabled",
+      "reasoningEffort": "low",
+      "usage": {
+        "prompt_tokens": 12012,
+        "completion_tokens": 8192,
+        "total_tokens": 20204,
+        "prompt_tokens_details": {
+          "cached_tokens": 11776
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 8192
+        },
+        "prompt_cache_hit_tokens": 11776,
+        "prompt_cache_miss_tokens": 236
+      },
+      "normalizedUsage": {
+        "inputTokens": 12012,
+        "cachedInputTokens": 11776,
+        "cacheWriteTokens": 0,
+        "outputTokens": 8192,
+        "reasoningTokens": 8192
+      },
+      "costKind": "conservative_estimate",
+      "estimatedCost": 0.009971856,
+      "latencyMs": 53758
+    }
+  ]
+}

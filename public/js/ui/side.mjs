@@ -1,6 +1,7 @@
 import {esc,icon,btn} from '../html.mjs';
 import {char,name,seatName,seatMark,cardLabel,phaseLabel,rolesFor,plotsFor,incidentsFor,plotRoles} from '../lookup.mjs';
 import {MARKS,clues,failure} from '../deduce.mjs';
+import {normalizeFailureLog} from '../../failure-timing.mjs';
 
 const REFUSAL={optional:'可以拒绝能力',mandatory:'一定拒绝能力'};
 
@@ -25,7 +26,7 @@ function intel(v,ctx){
    <p class="plots"><b>${esc(name(v.secret.mainPlot))}</b>${v.secret.subPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p>
    <table class="roles">${Object.entries(v.secret.roles).filter(([,r])=>r!=='person').map(([c,r])=>`<tr><td>${esc(name(c))}</td><td>${esc(name(r))}</td><td>${v.knownRoles[c]?'已暴露':''}</td></tr>`).join('')}</table>
    ${v.secret.incidents.map(e=>`<p class="secret-incident">第 ${e.day} 日 · ${esc(name(e.type))} · 犯人 ${esc(name(e.culprit))}</p>`).join('')}</section>`:'';
- const budget=!ctx.readOnly&&v.aiConfigured?`<section class="block budget"><h4>AI 花费</h4><div class="budget-row"><span>${v.spent===null?'对局结束后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}</section>`:'';
+ const budget=!ctx.readOnly&&Number.isFinite(v.budget)?`<section class="block budget"><h4>AI 花费${v.aiProvider==='openrouter'?'':' · 估算'}</h4><div class="budget-row"><span>${v.spent===null?'对局结束后显示':'$'+v.spent.toFixed(4)}</span><b>上限 $${v.budget.toFixed(2)}</b></div>${v.spent===null?'':`<div class="meter"><span style="width:${Math.min(100,v.spent/v.budget*100)}%"></span></div>`}<p class="hint">${v.aiProvider==='openrouter'?'按模型账单计入；未确认的请求保留预估费用。':'按保守费率估算，以模型账户账单为准。'}</p>${btn('调整本局额度','edit-budget','small wide')}</section>`:'';
  return `${v.script.intro?`<section class="block"><p class="hint">${esc(v.script.intro)}</p></section>`:''}<section class="block"><h4>${icon('clock')}事件日程</h4>${incidentSchedule(v)}</section>
   ${v.secret&&!known.length?'':`<section class="block"><h4>${icon('eye')}${v.secret?'主人公已知的角色':v.script.ruleset==='MZ'?'已宣告的角色':'已确认的角色'}</h4>${known.length?`<div class="known-roles">${known.map(([c,r])=>`<span class="known-role"><img src="/${char(c).portrait}" alt="">${esc(name(c))}<b>${esc(name(r))}</b></span>`).join('')}</div>`:'<p class="hint">还没有。用人物的能力可以查出角色。</p>'}</section>`}
   ${v.knownPlots?.length?`<section class="block"><h4>已公开的规则 X</h4><p class="plots">${v.knownPlots.map(p=>`<span>${esc(name(p))}</span>`).join('')}</p></section>`:''}
@@ -39,7 +40,7 @@ function intel(v,ctx){
 const UNPHASED=['day','loop'];
 function log(v,ctx){
  const feed=ctx.readOnly?[]:(ctx.aiFeed||[]).filter(f=>f.gameId===v.id);
- const items=[...v.log.map(e=>({key:e.n,e})),...feed.map(f=>({key:f.at+.5,f}))].sort((a,b)=>a.key-b.key).slice(-160).reverse();
+ const items=[...v.log.map(e=>({key:e.n,e:normalizeFailureLog(e)})),...feed.map(f=>({key:f.at+.5,f}))].sort((a,b)=>a.key-b.key).slice(-160).reverse();
  let stamp='',phase='';const out=[];
  for(const {e,f} of items){
   const x=e||f,here=`第 ${x.loop} 轮回 · 第 ${x.day} 日`;

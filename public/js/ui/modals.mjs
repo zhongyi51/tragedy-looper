@@ -2,6 +2,7 @@ import {esc,icon,btn,iconBtn} from '../html.mjs';
 import {char,name,COUNTERS,plotsFor} from '../lookup.mjs';
 import {normalizeGameSetup,randomSetup,libraryItems} from '../game-setup.mjs';
 import {parseDraft} from '../script-draft.mjs';
+import {availableModels,authorModel,authorBudget} from '../ai-settings.mjs';
 import {cardsOn} from './board.mjs';
 import {recapHtml} from './dock.mjs';
 
@@ -12,6 +13,7 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
  const {info,editor}=state,random=randomSetup(script),ai=script==='ai',source=['FS','BTX','MZ','MC'].includes(script)?'random':script;
  const draft=script==='editor'?parseDraft(editor.text):null;
  const setup=normalizeGameSetup(script,{communication:draft?.communication||'between_loops_only',...values});
+ const models=availableModels(info),authorProvider=authorModel(info,setup.authorProvider),opponents=[...models.map(p=>[p.id==='deepseek'?'ai':p.id,p.label+' AI']),['bot','离线机器人']];
  const option=(value,label,current)=>`<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;
  const select=(id,options,current)=>`<select id="${id}">${options.map(([v,l])=>option(v,l,current)).join('')}</select>`;
  const field=(label,control,cls='')=>`<label class="field ${cls}"><span>${label}</span>${control}</label>`;
@@ -25,9 +27,9 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
   <h4>你扮演</h4><div class="tiles">${tile('new-mode','heroes','主人公','阻止惨剧',mode==='heroes','users')}${tile('new-mode','mastermind','剧作家','制造惨剧',mode==='mastermind','mask')}${tile('new-mode','observe','观战','看双方自动对局',mode==='observe','eye')}</div>
   <h4>剧本</h4><div class="tiles">${tile('new-script','starter','起始剧本','3 天 × 3 轮回 · 推荐新手',source==='starter')}${tile('new-script','library','精选剧本','不同的谜局与线索',source==='library')}${tile('new-script','random','快速随机','按本场设置生成',source==='random')}${tile('new-script','ai','AI 编剧',info.configured?'试作剧本 · 尚需试玩':'需要连接 AI',source==='ai','bot',!info.configured)}${editor.text.trim()?tile('new-script','editor','我的剧本','剧本工坊里的那份',source==='editor'):''}</div>
   ${source==='library'?selected?`<div class="fields">${field('选择剧本',select('new-library',library.map(s=>[s.id,`${s.title} · ${s.ruleset} · ${s.days} 天 × ${s.loops} 轮回`]),selected.id),'wide')}</div><p class="hint">${esc(selected.description||'本场使用固定剧本，结束后可查看设计与线索。')}</p>`:'<p class="hint">精选剧本暂未载入，请稍后重试。</p>':''}
-  ${random?`<div class="fields">${field('惨剧集合',select('new-ruleset',rulesets,setup.ruleset))}${field('时长',select('new-length',lengthOptions,setup.lengthPreset))}${ai?field('难度',select('new-difficulty',[['beginner','入门'],['standard','标准'],['hard','挑战']],setup.difficulty))+field('主题（可选）',`<input id="new-theme" maxlength="300" value="${esc(setup.theme)}" placeholder="例如：雨夜的末班电车">`):''}</div>${ai?'<p class="hint">编剧需要稍等片刻，每次上限 $0.12，另计于对局费用。通过检查后才会开局，轮回中的真相保持不变。</p>':''}`:''}
+  ${random?`<div class="fields">${field('惨剧集合',select('new-ruleset',rulesets,setup.ruleset))}${field('时长',select('new-length',lengthOptions,setup.lengthPreset))}${ai?field('编剧模型',select('new-author-provider',models.map(p=>[p.id,p.label]),authorProvider))+field('难度',select('new-difficulty',[['beginner','入门'],['standard','标准'],['hard','挑战']],setup.difficulty))+field('主题（可选）',`<input id="new-theme" maxlength="300" value="${esc(setup.theme)}" placeholder="例如：雨夜的末班电车">`):''}</div>${ai?`<p class="hint">主题用于标题、开场氛围与选稿偏好，舞台与规则仍以本场设置为准。编剧需要稍等片刻，每次上限 $${authorBudget(info,authorProvider).toFixed(2)}，另计于对局费用。通过检查后才会开局，轮回中的真相保持不变。</p>`:''}`:''}
   <div class="fields">
-   ${field('对手',select('new-opponent',[...(info.configured?[['ai','DeepSeek AI']]:[]),['bot','离线机器人']],setup.opponent||(info.configured?'ai':'bot')))}
+   ${field('对手',select('new-opponent',opponents,setup.opponent||opponents[0][0]))}
    ${field('主人公讨论',select('new-talk',[['between_loops_only','只在轮回之间'],['allowed_during_loop','随时可以']],setup.communication))}
    ${info.configured?field('AI 对局花费上限（美元）',`<input id="new-budget" type="number" min=".01" max="10" step=".01" required value="${esc(setup.budget)}">`):''}
   </div>
@@ -48,7 +50,7 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
    <p class="hint">人物会从所选池中抽取。人工智能可模拟日程中的事件。</p>
    <p class="hint">指定规则会缩小推理范围；想保留悬念请选“随机”。</p>
    ${setup.ruleset==='MC'?'<p class="hint">MC 的愚者、双子、绝对者须各自担任事件犯人；私家侦探不能担任犯人。请为所选规则留足事件数。</p>':''}`:'<p class="hint">这份剧本已有固定的规则、人物与日程。选择快速随机或 AI 编剧即可在此定制，或在剧本工坊编辑。</p>'}
-   <p class="hint">事件日程按原版公开日期和名称。发生时告知结果，犯人与配役仍需推理；MZ 的伪装事件显示公开名称。</p>
+   <p class="hint">${draft?.settings?.incidentVisibility==='hidden'?'本剧本隐藏日程中的事件名称。':'事件日程按原版公开日期和名称。'}发生时告知结果，犯人与配役仍需推理；MZ 的伪装事件显示公开名称。</p>
   </details>
   <footer class="modal-foot">${btn('取消','close')}${btn((state.creating?'正在准备…':'开始')+(state.creating?'':icon('next')),'create','primary big',state.creating||source==='library'&&!selected?'disabled':'')}</footer>`,'wide');
 }
@@ -127,4 +129,8 @@ export function bannerHtml(banner){
    ${banner.cause?`<div class="banner-why">${banner.stamp?`<i>${esc(banner.stamp)}</i>`:''}<b>${esc(banner.cause)}</b>${banner.detail?`<small>${esc(banner.detail)}</small>`:''}</div>`:''}
    ${banner.recap?.length?recapHtml(banner.recap):''}
    ${banner.lines.map(l=>`<p>${esc(l)}</p>`).join('')}<small class="banner-go">点击继续</small></div></div>`;
+}
+
+export function budgetModal(game){
+ return frame('调整本局额度',`${head('调整本局额度')}<p class="hint">设置这一局累计可用的 AI 费用上限，已产生的费用不会清零。下一次请求会先预留费用，回答后再结算。</p><label class="field"><span>总上限（美元）</span><input id="game-budget" type="number" min=".01" max="10" step=".01" required value="${esc(game.budget)}" data-expected="${esc(game.budget)}" data-game="${esc(game.id)}"></label><footer class="modal-foot">${btn('保存额度','save-budget','primary')}</footer>`);
 }

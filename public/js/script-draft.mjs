@@ -60,6 +60,14 @@ function setIncident(d,day,type){
 export function editDraft(draft,{kind,key,value}){
  const d={settings:{},specialRules:[],roles:{},characters:[],incidents:[],subPlots:[],...draft};
  switch(kind){
+  case 'design':{
+   const next={...d,privateDesign:{...d.privateDesign,[key]:value}};
+   if(key==='cluePlan')delete next.privateDesign.clues;
+   if(d.generation?.designGrounding){
+    next.generation={...d.generation};delete next.generation.designGrounding;
+   }
+   return next;
+  }
   case 'field':
    if(key==='ruleset')return withRuleset(d,value);
    if(key==='days'||key==='loops'){

@@ -1,0 +1,1172 @@
+{
+  "version": "sol-cost-1",
+  "scriptId": "curated-last-ward",
+  "games": {
+    "heroes": {
+      "side": "heroes",
+      "steps": [
+        {
+          "revision": 0,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 1,
+          "seconds": 6.812
+        },
+        {
+          "revision": 1,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 2,
+          "seconds": 7.897
+        },
+        {
+          "revision": 2,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 3,
+          "seconds": 7.501
+        },
+        {
+          "revision": 3,
+          "seat": "A",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 4,
+          "seconds": 10.48,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "作为领导者对医院使用暗跃禁止，阻挡可能的暗跃积累，降低第四日医院事件的致命风险，同时保留一次性资源。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0265885,
+                "normalizedUsage": {
+                  "inputTokens": 10436,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 10433,
+                  "outputTokens": 50,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10436,
+                  "completion_tokens": 50,
+                  "total_tokens": 10486,
+                  "cost": 0.0265885,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 10433,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0265885,
+                    "upstream_inference_prompt_cost": 0.0260885,
+                    "upstream_inference_completions_cost": 0.0005
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0265885,
+                "latencyMs": 2910
+              }
+            ],
+            "spentEstimate": 0.0265885
+          }
+        },
+        {
+          "revision": 4,
+          "seat": "B",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 5,
+          "seconds": 13.912,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "doctor"
+              }
+            ],
+            "reason": "给医生友好+2，解锁不安调节能力，为后续控制事件犯人的不安做准备；避开剧作家已盖牌人物，降低友好被直接禁止的风险。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0086036,
+                "normalizedUsage": {
+                  "inputTokens": 10391,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 2662,
+                  "outputTokens": 117,
+                  "reasoningTokens": 55
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10391,
+                  "completion_tokens": 117,
+                  "total_tokens": 10508,
+                  "cost": 0.0086036,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 2662,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0086036,
+                    "upstream_inference_prompt_cost": 0.0074336,
+                    "upstream_inference_completions_cost": 0.00117
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 55,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0086036,
+                "latencyMs": 5598
+              }
+            ],
+            "spentEstimate": 0.035192100000000004
+          }
+        },
+        {
+          "revision": 5,
+          "seat": "C",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 7,
+          "seconds": 6.419,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "给上班族友好+2，争取次日达到3点查明角色，尽早获得配役线索；避免重复暗跃禁止干扰领导者防守。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0084061,
+                "normalizedUsage": {
+                  "inputTokens": 10344,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 2615,
+                  "outputTokens": 109,
+                  "reasoningTokens": 52
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10344,
+                  "completion_tokens": 109,
+                  "total_tokens": 10453,
+                  "cost": 0.0084061,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 2615,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0084061,
+                    "upstream_inference_prompt_cost": 0.0073161,
+                    "upstream_inference_completions_cost": 0.00109
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 52,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0084061,
+                "latencyMs": 3858
+              }
+            ],
+            "spentEstimate": 0.04359819999999999
+          }
+        },
+        {
+          "revision": 7,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 8,
+          "seconds": 3.729
+        },
+        {
+          "revision": 8,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 9,
+          "seconds": 7.991
+        },
+        {
+          "revision": 9,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 14,
+          "seconds": 7.906
+        },
+        {
+          "revision": 14,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 15,
+          "seconds": 7.97
+        },
+        {
+          "revision": 15,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 16,
+          "seconds": 8.01
+        },
+        {
+          "revision": 16,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 17,
+          "seconds": 8.012
+        },
+        {
+          "revision": 17,
+          "seat": "B",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "ai-step",
+          "nextRevision": 18,
+          "seconds": 12.676,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_1#0",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "上班族友好升至3，可立即请求查明其角色；今日无剧作家牌直接压制，较阻止非致命的行踪不明更利于厘清配役与后续防线。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0108861,
+                "normalizedUsage": {
+                  "inputTokens": 11208,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 3479,
+                  "outputTokens": 141,
+                  "reasoningTokens": 74
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11208,
+                  "completion_tokens": 141,
+                  "total_tokens": 11349,
+                  "cost": 0.0108861,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 3479,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0108861,
+                    "upstream_inference_prompt_cost": 0.0094761,
+                    "upstream_inference_completions_cost": 0.00141
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 74,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0108861,
+                "latencyMs": 4900
+              }
+            ],
+            "spentEstimate": 0.0544843
+          }
+        },
+        {
+          "revision": 18,
+          "seat": "C",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "ai-step",
+          "nextRevision": 19,
+          "seconds": 16.013,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_1#0",
+                "target": "police"
+              }
+            ],
+            "reason": "提升警察友好，为后续查明今日行踪不明事件的犯人积累门槛；医生升至3友好在本剧本无住院患者时无新增收益。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0120411,
+                "normalizedUsage": {
+                  "inputTokens": 11170,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 3441,
+                  "outputTokens": 266,
+                  "reasoningTokens": 205
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11170,
+                  "completion_tokens": 266,
+                  "total_tokens": 11436,
+                  "cost": 0.0120411,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 3441,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0120411,
+                    "upstream_inference_prompt_cost": 0.0093811,
+                    "upstream_inference_completions_cost": 0.00266
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 205,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0120411,
+                "latencyMs": 10245
+              }
+            ],
+            "spentEstimate": 0.06652539999999998
+          }
+        },
+        {
+          "revision": 19,
+          "seat": "A",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "ai-step",
+          "nextRevision": 21,
+          "seconds": 12.623,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "shrine_maiden"
+              }
+            ],
+            "reason": "先为巫女积累友好，争取后两日达到5点查明角色；医生现有2点已能使用减不安能力，继续投入收益较低。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0114136,
+                "normalizedUsage": {
+                  "inputTokens": 11231,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 3502,
+                  "outputTokens": 188,
+                  "reasoningTokens": 130
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11231,
+                  "completion_tokens": 188,
+                  "total_tokens": 11419,
+                  "cost": 0.0114136,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 3502,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0114136,
+                    "upstream_inference_prompt_cost": 0.0095336,
+                    "upstream_inference_completions_cost": 0.00188
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 130,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0114136,
+                "latencyMs": 6927
+              }
+            ],
+            "spentEstimate": 0.07793899999999998
+          }
+        }
+      ],
+      "info": {
+        "version": "0.8.0",
+        "providers": [
+          {
+            "id": "deepseek",
+            "label": "DeepSeek",
+            "model": "deepseek-flash",
+            "configured": true,
+            "rates": {
+              "input": 0.3,
+              "cached": 0.006,
+              "output": 1.2,
+              "currency": "USD",
+              "kind": "conservative_estimate",
+              "asOf": "2026-11-08"
+            }
+          },
+          {
+            "id": "openrouter",
+            "label": "GPT-6.1 Sol",
+            "model": "openai/gpt-6.1-sol",
+            "configured": true,
+            "rates": {
+              "input": 2,
+              "cached": 0.1,
+              "cacheWrite": 2.5,
+              "output": 10,
+              "currency": "USD",
+              "kind": "provider_reported_or_estimate",
+              "asOf": "2026-11-16"
+            }
+          }
+        ],
+        "configured": true,
+        "defaultProvider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        },
+        "authorBudget": 0.12,
+        "authorBudgets": {
+          "deepseek": 0.12,
+          "openrouter": 0.5
+        },
+        "polishBudgets": {
+          "deepseek": 0.03,
+          "openrouter": 0.05
+        },
+        "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+        "hosted": true,
+        "authorVersion": "script-author-4",
+        "aiVersion": "decision-6"
+      },
+      "gameId": "04bc43a6-1928-4c6c-a7eb-e9c20cd0876d",
+      "winner": null,
+      "terminalRevision": 21,
+      "spent": 0.07793899999999998,
+      "realDecisions": 6,
+      "sampleOnly": true,
+      "passed": true
+    },
+    "mastermind": {
+      "side": "mastermind",
+      "steps": [
+        {
+          "revision": 0,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 3,
+          "seconds": 13.985,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_1#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "医院暗跃配合医生能力推进轮回末败北；同时累积两名事件犯人的不安，保留暗跃+2供后续突破封锁。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.029091,
+                "normalizedUsage": {
+                  "inputTokens": 11037,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 11034,
+                  "outputTokens": 150,
+                  "reasoningTokens": 91
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11037,
+                  "completion_tokens": 150,
+                  "total_tokens": 11187,
+                  "cost": 0.029091,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 11034,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.029091,
+                    "upstream_inference_prompt_cost": 0.027591,
+                    "upstream_inference_completions_cost": 0.0015
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 91,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.029091,
+                "latencyMs": 5486
+              }
+            ],
+            "spentEstimate": 0.029091000000000006
+          }
+        },
+        {
+          "revision": 3,
+          "seat": "A",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 4,
+          "seconds": 5.146
+        },
+        {
+          "revision": 4,
+          "seat": "B",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 5,
+          "seconds": 8.07
+        },
+        {
+          "revision": 5,
+          "seat": "C",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 7,
+          "seconds": 8.003
+        },
+        {
+          "revision": 7,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 8,
+          "seconds": 10.753,
+          "receipt": {
+            "commands": [
+              {
+                "type": "mm",
+                "actor": "doctor",
+                "ability": "brain",
+                "target": "hospital"
+              }
+            ],
+            "reason": "幕后黑手给医院增加暗跃，绕过已结算的禁止，推进轮回末失败条件；保留传闻应对后续移动反制。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0081186,
+                "normalizedUsage": {
+                  "inputTokens": 10461,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 2732,
+                  "outputTokens": 51,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10461,
+                  "completion_tokens": 51,
+                  "total_tokens": 10512,
+                  "cost": 0.0081186,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 2732,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0081186,
+                    "upstream_inference_prompt_cost": 0.0076086,
+                    "upstream_inference_completions_cost": 0.00051
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0081186,
+                "latencyMs": 2435
+              }
+            ],
+            "spentEstimate": 0.03720960000000001
+          }
+        },
+        {
+          "revision": 8,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 9,
+          "seconds": 8.264,
+          "receipt": {
+            "commands": [
+              {
+                "type": "mm",
+                "actor": "office_worker",
+                "ability": "misleader",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "将上班族不安推至临界，准备明日行踪不明；传闻留待后续补足医院暗跃，保留应对医生被移走的余地。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0081036,
+                "normalizedUsage": {
+                  "inputTokens": 10427,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 2698,
+                  "outputTokens": 58,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10427,
+                  "completion_tokens": 58,
+                  "total_tokens": 10485,
+                  "cost": 0.0081036,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 2698,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0081036,
+                    "upstream_inference_prompt_cost": 0.0075236,
+                    "upstream_inference_completions_cost": 0.00058
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0081036,
+                "latencyMs": 2671
+              }
+            ],
+            "spentEstimate": 0.04531320000000001
+          }
+        },
+        {
+          "revision": 9,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "ai-step",
+          "nextRevision": 11,
+          "seconds": 7.628,
+          "receipt": {
+            "commands": [
+              {
+                "type": "mm",
+                "actor": "plot",
+                "ability": "rumor",
+                "target": "hospital"
+              }
+            ],
+            "reason": "将医院暗跃提高至2，立即建立复仇者之灯的轮回末败北条件，并为第四日医院事件提供致命阈值。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0078636,
+                "normalizedUsage": {
+                  "inputTokens": 10359,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 2630,
+                  "outputTokens": 51,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10359,
+                  "completion_tokens": 51,
+                  "total_tokens": 10410,
+                  "cost": 0.0078636,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 2630,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0078636,
+                    "upstream_inference_prompt_cost": 0.0073536,
+                    "upstream_inference_completions_cost": 0.00051
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0078636,
+                "latencyMs": 2387
+              }
+            ],
+            "spentEstimate": 0.053176800000000024
+          }
+        },
+        {
+          "revision": 11,
+          "seat": "A",
+          "phase": "hero_ability",
+          "loop": 1,
+          "day": 1,
+          "route": "bot-step",
+          "nextRevision": 16,
+          "seconds": 5.195
+        },
+        {
+          "revision": 16,
+          "seat": "M",
+          "phase": "mm_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "ai-step",
+          "nextRevision": 19,
+          "seconds": 18.072,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "move_h#0",
+                "target": "boy_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "forbid_paranoia#0",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "移走男学生以阻止其降低女学生不安，推进医院事件；保护上班族不安以确保行踪不明触发。医院已有2暗跃，保留轮回末失败保障。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0135536,
+                "normalizedUsage": {
+                  "inputTokens": 11931,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 4202,
+                  "outputTokens": 227,
+                  "reasoningTokens": 159
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11931,
+                  "completion_tokens": 227,
+                  "total_tokens": 12158,
+                  "cost": 0.0135536,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 4202,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0135536,
+                    "upstream_inference_prompt_cost": 0.0112836,
+                    "upstream_inference_completions_cost": 0.00227
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 159,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0135536,
+                "latencyMs": 9738
+              }
+            ],
+            "spentEstimate": 0.06673040000000002
+          }
+        },
+        {
+          "revision": 19,
+          "seat": "B",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 20,
+          "seconds": 8.064
+        },
+        {
+          "revision": 20,
+          "seat": "C",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 21,
+          "seconds": 8.016
+        },
+        {
+          "revision": 21,
+          "seat": "A",
+          "phase": "hero_cards",
+          "loop": 1,
+          "day": 2,
+          "route": "bot-step",
+          "nextRevision": 23,
+          "seconds": 8.035
+        },
+        {
+          "revision": 23,
+          "seat": "M",
+          "phase": "mm_ability",
+          "loop": 1,
+          "day": 2,
+          "route": "ai-step",
+          "nextRevision": 24,
+          "seconds": 11.357,
+          "receipt": {
+            "commands": [
+              {
+                "type": "mm",
+                "actor": "doctor",
+                "ability": "brain",
+                "target": "hospital"
+              }
+            ],
+            "reason": "提高医院暗跃至3，巩固复仇者轮回末败北条件，并为医院事件保留致死阈值余量。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0099186,
+                "normalizedUsage": {
+                  "inputTokens": 11189,
+                  "cachedInputTokens": 7726,
+                  "cacheWriteTokens": 3460,
+                  "outputTokens": 49,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11189,
+                  "completion_tokens": 49,
+                  "total_tokens": 11238,
+                  "cost": 0.0099186,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7726,
+                    "cache_write_tokens": 3460,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0099186,
+                    "upstream_inference_prompt_cost": 0.0094286,
+                    "upstream_inference_completions_cost": 0.00049
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0099186,
+                "latencyMs": 2893
+              }
+            ],
+            "spentEstimate": 0.07664900000000002
+          }
+        }
+      ],
+      "info": {
+        "version": "0.8.0",
+        "providers": [
+          {
+            "id": "deepseek",
+            "label": "DeepSeek",
+            "model": "deepseek-flash",
+            "configured": true,
+            "rates": {
+              "input": 0.3,
+              "cached": 0.006,
+              "output": 1.2,
+              "currency": "USD",
+              "kind": "conservative_estimate",
+              "asOf": "2026-11-08"
+            }
+          },
+          {
+            "id": "openrouter",
+            "label": "GPT-6.1 Sol",
+            "model": "openai/gpt-6.1-sol",
+            "configured": true,
+            "rates": {
+              "input": 2,
+              "cached": 0.1,
+              "cacheWrite": 2.5,
+              "output": 10,
+              "currency": "USD",
+              "kind": "provider_reported_or_estimate",
+              "asOf": "2026-11-16"
+            }
+          }
+        ],
+        "configured": true,
+        "defaultProvider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        },
+        "authorBudget": 0.12,
+        "authorBudgets": {
+          "deepseek": 0.12,
+          "openrouter": 0.5
+        },
+        "polishBudgets": {
+          "deepseek": 0.03,
+          "openrouter": 0.05
+        },
+        "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+        "hosted": true,
+        "authorVersion": "script-author-4",
+        "aiVersion": "decision-6"
+      },
+      "gameId": "1d0eeda2-122f-4154-a96a-9236d7dd2bda",
+      "budgetChecks": {
+        "preflightBlockedWithoutSending": true,
+        "increasePreservesRevision": true,
+        "staleWriteRejected": true,
+        "belowSpentRejected": true
+      },
+      "winner": null,
+      "terminalRevision": 24,
+      "spent": 0.07664900000000002,
+      "realDecisions": 6,
+      "sampleOnly": true,
+      "passed": true
+    }
+  },
+  "limits": {
+    "budgetPerGameUSD": 2,
+    "maxStepsPerGame": 250,
+    "decisionLimit": 6
+  },
+  "caveat": "One full original 4-day/3-loop FS script per side; not a win-rate study."
+}

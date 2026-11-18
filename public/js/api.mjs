@@ -4,9 +4,12 @@ function apiError(message,{status=0,code='NETWORK',uncertain=false,requiresLogin
 
 // A mutation whose response never arrived may still have been applied (and billed), so it is
 // reported as `uncertain` and never retried here; callers re-read the game instead.
-export function createApi(fetchImpl=(...args)=>fetch(...args)){
+export function createApi(fetchImpl=(...args)=>fetch(...args),network=globalThis.window){
  return async function api(url,data,{timeoutMs=data===undefined?20000:210000}={}){
   const mutation=data!==undefined,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+  let offline=false;
+  const disconnected=()=>{offline=true;controller.abort();};
+  network?.addEventListener('offline',disconnected,{once:true});
   let res,text;
   try{
    res=await fetchImpl('/api'+url,{
@@ -15,9 +18,9 @@ export function createApi(fetchImpl=(...args)=>fetch(...args)){
    });
    text=await res.text();
   }catch(error){
-   const timeout=error?.name==='AbortError';
+   const timeout=!offline&&error?.name==='AbortError';
    throw apiError(timeout?'等了太久没有回应。':'网络断开了。',{code:timeout?'TIMEOUT':'NETWORK',uncertain:mutation});
-  }finally{clearTimeout(timer);}
+  }finally{clearTimeout(timer);network?.removeEventListener('offline',disconnected);}
   const type=res.headers.get('content-type')||'',html=/^\s*(?:<!doctype\s+html|<html|<)/i.test(text);
   let value;
   try{if(!html&&(/json/i.test(type)||/^\s*[\[{]/.test(text)))value=JSON.parse(text);}catch{}

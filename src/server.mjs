@@ -1,18 +1,22 @@
+import {workshopDrafts} from './workshop-drafts.mjs';
+import {budgetChange} from './game-budget.mjs';
 import http from 'node:http';
-import {existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {randomBytes,randomUUID} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from './content.mjs';
 import {createGame,view,hash,VERSION} from './engine.mjs';
-import {configureKey,configured,generateWithAi,polishWithAi,model,rates} from './ai.mjs';
+import {configureKey,generateWithAi,polishWithAi,AI_DECISION_VERSION} from './ai.mjs';
 import {MODES,project,playStep,stepReport,saveSummary} from './play.mjs';
-import {AUTHOR_BUDGET,prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from './game-services.mjs';
+import {prepareGameScript,gameReview,validateFeedback,creationIdentity,checkCreationReceipt,creationFailure} from './game-services.mjs';
 import {listCuratedScripts} from './script-library.mjs';
 import {AUTHOR_VERSION} from './author.mjs';
+import {runtimeAiInfo,creationAiSettings,withAiSettings,gameAiInfo,providerOptions,selectedProvider,authorBudgetFor,polishBudgetFor} from './ai-settings.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
+db.exec(readFileSync(new URL('../drizzle/0002_workshop_drafts.sql',import.meta.url),'utf8'));
 const busy=new Set();
 db.exec('CREATE TABLE IF NOT EXISTS script_feedback(game TEXT PRIMARY KEY, owner TEXT NOT NULL, script_hash TEXT NOT NULL, source TEXT NOT NULL, rating TEXT NOT NULL, updated TEXT NOT NULL); CREATE INDEX IF NOT EXISTS feedback_script_hash ON script_feedback(script_hash);');
 db.exec('CREATE TABLE IF NOT EXISTS game_creation(owner TEXT NOT NULL, request_id TEXT NOT NULL, request_hash TEXT NOT NULL, game TEXT NOT NULL, status TEXT NOT NULL, error TEXT, created TEXT NOT NULL, PRIMARY KEY(owner,request_id));');
@@ -23,7 +27,7 @@ const json=(res,status,data)=>{
 const body=async req=>{let b='';for await(const chunk of req){b+=chunk;if(Buffer.byteLength(b)>1024*1024)throw Error('请求内容超过 1MB');}let parsed;try{parsed=b?JSON.parse(b):{};}catch{throw Object.assign(Error('请求不是有效的 JSON，操作没有执行。'),{code:'INVALID_JSON'});}if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw Object.assign(Error('请求内容必须是 JSON 对象'),{code:'INVALID_BODY'});return parsed;};
 const session=(req,res)=>{let id=req.headers.cookie?.match(/(?:^|; )tl_session=([a-f0-9]{64})(?:;|$)/)?.[1];if(!id||!db.prepare('SELECT id FROM sessions WHERE id=?').get(id)){id=randomBytes(32).toString('hex');db.prepare('INSERT INTO sessions VALUES(?)').run(id);res.setHeader('Set-Cookie',`tl_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`);}return id;};
 function getGame(id,owner){const row=db.prepare('SELECT * FROM games WHERE id=? AND owner=?').get(id,owner);if(!row)throw Error('对局不存在');return {...row,state:JSON.parse(row.state)};}
-const decorate=(g,v)=>({...v,id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,aiConfigured:configured(),model,busy:busy.has(g.id)});
+const decorate=(g,v)=>({...v,id:g.id,mode:g.mode,budget:g.budget,spent:g.state.phase==='over'?g.spent:null,...gameAiInfo(g.state),busy:busy.has(g.id)});
 const response=g=>decorate(g,project(g.mode,g.state));
 function persist(g,frames,commandId){
  const next=frames.at(-1)?.state||g.state;
@@ -34,16 +38,19 @@ function persist(g,frames,commandId){
   db.exec('COMMIT');
  }catch(e){db.exec('ROLLBACK');throw e;}
 }
-function usageHooks(g){let callId;return {onReserve:async amount=>{const current=getGame(g.id,g.owner);if(current.spent+amount>current.budget)throw Error('这一局的 AI 花费已到上限，没有发送请求。');callId=randomUUID();db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(amount,g.id);db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}},onUsage:async data=>{db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(data.estimatedCost-data.reserved,g.id);db.prepare('UPDATE calls SET status=?,data=? WHERE id=?').run(data.status,JSON.stringify(data),callId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}};}
+function usageHooks(g){let callId;return {onReserve:async amount=>{const current=getGame(g.id,g.owner);if(current.spent+amount>current.budget)throw Object.assign(Error('剩余额度不足以预留下一次请求；并非全部已消费。可调整本局上限后继续，没有发送请求。'),{code:'BUDGET_RESERVATION'});callId=randomUUID();db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(amount,g.id);db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(callId,g.id,'reserved',JSON.stringify({reserved:amount,estimatedCost:amount}));db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}},onUsage:async data=>{db.exec('BEGIN');try{db.prepare('UPDATE games SET spent=spent+? WHERE id=?').run(data.estimatedCost-data.reserved,g.id);db.prepare('UPDATE calls SET status=?,data=? WHERE id=?').run(data.status,JSON.stringify(data),callId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}};}
 function replay(g,full=false){const seat=full?'M':'public';return {format:'tragedy-replay-1',engineVersion:VERSION,contentHash,perspective:seat,script:full?g.state.script:publicScript(g.state.script),frames:db.prepare('SELECT state,hash FROM frames WHERE game=? ORDER BY revision').all(g.id).map((r,i)=>({index:i,view:view(JSON.parse(r.state),seat),...(full?{stateHash:r.hash}:{})})),note:'离线回放：只含每一步的局面，不会再调用模型，也不含密钥和模型的推理原文。'};}
 async function api(req,res,u,owner){const p=u.pathname;
- if(p==='/api/info')return json(res,200,{version:VERSION,configured:configured(),model,rates,contentHash,authorBudget:AUTHOR_BUDGET,authorVersion:AUTHOR_VERSION});
+ if(p==='/api/info')return json(res,200,{version:VERSION,...runtimeAiInfo(),contentHash,authorVersion:AUTHOR_VERSION,aiVersion:AI_DECISION_VERSION});
  if(p==='/api/catalog')return json(res,200,catalog);
+ if(p==='/api/scripts/drafts'||p.startsWith('/api/scripts/drafts/'))return json(res,200,await workshopDrafts({
+  path:p,method:req.method,owner,body:()=>body(req),one:(sql,...args)=>db.prepare(sql).get(...args),all:(sql,...args)=>db.prepare(sql).all(...args)
+ }));
  if(p==='/api/scripts/library')return json(res,200,{scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
   const b=await body(req),mode=MODES.includes(b.mode)?b.mode:'heroes',budget=Number(b.budget??.50);if(!Number.isFinite(budget)||budget<.01||budget>10)throw Error('花费上限须在 $0.01–$10 之间');
-  const identity=creationIdentity(b),id=randomUUID();
+  const aiSettings=creationAiSettings(b,undefined,{requireConfigured:false}),identity=creationIdentity(b),id=randomUUID();
   if(identity){
    const inserted=db.prepare('INSERT INTO game_creation(owner,request_id,request_hash,game,status,created) VALUES(?,?,?,?,?,?) ON CONFLICT(owner,request_id) DO NOTHING').run(owner,identity.requestId,identity.requestHash,id,'processing',new Date().toISOString());
    if(!inserted.changes){const receipt=db.prepare('SELECT * FROM game_creation WHERE owner=? AND request_id=?').get(owner,identity.requestId);
@@ -52,8 +59,9 @@ async function api(req,res,u,owner){const p=u.pathname;
    }
   }
   try{
-   const script=await prepareGameScript(b,{onUsage:data=>{db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});
-   const state=createGame(script);db.exec('BEGIN');try{db.prepare('INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)').run(id,owner,mode,JSON.stringify(state),budget,new Date().toISOString());db.prepare('INSERT INTO frames VALUES(?,?,?,?,?)').run(id,0,'null',JSON.stringify(state),hash(state));if(identity)db.prepare("UPDATE game_creation SET status='complete' WHERE owner=? AND request_id=?").run(owner,identity.requestId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}
+   creationAiSettings(b);
+   const script=await prepareGameScript(b,{...providerOptions(aiSettings.authorProvider),onUsage:data=>{db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});
+   const state=withAiSettings(createGame(script),aiSettings);db.exec('BEGIN');try{db.prepare('INSERT INTO games(id,owner,mode,state,budget,created) VALUES(?,?,?,?,?,?)').run(id,owner,mode,JSON.stringify(state),budget,new Date().toISOString());db.prepare('INSERT INTO frames VALUES(?,?,?,?,?)').run(id,0,'null',JSON.stringify(state),hash(state));if(identity)db.prepare("UPDATE game_creation SET status='complete' WHERE owner=? AND request_id=?").run(owner,identity.requestId);db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}
    return json(res,201,response(getGame(id,owner)));
   }catch(error){if(identity)db.prepare("UPDATE game_creation SET status='failed',error=? WHERE owner=? AND request_id=?").run(creationFailure(error),owner,identity.requestId);throw error;}
  }
@@ -61,9 +69,9 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/scripts/validate'&&req.method==='POST')return json(res,200,validateScript(await body(req)));
  if(p==='/api/scripts/generate'&&req.method==='POST'){const b=await body(req);return json(res,200,generateScript(b));}
  if(['/api/scripts/ai-generate','/api/scripts/ai-polish'].includes(p)&&req.method==='POST'){
-  const b=await body(req);let cost=0;const s=await (p.endsWith('/ai-polish')?polishWithAi:generateWithAi)(b,{authorBudget:AUTHOR_BUDGET,onUsage:data=>{cost+=data.estimatedCost;db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return json(res,200,{script:s,estimatedCost:cost});
+  const b=await body(req),provider=selectedProvider(b.provider??'deepseek',undefined,{required:true});let cost=0,actual=true;const s=await (p.endsWith('/ai-polish')?polishWithAi:generateWithAi)(b,{...providerOptions(provider),authorBudget:p.endsWith('/ai-polish')?polishBudgetFor(provider):authorBudgetFor(provider),onUsage:data=>{cost+=data.estimatedCost;actual&&=data.costKind==='provider_reported';db.prepare('INSERT INTO calls VALUES(?,?,?,?)').run(randomUUID(),'author:'+owner,data.status,JSON.stringify(data));}});return json(res,200,{script:s,estimatedCost:cost,costKind:actual?'provider_reported':'conservative_estimate',provider});
  }
- const match=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|branch|review|feedback))?$/);if(!match)return json(res,404,{error:'接口不存在'});const id=match[1],route=match[2];let g=getGame(id,owner);
+ const match=p.match(/^\/api\/games\/([a-f0-9-]+)(?:\/(command|ai-step|bot-step|advance|replay|script|usage|budget|branch|review|feedback))?$/);if(!match)return json(res,404,{error:'接口不存在'});const id=match[1],route=match[2];let g=getGame(id,owner);
  if(!route)return json(res,200,response(g));
  if(route==='review'&&req.method==='GET')return json(res,200,gameReview(g.state,db.prepare('SELECT rating,updated FROM script_feedback WHERE game=? AND owner=?').get(id,owner)));
  if(route==='feedback'&&req.method==='POST'){
@@ -78,6 +86,12 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(busy.has(id))return json(res,409,{error:'这一局正在处理上一步，请稍候'});
  const b=await body(req);g=getGame(id,owner);
  if(busy.has(id))return json(res,409,{error:'这一局正在处理上一步，请稍候'});
+ if(route==='budget'){
+  const {budget,expectedBudget}=budgetChange(b);
+  const changed=db.prepare('UPDATE games SET budget=? WHERE id=? AND owner=? AND budget=? AND spent<=?').run(budget,id,owner,expectedBudget,budget);
+  if(!changed.changes)return json(res,409,{error:'额度已被修改，或新上限低于已结算／预留费用；请同步后再调整。',code:'BUDGET_CONFLICT'});
+  return json(res,200,response(getGame(id,owner)));
+ }
  if(b.commandId!==undefined&&(typeof b.commandId!=='string'||b.commandId.length>100))throw Error('提交标识无效');
  if(route==='branch'){
   if(g.state.phase!=='over'&&g.mode!=='mastermind')return json(res,403,{error:'对局结束后才能从回放里重玩'});
@@ -87,7 +101,7 @@ async function api(req,res,u,owner){const p=u.pathname;
  if(b.revision!==g.state.revision)return json(res,409,{error:'局面已经变了，请先同步',code:'STATE_CONFLICT'});
  busy.add(id);
  try{
-  const {seat,frames,answer}=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...usageHooks(g),userId:'g_'+id.replaceAll('-','')}});
+  const {seat,frames,answer}=await playStep({state:g.state,mode:g.mode,route,command:b.command,ai:{...providerOptions(g.state.aiProvider??'deepseek'),...usageHooks(g),cacheKey:'game:'+id,userId:'g_'+id.replaceAll('-','')}});
   persist(g,frames,b.commandId);
   return json(res,200,{...response(getGame(id,owner)),busy:false,...stepReport({mode:g.mode,route,seat,answer,initial:g.state,frames,decorate:v=>decorate(g,v)})});
  }finally{busy.delete(id);}
@@ -112,10 +126,10 @@ if(process.argv.includes('--stdin-key')){
  // Raw TTY mode prevents credential echo; no credential value is written to disk or logs.
  if(process.stdin.isTTY)process.stdin.setRawMode(true);
  process.stdin.resume();console.log('Waiting for credential JSON on stdin (input hidden).');
- await new Promise(resolve=>{let b='';const receive=chunk=>{b+=chunk.toString();if(/[\r\n]/.test(b)){try{const v=JSON.parse(b.trim());configureKey(v.key);b='';process.stdin.off('data',receive);if(process.stdin.isTTY)process.stdin.setRawMode(false);process.stdin.pause();console.log('DeepSeek credential configured in memory.');resolve();}catch{b='';console.log('Invalid credential input.');}}};process.stdin.on('data',receive);});
+ await new Promise(resolve=>{let b='';const receive=chunk=>{b+=chunk.toString();if(/[\r\n]/.test(b)){try{const v=JSON.parse(b.trim());configureKey(v.key,v.provider||'deepseek');b='';process.stdin.off('data',receive);if(process.stdin.isTTY)process.stdin.setRawMode(false);process.stdin.pause();console.log('Model credential configured in memory.');resolve();}catch{b='';console.log('Invalid credential input.');}}};process.stdin.on('data',receive);});
 }
 // Managed preview passes --port; keep the listener loopback-only even when --host is supplied.
 const portOption=process.argv.indexOf('--port'),port=Number(portOption>=0?process.argv[portOption+1]:process.env.PORT||4317);
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('端口须在 1–65535 之间');
-server.listen(port,'127.0.0.1',()=>console.log(`Tragedy Looper ready at http://127.0.0.1:${port} · AI ${configured()?'configured':'offline'} · ${model}`));
+server.listen(port,'127.0.0.1',()=>{const ai=runtimeAiInfo();console.log(`Tragedy Looper ready at http://127.0.0.1:${port} · AI ${ai.configured?'configured':'offline'} · ${ai.model}`);});
 process.on('SIGINT',()=>server.close(()=>{db.close();process.exit(0);}));

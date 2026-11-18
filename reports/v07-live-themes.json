@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-15",
+  "info": {
+    "version": "0.7.0",
+    "authorVersion": "script-author-3",
+    "model": "deepseek-flash",
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "authorBudget": 0.12
+  },
+  "allPassed": true,
+  "summary": {
+    "passed": 2,
+    "required": 2,
+    "successfulAuthorRequests": 7,
+    "successfulAuthorCostEstimate": 0.042449976,
+    "manualReviewRequired": true,
+    "note": "Successful metadata only; an unsuccessful provider request may also incur usage."
+  },
+  "manualReview": {
+    "passed": true,
+    "notes": "Distinct visible motifs; user title preserved; no secret roles, culprits or selected rules stated; executable board/mechanics unchanged."
+  },
+  "cases": [
+    {
+      "id": "rain-tram",
+      "theme": "雨夜的末班电车",
+      "publicCopy": {
+        "title": "末班电车的雨声",
+        "intro": "雨从黄昏起就没停过。医院走廊的灯管忽明忽暗，神社石阶上的积水映着褪色的灯笼，都市的霓虹在雨幕里糊成一片，学校的钟楼始终没有敲响。有人说，末班电车经过时，会带来一种只有雨夜才听得见的声音。今夜，四处的雨都下得不太一样。"
+      },
+      "passed": true,
+      "keywordMatches": [
+        [
+          "雨"
+        ],
+        [
+          "电车",
+          "末班"
+        ]
+      ],
+      "generation": {
+        "version": "script-author-3",
+        "captionSource": "public-theme-model",
+        "captionAttempts": 1,
+        "planAttempts": 1,
+        "selectionAttempts": 2,
+        "usage": {
+          "requests": 4,
+          "estimatedCost": 0.026146271999999998,
+          "latencyMs": 72045,
+          "promptTokens": 46968,
+          "completionTokens": 10172,
+          "cacheHitTokens": 512,
+          "unknownRequests": 0,
+          "rejectedRequests": 0
+        }
+      }
+    },
+    {
+      "id": "snow-theatre",
+      "theme": "初雪中的旧剧院",
+      "publicCopy": {
+        "title": "雪停之后",
+        "intro": "雪落在医院的窗沿、神社的石阶、都市的霓虹与学校的走廊，也落在那座早已无人进出的旧剧院屋顶。人们说，雪停之前，有些声音会顺着风穿过这些地方——像是谁在等一句没说完的话。天亮时雪势渐小，旧剧院的门缝里透出一线微光。没有人知道里面亮着的是什么，也没有人敢先推门。"
+      },
+      "passed": true,
+      "keywordMatches": [
+        [
+          "雪"
+        ],
+        [
+          "剧院"
+        ]
+      ],
+      "generation": {
+        "version": "script-author-3",
+        "captionSource": "public-theme-model",
+        "captionAttempts": 1,
+        "planAttempts": 1,
+        "selectionAttempts": 1,
+        "usage": {
+          "requests": 3,
+          "estimatedCost": 0.016303704,
+          "latencyMs": 50689,
+          "promptTokens": 24682,
+          "completionTokens": 7510,
+          "cacheHitTokens": 384,
+          "unknownRequests": 0,
+          "rejectedRequests": 0
+        }
+      }
+    }
+  ]
+}

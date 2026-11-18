@@ -1,0 +1,944 @@
+{
+  "version": "strategy-v2",
+  "label": "v08-openrouter-fixed",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "manifestHash": "d4d3619b19962d2b43834862768f2f4f0c2e4cdfa7b0b5492821c0901fb0d6bf",
+  "replicates": 1,
+  "provider": "openrouter",
+  "forcedFirstMaxTokens": null,
+  "httpRequests": 33,
+  "potentialProviderCalls": 22,
+  "sourceHashes": {
+    "src/engine.mjs": "38a50155b2ccdb174fc1b6caa49bd3d278903b31d3d71f6b2157c8e67caa4c90",
+    "src/ai.mjs": "66adfe78c477efab617c515a886606fd70899aefc84524af7815bc9608b5e12b",
+    "test/fixtures/strategy-v2.mjs": "5bfc5dc628d9dd7336471aad91aad09ef4b02230a72c5f1ee27c6dc1ddbddaa2"
+  },
+  "cases": {
+    "mc-silver-bullet@1": {
+      "id": "mc-silver-bullet",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "在没有当前败北条件时，用 A.I. 模拟银之子弹取得胜利。",
+      "creationId": "81f55cc2-9185-4705-adf3-f3237253fdf8",
+      "game": {
+        "id": "badfeab0-6989-4b86-bd96-bc48241abeb3",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "latencySeconds": 9.399,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "ai_character",
+            "index": 0,
+            "target": "",
+            "day": 3
+          }
+        ],
+        "reason": "模拟银色子弹立即进入轮回末，避开后续事件与日末死亡风险；当前无人死亡、EX为0，可争取直接获胜，仍须检查隐藏轮回末条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.031961,
+            "normalizedUsage": {
+              "inputTokens": 12545,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12542,
+              "outputTokens": 60,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12545,
+              "completion_tokens": 60,
+              "total_tokens": 12605,
+              "cost": 0.031961,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12542,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.031961,
+                "upstream_inference_prompt_cost": 0.031361,
+                "upstream_inference_completions_cost": 0.0006
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.031961,
+            "latencyMs": 2920
+          }
+        ],
+        "spentEstimate": 0.031961
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "btx-rescue-movement@1": {
+      "id": "btx-rescue-movement",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "rescue",
+      "description": "对已公开连环杀手的独处威胁采取有效移动救援。",
+      "creationId": "03a5e4f7-60db-45d0-8243-aedbf0fb3efd",
+      "game": {
+        "id": "0ee0faa9-5797-4614-8acf-a529b21c03e2",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 11.7,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "move_v#0",
+            "target": "idol"
+          }
+        ],
+        "reason": "将偶像纵移至医院，与警察、医生同处，脱离上班族独处杀人条件，避免护卫耗尽后的日末死亡。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.040861,
+            "normalizedUsage": {
+              "inputTokens": 15857,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 15854,
+              "outputTokens": 122,
+              "reasoningTokens": 69
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 15857,
+              "completion_tokens": 122,
+              "total_tokens": 15979,
+              "cost": 0.040861,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 15854,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.040861,
+                "upstream_inference_prompt_cost": 0.039641,
+                "upstream_inference_completions_cost": 0.00122
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 69,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.040861,
+            "latencyMs": 5483
+          }
+        ],
+        "spentEstimate": 0.04086100000000001
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "rescue"
+      }
+    },
+    "fs-hero-shrine-cleanup@1": {
+      "id": "fs-hero-shrine-cleanup",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "shrine_cleanup",
+      "description": "正确使用地点能力清除神社暗跃，减少公开威胁。",
+      "creationId": "2ffcdae1-0331-4723-8a60-7c41823db0a5",
+      "game": {
+        "id": "c1058b9c-129f-46a5-ba7f-a0f209cbb568",
+        "revision": 41
+      },
+      "fixtureReady": true,
+      "latencySeconds": 8.931,
+      "decision": {
+        "commands": [
+          {
+            "type": "goodwill",
+            "actor": "shrine_maiden",
+            "index": 0,
+            "target": "shrine"
+          }
+        ],
+        "reason": "使用巫女能力将神社暗跃降至1，消除复仇者之灯可能的轮回末败北条件；此时已无出牌机会。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.031086,
+            "normalizedUsage": {
+              "inputTokens": 12219,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12216,
+              "outputTokens": 54,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12219,
+              "completion_tokens": 54,
+              "total_tokens": 12273,
+              "cost": 0.031086,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12216,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.031086,
+                "upstream_inference_prompt_cost": 0.030546,
+                "upstream_inference_completions_cost": 0.00054
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.031086,
+            "latencyMs": 2045
+          }
+        ],
+        "spentEstimate": 0.031086000000000003
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "shrine_cleanup"
+      }
+    },
+    "btx-hero-final-role-quota@1": {
+      "id": "btx-hero-final-role-quota",
+      "replicate": 1,
+      "seat": "B",
+      "criterion": "hero_win",
+      "description": "利用已正确作答的身份与规则配额，完成最后一项判断。",
+      "creationId": "5ff3f009-9e15-4248-a5d3-e6e8737d873c",
+      "game": {
+        "id": "c7effb8b-5382-4530-89e0-8433b8ffe68c",
+        "revision": 55
+      },
+      "fixtureReady": true,
+      "latencySeconds": 9.133,
+      "decision": {
+        "commands": [
+          {
+            "type": "guess",
+            "character": "girl_student",
+            "role": "killer"
+          }
+        ],
+        "reason": "已确认关键人物与幕后黑手，主规则必为杀人计划；其必需的杀手尚未出现，唯一未猜的女学生必为杀手。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.034606,
+            "normalizedUsage": {
+              "inputTokens": 13631,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 13628,
+              "outputTokens": 53,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 13631,
+              "completion_tokens": 53,
+              "total_tokens": 13684,
+              "cost": 0.034606,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 13628,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.034606,
+                "upstream_inference_prompt_cost": 0.034076,
+                "upstream_inference_completions_cost": 0.00053
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.034606,
+            "latencyMs": 2391
+          }
+        ],
+        "spentEstimate": 0.034606
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "over",
+        "winner": "heroes",
+        "extraGauge": 0,
+        "reason": "hero_win"
+      }
+    },
+    "fs-mastermind-kill-heroes@1": {
+      "id": "fs-mastermind-kill-heroes",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "可立即杀死主人公时，不把一天白白结束。",
+      "creationId": "f80efd32-a592-4151-a82d-dda6f0390314",
+      "game": {
+        "id": "13df60e8-af05-4709-86d9-5bb09f637e74",
+        "revision": 32
+      },
+      "fixtureReady": true,
+      "latencySeconds": 9.296,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "office_worker",
+            "ability": "heroes"
+          }
+        ],
+        "reason": "上班族暗跃已达4，日结束发动杀手能力杀死主人公，立即令本轮回失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.028746,
+            "normalizedUsage": {
+              "inputTokens": 11331,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 11328,
+              "outputTokens": 42,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 11331,
+              "completion_tokens": 42,
+              "total_tokens": 11373,
+              "cost": 0.028746,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 11328,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.028746,
+                "upstream_inference_prompt_cost": 0.028326,
+                "upstream_inference_completions_cost": 0.00042
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.028746,
+            "latencyMs": 2101
+          }
+        ],
+        "spentEstimate": 0.028745999999999994
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-kill-key@1": {
+      "id": "fs-mastermind-kill-key",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "immediate_failure",
+      "description": "关键人物已满足杀手条件，选择死亡能力。",
+      "creationId": "8e6c573a-aef9-4a7e-a6a0-2c4e348706d0",
+      "game": {
+        "id": "8ee83a73-86ac-4455-bad1-d4fee4bb0be5",
+        "revision": 10
+      },
+      "fixtureReady": true,
+      "latencySeconds": 9.229,
+      "decision": {
+        "commands": [
+          {
+            "type": "end_ability",
+            "actor": "boy_student",
+            "ability": "kill",
+            "target": "girl_student"
+          }
+        ],
+        "reason": "女学生是关键人物，暗跃已达2且与杀手同处；立即杀死她，使本轮回失败。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.025216,
+            "normalizedUsage": {
+              "inputTokens": 9915,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 9912,
+              "outputTokens": 43,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 9915,
+              "completion_tokens": 43,
+              "total_tokens": 9958,
+              "cost": 0.025216,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 9912,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.025216,
+                "upstream_inference_prompt_cost": 0.024786,
+                "upstream_inference_completions_cost": 0.00043
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.025216,
+            "latencyMs": 2091
+          }
+        ],
+        "spentEstimate": 0.025216000000000002
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "immediate_failure"
+      }
+    },
+    "fs-mastermind-location-finish@1": {
+      "id": "fs-mastermind-location-finish",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "最后一天把真正的败北地点从 1 暗跃推到 2。",
+      "creationId": "ef641208-8a3d-4c97-a789-a7f344a81f02",
+      "game": {
+        "id": "03733152-c3c1-4be7-a957-d8f4b1d31981",
+        "revision": 40
+      },
+      "fixtureReady": true,
+      "latencySeconds": 10.198,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "plot",
+            "ability": "rumor",
+            "target": "hospital"
+          }
+        ],
+        "reason": "用不安的传闻令医院暗跃达到2，确保复仇者之灯在轮回结束时致败，同时避免暴露医生的幕后黑手身份。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0318985,
+            "normalizedUsage": {
+              "inputTokens": 12480,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12477,
+              "outputTokens": 70,
+              "reasoningTokens": 15
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12480,
+              "completion_tokens": 70,
+              "total_tokens": 12550,
+              "cost": 0.0318985,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12477,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0318985,
+                "upstream_inference_prompt_cost": 0.0311985,
+                "upstream_inference_completions_cost": 0.0007
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 15,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0318985,
+            "latencyMs": 2834
+          }
+        ],
+        "spentEstimate": 0.031898499999999996
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 0,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-low@1": {
+      "id": "mc-mastermind-therapy-low",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 1 时压住前兆，使钢丝上的计划保持 EX 1。",
+      "creationId": "4c0f59ff-867d-4f87-a380-41a5619c932f",
+      "game": {
+        "id": "a67ea619-ca95-49dd-b610-12f8bb254c8b",
+        "revision": 20
+      },
+      "fixtureReady": true,
+      "latencySeconds": 9.807,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "police"
+          }
+        ],
+        "reason": "将警察不安降至1，阻止今日前兆，使EX维持1，触发钢丝上的计划轮回末失败条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0320085,
+            "normalizedUsage": {
+              "inputTokens": 12616,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12613,
+              "outputTokens": 47,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12616,
+              "completion_tokens": 47,
+              "total_tokens": 12663,
+              "cost": 0.0320085,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12613,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0320085,
+                "upstream_inference_prompt_cost": 0.0315385,
+                "upstream_inference_completions_cost": 0.00047
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0320085,
+            "latencyMs": 2490
+          }
+        ],
+        "spentEstimate": 0.032008499999999995
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 1,
+        "reason": "loop_failure"
+      }
+    },
+    "mc-mastermind-therapy-high@1": {
+      "id": "mc-mastermind-therapy-high",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "loop_failure",
+      "description": "EX 2 时保留前兆，使拼凑事件达到 EX 3。",
+      "creationId": "48896d28-6369-4da0-af1c-ad51e9896f28",
+      "game": {
+        "id": "fe9f4c74-aefd-4542-a193-698a2b9afc1b",
+        "revision": 21
+      },
+      "fixtureReady": true,
+      "latencySeconds": 8.686,
+      "decision": {
+        "commands": [
+          {
+            "type": "mm",
+            "actor": "ai_character",
+            "ability": "therapist",
+            "target": "idol"
+          }
+        ],
+        "reason": "治疗师移除偶像的零点不安，保留警察前兆触发条件，使EX升至3，达成轮回末败北条件。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0322035,
+            "normalizedUsage": {
+              "inputTokens": 12678,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 12675,
+              "outputTokens": 51,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 12678,
+              "completion_tokens": 51,
+              "total_tokens": 12729,
+              "cost": 0.0322035,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 12675,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0322035,
+                "upstream_inference_prompt_cost": 0.0316935,
+                "upstream_inference_completions_cost": 0.00051
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0322035,
+            "latencyMs": 3180
+          }
+        ],
+        "spentEstimate": 0.032203499999999996
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "between",
+        "winner": null,
+        "extraGauge": 3,
+        "reason": "loop_failure"
+      }
+    },
+    "fs-mastermind-resilient-three-cards@1": {
+      "id": "fs-mastermind-resilient-three-cards",
+      "replicate": 1,
+      "seat": "M",
+      "criterion": "resilient_cards",
+      "description": "同时制造两条死亡威胁，承受任意一张主人公反制牌。",
+      "creationId": "3e323b66-6b39-4ccb-9716-2d71865c5214",
+      "game": {
+        "id": "b983ea7c-fcd9-4bc8-a917-e4797a36b4cb",
+        "revision": 24
+      },
+      "fixtureReady": true,
+      "latencySeconds": 10.917,
+      "decision": {
+        "commands": [
+          {
+            "type": "place",
+            "card": "intrigue_2#0",
+            "target": "girl_student"
+          },
+          {
+            "type": "place",
+            "card": "intrigue_1#0",
+            "target": "boy_student"
+          },
+          {
+            "type": "place",
+            "card": "paranoia_1#1",
+            "target": "office_worker"
+          }
+        ],
+        "reason": "同时推进女学生暗跃达标与男学生暗跃达4两条致败路线；医生可在能力阶段补足被禁止的一路，上班族承受不安牌作佯动。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.0381885,
+            "normalizedUsage": {
+              "inputTokens": 14696,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 14693,
+              "outputTokens": 145,
+              "reasoningTokens": 79
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14696,
+              "completion_tokens": 145,
+              "total_tokens": 14841,
+              "cost": 0.0381885,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 14693,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.0381885,
+                "upstream_inference_prompt_cost": 0.0367385,
+                "upstream_inference_completions_cost": 0.00145
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 79,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.0381885,
+            "latencyMs": 5540
+          }
+        ],
+        "spentEstimate": 0.038188499999999986
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "winningResponses": 80,
+        "responseCount": 80,
+        "reason": "One-card-response survival of the offensive plan"
+      }
+    },
+    "mc-hero-infer-y-before-silver@1": {
+      "id": "mc-hero-infer-y-before-silver",
+      "replicate": 1,
+      "seat": "A",
+      "criterion": "avoid_known_early_failure",
+      "description": "由公开杀手身份、隔离病栋和六人配额推断钢丝上的计划；EX 1 时避免银弹立即导致失败。",
+      "creationId": "946bc8fd-3b44-44a1-89b3-07a328623e56",
+      "game": {
+        "id": "24ea4221-e538-495f-9cff-38d7135b010e",
+        "revision": 50
+      },
+      "fixtureReady": true,
+      "latencySeconds": 10.544,
+      "decision": {
+        "commands": [
+          {
+            "type": "pass"
+          }
+        ],
+        "reason": "已确认杀手，配合隔离病栋可确定钢丝上的计划；当前EX仅1，模拟银色子弹会败北。保留人工智能能力，争取第五日前兆提升EX。",
+        "automatic": false,
+        "repairAttempts": 0,
+        "repairCauses": [],
+        "repairMode": null,
+        "usage": [
+          {
+            "status": "completed",
+            "provider": "openrouter",
+            "model": "openai/gpt-6.1-sol",
+            "modelLabel": "GPT-6.1 Sol",
+            "costKind": "provider_reported",
+            "actualCost": 0.037516,
+            "normalizedUsage": {
+              "inputTokens": 14763,
+              "cachedInputTokens": 0,
+              "cacheWriteTokens": 14760,
+              "outputTokens": 61,
+              "reasoningTokens": 0
+            },
+            "thinking": "enabled",
+            "reasoningEffort": "low",
+            "usage": {
+              "prompt_tokens": 14763,
+              "completion_tokens": 61,
+              "total_tokens": 14824,
+              "cost": 0.037516,
+              "is_byok": false,
+              "prompt_tokens_details": {
+                "cached_tokens": 0,
+                "cache_write_tokens": 14760,
+                "audio_tokens": 0,
+                "video_tokens": 0
+              },
+              "cost_details": {
+                "upstream_inference_cost": 0.037516,
+                "upstream_inference_prompt_cost": 0.036906,
+                "upstream_inference_completions_cost": 0.00061
+              },
+              "completion_tokens_details": {
+                "reasoning_tokens": 0,
+                "image_tokens": 0,
+                "audio_tokens": 0
+              }
+            },
+            "estimatedCost": 0.037516,
+            "latencyMs": 3426
+          }
+        ],
+        "spentEstimate": 0.037515999999999994
+      },
+      "evaluation": {
+        "passed": true,
+        "legal": true,
+        "phase": "mm_cards",
+        "day": 5,
+        "extraGauge": 1,
+        "winner": null,
+        "reason": "Continue the live loop instead of a publicly inferable EX-1 defeat"
+      }
+    }
+  },
+  "summary": {
+    "scheduled": 11,
+    "scored": 11,
+    "passed": 11,
+    "legal": 11,
+    "errors": 0,
+    "spentEstimate": 0.364291,
+    "repairAttempts": 0,
+    "bySide": {
+      "mastermind": {
+        "scored": 6,
+        "passed": 6
+      },
+      "heroes": {
+        "scored": 5,
+        "passed": 5
+      }
+    },
+    "scope": "One decision per legal fixture with fixed local suffix; not full-game win rate."
+  }
+}

@@ -105,3 +105,10 @@ test('grounded design review distinguishes limited trials from a balance assessm
  assert.match(html,/部分路径达到试跑上限/);assert.match(html,/这不是平衡性评分/);
  assert.doesNotMatch(html,/AI 创作设想|可行反制/);
 });
+
+test('theme inputs explain their public prose effect without promising a different rules engine',()=>{
+ const opening=newGameModal(state,'heroes','ai'),editor=editorHtml(state);
+ for(const html of [opening,editor])assert.match(html,/主题用于标题、开场氛围与选稿偏好，舞台与规则仍以本场设置为准/);
+ assert.match(editor,/id="gen-theme" maxlength="300"/);
+ const setup=normalizeGameSetup('ai',{theme:'  雨夜的末班电车  '});assert.equal(generationOptions('ai',setup).theme,'雨夜的末班电车');
+});

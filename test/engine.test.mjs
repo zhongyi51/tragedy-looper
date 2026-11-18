@@ -58,12 +58,12 @@ test('a failed loop says when it ended and what the table saw, without naming th
  let s=fresh();s.day=3;s.phase='hero_ability';s.board.girl_student.paranoia=3;s=act(s,{type:'pass'});
  let failed=s.log.at(-1);assert.equal(failed.when,'death');assert.deepEqual(failed.dead,['girl_student']);assert.match(failed.text,/^第 1 轮回失败：女学生死亡，轮回立即结束。$/);
  s=fresh();s.day=3;s.phase='end';s.loopFailed=true;s.locations.school=2;s.board.doctor.intrigue=1;s=act(s,{type:'pass'});
- failed=s.log.at(-1);assert.equal(failed.when,'end');assert.equal(failed.phase,'end');assert.deepEqual(failed.intrigue,{school:2,doctor:1});assert.match(failed.text,/最后一天结束时，失败条件成立/);
+ failed=s.log.at(-1);assert.equal(failed.when,'loop_end');assert.equal(failed.phase,'loop_end');assert.deepEqual(failed.intrigue,{school:2,doctor:1});assert.match(failed.text,/轮回结束时，失败条件成立/);
  s=fresh();s.phase='end';s.board.office_worker.intrigue=4;s=act(s,{type:'end_ability',actor:'office_worker',ability:'heroes'});
- assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.when]),[['death',undefined],['failed','heroes']]);
- // The entry names who died, never the role that made the death matter.
+ assert.deepEqual(s.log.slice(-2).map(e=>[e.type,e.when]),[['death',undefined],['failed','day_end']]);
+ // Day-end deaths stay public, but the failure does not confirm the victim's hidden role.
  s=fresh();s.phase='end_area';for(const id of ['girl_student','boy_student'])s.board[id].location='shrine';s.board.shrine_maiden.location='shrine';s.board.boy_student.location='city';
- s=act(s,{type:'end_area',territory:false});assert.deepEqual(s.log.at(-1).dead,['girl_student']);
+ s=act(s,{type:'end_area',territory:false});assert.equal(s.log.at(-1).when,'day_end');assert.equal(s.log.at(-1).dead,undefined);assert.ok(s.log.some(e=>e.type==='death'&&e.who==='girl_student'));
  for(const e of s.log)assert.doesNotMatch(e.text,/关键人物|连环杀手|杀手/);
 });
 test('cards that end up doing nothing are marked, and a cancelled or ignored Forbid Intrigue is logged',()=>{

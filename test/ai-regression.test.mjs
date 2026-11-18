@@ -10,10 +10,10 @@ async function withFetch(mock,run){const original=globalThis.fetch;globalThis.fe
 
 const invalidAnswers=[null,[],0,'choice: 0',{choice:'0'},{choice:-1},{choice:0.5},{choice:1e9},{choice:0,reason:{}},{choice:0,note:[]},{choice:0,reason:'x'.repeat(241)},{choice:0,note:'x'.repeat(2401)}];
 for(const [i,invalid] of invalidAnswers.entries())test(`invalid model schema ${i+1} gets one repair without mutating state`,async()=>{
- const s=createGame(starter),before=structuredClone(s);let sent=0,accounted=0;
+ const s=protagonistTurn(),before=structuredClone(s);let sent=0,accounted=0;
  await withFetch(async()=>response(++sent===1?invalid:{choice:0,reason:'选择合法候选',note:'只记录公开证据'}),async()=>{
-  const answer=await decide(s,'M',{onUsage:()=>accounted++});
-  assert.equal(answer.repairAttempts,1);assert.deepEqual(answer.command,legalActions(s,'M')[0].command);
+  const answer=await decide(s,'A',{onUsage:()=>accounted++});
+  assert.equal(answer.repairAttempts,1);assert.deepEqual(answer.command,legalActions(s,'A')[0].command);
  });
  assert.equal(sent,2);assert.equal(accounted,2);assert.deepEqual(s,before);
 });
@@ -58,7 +58,8 @@ test('AI receives explicit location bluff rules and can legally select a locatio
   assert.equal(next.revision,1);assert.deepEqual(next.locations,s.locations);assert.equal(next.placements[0].target,'school');
  });
  const context=JSON.parse(payload.messages[2].content);
- assert.match(context.observation.actions[choice].effectHint,/合法佯动/);
+ assert.deepEqual(context.observation.actions[choice],[choice,'move_h#0','school']);
+ assert.match(payload.messages[0].content,/合法无效果佯动/);
  assert.match(payload.messages[0].content,/地点本身永远不移动/);
  assert.ok(payload.messages[0].content.includes('actionDeckEntries'));
  assert.equal(payload.user_id,'local_M');

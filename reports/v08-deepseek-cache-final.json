@@ -1,0 +1,523 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 26,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "deepseek",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 25.645,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "医院暗跃+2叠加幕后黑手与传闻可在轮回末触发复仇者之灯；女学生、上班族不安各+1，推进第4日医院事件与第2日行踪不明，形成多线压力。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 13509,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 2717,
+                  "reasoningTokens": 2655
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 13509,
+                  "completion_tokens": 2717,
+                  "total_tokens": 16226,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 2655
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 13509
+                },
+                "estimatedCost": 0.0073131,
+                "latencyMs": 18647
+              }
+            ],
+            "spentEstimate": 0.0073130999999999995
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 25.097,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "本席为当日领导者，按约定负责暗跃禁止以免队友重复抵消。剧作家对医院出牌，且第4日医院事件可令主角死亡；禁止医院暗跃可阻挡其计数积累，护卫关键生存点。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 12328,
+                  "cachedInputTokens": 6912,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 2826,
+                  "reasoningTokens": 2767
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 12328,
+                  "completion_tokens": 2826,
+                  "total_tokens": 15154,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 6912
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 2767
+                  },
+                  "prompt_cache_hit_tokens": 6912,
+                  "prompt_cache_miss_tokens": 5416
+                },
+                "estimatedCost": 0.0050574719999999995,
+                "latencyMs": 17937
+              }
+            ],
+            "spentEstimate": 0.012370571999999996
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 64.619,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "doctor"
+              }
+            ],
+            "reason": "本席为B，尚未出牌；给医生友好+2可尽快解锁其能力，便于处理第4日医院事件，且不触发不利计数。",
+            "automatic": false,
+            "repairAttempts": 1,
+            "repairCauses": [
+              "TRUNCATED"
+            ],
+            "repairMode": "direct-json",
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 11957,
+                  "cachedInputTokens": 6912,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 8192,
+                  "reasoningTokens": 8192
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11957,
+                  "completion_tokens": 8192,
+                  "total_tokens": 20149,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 6912
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 8192
+                  },
+                  "prompt_cache_hit_tokens": 6912,
+                  "prompt_cache_miss_tokens": 5045
+                },
+                "estimatedCost": 0.011385372,
+                "latencyMs": 56333
+              },
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 12026,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 42,
+                  "reasoningTokens": 0
+                },
+                "thinking": "disabled",
+                "usage": {
+                  "prompt_tokens": 12026,
+                  "completion_tokens": 42,
+                  "total_tokens": 12068,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 12026
+                },
+                "estimatedCost": 0.0036582,
+                "latencyMs": 1488
+              }
+            ],
+            "spentEstimate": 0.027414143999999994
+          },
+          "nextRevision": 5,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 5,
+          "phase": "hero_cards",
+          "seat": "C",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 34.681,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "move_h#0",
+                "target": "police"
+              }
+            ],
+            "reason": "警察横移至学校：破除都市与学校两人独处，降低连环杀手日终杀关键人物风险，同时保留学生在校互助。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 11740,
+                  "cachedInputTokens": 6912,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 4279,
+                  "reasoningTokens": 4241
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 11740,
+                  "completion_tokens": 4279,
+                  "total_tokens": 16019,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 6912
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 4241
+                  },
+                  "prompt_cache_hit_tokens": 6912,
+                  "prompt_cache_miss_tokens": 4828
+                },
+                "estimatedCost": 0.006624672000000001,
+                "latencyMs": 27763
+              }
+            ],
+            "spentEstimate": 0.034038816
+          },
+          "nextRevision": 7,
+          "nextPhase": "mm_ability"
+        }
+      ],
+      "gameId": "f63d2043-5b6c-4b04-b66a-7886e867c438",
+      "completedRealDecisions": 4,
+      "passed": true
+    }
+  ],
+  "authors": [
+    {
+      "provider": "deepseek",
+      "gameId": "9f5b6ef8-d435-4f03-a0a7-3702a7f76101",
+      "latencySeconds": 35.961,
+      "title": "末班列车之后",
+      "intro": "医院走廊尽头的挂钟停在了末班车发车的时刻，神社石阶上落着一张被雨泡软的车票。学校里有人说起那趟不会到站的列车，都市的霓虹在积水里碎成一片。没有人说得清票根上的日期属于哪一天，只有广播反复播着同一句到站提醒——而站台上，始终少一个人。",
+      "validation": {
+        "errors": [],
+        "warnings": []
+      },
+      "winner": "heroes",
+      "terminalRevision": 25,
+      "generation": {
+        "source": "ai",
+        "version": "script-author-4",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "pipeline": "plan-compile-select",
+        "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+        "scriptHash": "30e27f3e9af97856f4bcfd13ffbf6155d7898cc2873f6449b5386262dc86afb2",
+        "theme": "末班列车与消失的车票",
+        "captionSource": "public-theme-model",
+        "captionAttempts": 1,
+        "plan": {
+          "mainPlot": "murder_plan",
+          "subPlots": [
+            "unsettling_rumor"
+          ],
+          "characters": [
+            "girl_student",
+            "doctor",
+            "nurse",
+            "teacher",
+            "office_worker",
+            "class_rep"
+          ],
+          "days": 2,
+          "loops": 2,
+          "incidentCount": 1,
+          "settings": {
+            "incidentVisibility": "public"
+          }
+        },
+        "planSource": "model",
+        "attempts": 3,
+        "planAttempts": 1,
+        "selectionAttempts": 1,
+        "candidateCount": 6,
+        "compiledCandidateCount": 24,
+        "attemptedCandidateCount": 24,
+        "chosenId": "candidate-1",
+        "designGrounding": {
+          "version": "catalog-design-1",
+          "selection": {
+            "focus": "survival",
+            "threats": [
+              "plot:murder_plan",
+              "role:office_worker",
+              "role:class_rep",
+              "incident:0"
+            ],
+            "counterplay": [
+              "ability:teacher:1",
+              "ability:class_rep:0",
+              "card:forbid_intrigue",
+              "card:move_v"
+            ],
+            "clues": [
+              "ability:teacher:1",
+              "ability:office_worker:0",
+              "public:schedule",
+              "rule:victory"
+            ],
+            "loopFacts": [
+              "rule:victory",
+              "rule:reset"
+            ]
+          }
+        },
+        "probe": {
+          "version": "engine-probe-1",
+          "scope": "private",
+          "limits": {
+            "profiles": 2,
+            "maxCommands": 400,
+            "maxCommandsPerTrace": 200,
+            "maxMs": 300
+          },
+          "clockGuard": "best_effort",
+          "note": "有限策略试跑只记录已观察到的路径；没有观察到胜利不代表无解，样本胜负不代表平衡或最优对抗。",
+          "status": "completed",
+          "commands": 63,
+          "elapsedMs": 0,
+          "limitedBy": null,
+          "traces": [
+            {
+              "profile": "pressure-defense",
+              "status": "terminal",
+              "commands": 39,
+              "winner": "heroes",
+              "loopsReached": 1,
+              "daysReached": 2,
+              "failedLoops": 0,
+              "occurredIncidents": 0,
+              "declaredRoleReveals": 1,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": true,
+              "commandDigest": "a8252817"
+            },
+            {
+              "profile": "quiet-exploration",
+              "status": "terminal",
+              "commands": 24,
+              "winner": "heroes",
+              "loopsReached": 1,
+              "daysReached": 2,
+              "failedLoops": 0,
+              "occurredIncidents": 0,
+              "declaredRoleReveals": 0,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": true,
+              "commandDigest": "11f3bfaf"
+            }
+          ],
+          "observations": {
+            "completedTraces": 2,
+            "heroSurvivalObserved": true,
+            "mastermindWinObserved": false,
+            "eventsObserved": 0,
+            "informationObserved": 1
+          },
+          "rankingEvidence": {
+            "completedTraces": 2,
+            "observedSurvival": 1,
+            "observedThreat": 0,
+            "observedEvents": 0,
+            "observedInformation": 1,
+            "coverage": 4
+          }
+        },
+        "quality": {
+          "review": "static-and-bounded-probe",
+          "score": 88
+        },
+        "usage": {
+          "requests": 3,
+          "estimatedCost": 0.012038568,
+          "actualReportedCost": 0,
+          "reportedRequests": 0,
+          "estimatedRequests": 3,
+          "latencyMs": 29144,
+          "promptTokens": 29770,
+          "completionTokens": 4189,
+          "reasoningTokens": 3902,
+          "cacheHitTokens": 6528,
+          "cacheWriteTokens": 0,
+          "unknownRequests": 0,
+          "rejectedRequests": 0,
+          "costKind": "conservative_estimate"
+        }
+      },
+      "author": "DeepSeek 策划 · 约束编译",
+      "passed": true
+    }
+  ],
+  "sourceHashes": {
+    "src/ai.mjs": "5a85c4b0def8ea846e336a1ee1111a4b436489c3fb0f4e8de049bdcde66e95fa",
+    "src/model-provider.mjs": "df852c28d4ce9ba3a56597cf47e56dbe9feeeae094d2e74c443fd6bd803c518b",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "src/author.mjs": "5d53ec59e25123ef75cb6c37fba30a24263ab37d8f4550908bd122331c7cb018"
+  },
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-5"
+  }
+}

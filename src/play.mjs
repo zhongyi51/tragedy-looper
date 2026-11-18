@@ -2,6 +2,7 @@
 // what each player may see, and how one step turns into saved frames.
 import {view,turn,applyCommand,botCommand,advanceAutomatic,transitionFrames} from './engine.mjs';
 import {decide,decisionSummary,rememberDecision} from './ai.mjs';
+import {providerLabel,modelFor} from './model-provider.mjs';
 
 export const MODES=['heroes','mastermind','observe'];
 export const STEP_ROUTES=['command','ai-step','bot-step','advance'];
@@ -34,7 +35,7 @@ export async function playStep({state,mode,route,command,ai={}}){
  const automatic={includeBetween:mode!=='heroes',trace:true};
  if(route==='advance')return {seat,frames:advanceAutomatic(state,automatic).steps,answer:null};
  let answer=null,commands;
- if(route==='ai-step'){answer=await decide(state,seat,ai);commands=answer.commands;}
+ if(route==='ai-step'){answer=await decide(state,seat,ai);if(!answer.automatic)Object.assign(answer,{provider:ai.provider??'deepseek',model:modelFor(ai.provider??'deepseek'),modelLabel:providerLabel(ai.provider??'deepseek')});commands=answer.commands;}
  else commands=[route==='bot-step'?botCommand(state,seat):command];
  const frames=[];let current=state;
  for(const next of commands){const beats=[];current=applyCommand(current,seat,next,beats);frames.push({seat,command:next,state:current,beats});}

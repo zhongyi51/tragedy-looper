@@ -1,0 +1,374 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 6,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "openrouter",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:11.889675+00:00",
+          "latencySeconds": 11.274,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "暗跃+2投医院直逼复仇者之灯与医院事件胜负线；两张不安+1分别推进第4日女学生与第2日上班族事件临界。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "google/gemini-4-hydrogen",
+                "modelLabel": "Gemini 4 Hydrogen",
+                "costKind": "provider_reported",
+                "actualCost": 0.020856,
+                "normalizedUsage": {
+                  "inputTokens": 10629,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 655,
+                  "reasoningTokens": 595
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 10629,
+                  "completion_tokens": 655,
+                  "total_tokens": 11284,
+                  "cost": 0.020856,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.020856,
+                    "upstream_inference_prompt_cost": 0.0159435,
+                    "upstream_inference_completions_cost": 0.0049125
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 595,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.020856,
+                "latencyMs": 4263
+              }
+            ],
+            "spentEstimate": 0.020856000000000013
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:23.166303+00:00",
+          "latencySeconds": 9.197,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "我是今日领导者，对剧作家出牌的医院使用暗跃禁止（可复用），防范医院事件所需的暗跃积累并避免与队友冲突。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "google/gemini-4-hydrogen",
+                "modelLabel": "Gemini 4 Hydrogen",
+                "costKind": "provider_reported",
+                "actualCost": 0.007442925,
+                "normalizedUsage": {
+                  "inputTokens": 9951,
+                  "cachedInputTokens": 7199,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 370,
+                  "reasoningTokens": 324
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 9951,
+                  "completion_tokens": 370,
+                  "total_tokens": 10321,
+                  "cost": 0.007442925,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7199,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.007442925,
+                    "upstream_inference_prompt_cost": 0.004667925,
+                    "upstream_inference_completions_cost": 0.002775
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 324,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.007442925,
+                "latencyMs": 2460
+              }
+            ],
+            "spentEstimate": 0.028298925000000003
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:32.364475+00:00",
+          "latencySeconds": 9.914,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "给上班族友好+2，快速接近其3友好查明身份的门槛，为第1轮回收集角色线索，且不与A的医院目标冲突。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "google/gemini-4-hydrogen",
+                "modelLabel": "Gemini 4 Hydrogen",
+                "costKind": "provider_reported",
+                "actualCost": 0.0204675,
+                "normalizedUsage": {
+                  "inputTokens": 9895,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 750,
+                  "reasoningTokens": 701
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 9895,
+                  "completion_tokens": 750,
+                  "total_tokens": 10645,
+                  "cost": 0.0204675,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0204675,
+                    "upstream_inference_prompt_cost": 0.0148425,
+                    "upstream_inference_completions_cost": 0.005625
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 701,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0204675,
+                "latencyMs": 4729
+              }
+            ],
+            "spentEstimate": 0.048766425
+          },
+          "nextRevision": 5,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 5,
+          "phase": "hero_cards",
+          "seat": "C",
+          "day": 1,
+          "loop": 1,
+          "startedAtUTC": "2026-11-17T04:23:42.280569+00:00",
+          "latencySeconds": 10.682,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "boy_student"
+              }
+            ],
+            "reason": "对男学生使用友好+2，可快速解锁其每日能力以协助同在学校的女学生控制不安，为后续应对事件与排查信息做准备。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "google/gemini-4-hydrogen",
+                "modelLabel": "Gemini 4 Hydrogen",
+                "costKind": "provider_reported",
+                "actualCost": 0.0208005,
+                "normalizedUsage": {
+                  "inputTokens": 9822,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 809,
+                  "reasoningTokens": 762
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 9822,
+                  "completion_tokens": 809,
+                  "total_tokens": 10631,
+                  "cost": 0.0208005,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 0,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0208005,
+                    "upstream_inference_prompt_cost": 0.014733,
+                    "upstream_inference_completions_cost": 0.0060675
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 762,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0208005,
+                "latencyMs": 5223
+              }
+            ],
+            "spentEstimate": 0.069566925
+          },
+          "nextRevision": 7,
+          "nextPhase": "mm_ability"
+        }
+      ],
+      "gameId": "c8657f55-f07c-42b2-8367-473af14ad578",
+      "completedRealDecisions": 4,
+      "passed": true
+    }
+  ],
+  "authors": [],
+  "qaProfile": "hydrogen-low",
+  "sourceHashes": {
+    "src/ai.mjs": "90d36cc397375ffe972830509439d2848fb19c6eee32fac9b643e3c6363d3db7",
+    "src/model-provider.mjs": "eeb29826b016dcf3ab898d9b9c182f8e5ce1a447103646e71c0a0897a05ba64c",
+    "src/game-prompt.mjs": "cff39ad8c7e89ac9c09eb829ee05ee31d3d57e582f354fda7f53a04c8e0bfeb3",
+    "src/author.mjs": "5d53ec59e25123ef75cb6c37fba30a24263ab37d8f4550908bd122331c7cb018"
+  },
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-7"
+  },
+  "testedSiteSourceCommit": "c3191a9c2e037c379f9b888b2bd0871e9cd8b69b"
+}

@@ -1,0 +1,57 @@
+{
+  "engineVersion": "0.7.0",
+  "nodeVersion": "v24.22.1",
+  "parameters": {
+    "gamesPerSet": 60,
+    "seedStart": 500,
+    "days": 4,
+    "loops": 2,
+    "maxCommands": 700,
+    "sets": [
+      "FS",
+      "BTX",
+      "MZ",
+      "MC"
+    ]
+  },
+  "planningLimits": {
+    "plans": 3,
+    "responses": 2,
+    "commandsPerResponse": 64,
+    "maxCommands": 384,
+    "maxSteps": 40
+  },
+  "games": 240,
+  "commands": 19819,
+  "maxGameMs": 730.6118889999998,
+  "maxDecisionMs": 152.66843999999764,
+  "maxPlanCommands": 234,
+  "truncatedResponses": 0,
+  "bySet": {
+    "FS": {
+      "games": 60,
+      "heroes": 3,
+      "mastermind": 57,
+      "maxCommands": 135
+    },
+    "BTX": {
+      "games": 60,
+      "heroes": 12,
+      "mastermind": 48,
+      "maxCommands": 129
+    },
+    "MZ": {
+      "games": 60,
+      "heroes": 21,
+      "mastermind": 39,
+      "maxCommands": 129
+    },
+    "MC": {
+      "games": 60,
+      "heroes": 16,
+      "mastermind": 44,
+      "maxCommands": 138
+    }
+  },
+  "elapsedMs": 73758
+}

@@ -24,8 +24,8 @@ spec.loader.exec_module(legacy)
 # smaller caps appropriate to this author-only suite.
 legacy.MAX_POTENTIAL_PROVIDER_CALLS = 32
 legacy.MAX_HTTP_REQUESTS = 160
-CHECKPOINT_VERSION = 'structured-author-qa-1'
-AUTHOR_VERSION = 'script-author-2'
+CHECKPOINT_VERSION = 'structured-author-qa-2'
+AUTHOR_VERSION = 'script-author-3'
 RULESETS = ['FS', 'BTX', 'MZ', 'MC']
 
 VALIDATE_JS = r"""
@@ -51,6 +51,12 @@ assert.equal(script.settings.incidentVisibility,'public');
 if(setup.includeAI)assert.ok(script.characters.includes('ai_character'));
 assert.equal(generation.version,AUTHOR_VERSION);
 assert.equal(generation.pipeline,'plan-compile-select');
+const requestedTheme=String(setup.theme??'').trim().slice(0,300);
+assert.equal(generation.theme,requestedTheme);
+assert.equal(generation.captionSource,requestedTheme?'public-theme-model':'neutral-template');
+assert.equal(generation.captionAttempts,requestedTheme?1:0);
+assert.deepEqual(script.specialRules,[],'Atmosphere cannot introduce extra rules');
+assert.ok(Object.keys(generation.plan).every(key=>['mainPlot','subPlots','characters','days','loops','incidentCount','settings'].includes(key)));
 assert.equal(generation.contentHash,contentHash);
 assert.equal(generation.scriptHash,authoredScriptHash(script));
 const explicitPlan=['mainPlot','characters','days','loops','incidentCount'].every(key=>setup[key]!==undefined)&&Array.isArray(setup.subPlots)&&setup.subPlots.every(Boolean);
@@ -71,8 +77,9 @@ assert.equal(generation.attemptedCandidateCount,24);
 assert.match(generation.chosenId,/^candidate-([1-9]|1[0-9]|2[0-4])$/);
 assert.ok(explicitPlan?generation.planAttempts===0:generation.planAttempts>=1&&generation.planAttempts<=2);
 assert.ok(generation.selectionAttempts>=1&&generation.selectionAttempts<=2);
-assert.ok(Number.isInteger(generation.usage.requests)&&generation.usage.requests>=1&&generation.usage.requests<=4);
-assert.equal(generation.usage.requests,generation.planAttempts+generation.selectionAttempts);
+assert.ok(Number.isInteger(generation.usage.requests)&&generation.usage.requests>=1&&generation.usage.requests<=(requestedTheme?5:4));
+assert.equal(generation.usage.requests,generation.captionAttempts+generation.planAttempts+generation.selectionAttempts);
+assert.equal(generation.attempts,generation.usage.requests);
 assert.ok(Number.isFinite(generation.usage.estimatedCost)&&generation.usage.estimatedCost>=0&&generation.usage.estimatedCost<=.12+1e-9);
 assert.equal(generation.usage.unknownRequests,0);
 assert.equal(generation.usage.rejectedRequests,0);
@@ -94,7 +101,7 @@ assert.ok(independentProbe.traces.every(t=>!t.error));
 assert.equal(authoredScriptHash(script),generation.scriptHash);
 console.log(JSON.stringify({valid:true,quality,publicScript:publicScript(script),independentProbe,
  plan:generation.plan,usage:generation.usage,candidateCount:generation.candidateCount,
- planAttempts:generation.planAttempts,selectionAttempts:generation.selectionAttempts,
+ captionAttempts:generation.captionAttempts,planAttempts:generation.planAttempts,selectionAttempts:generation.selectionAttempts,
  chosenId:generation.chosenId,probe:generation.probe}));
 """
 
@@ -143,7 +150,8 @@ class Runner(legacy.Runner):
                 raise legacy.QAError('Creation outcome is uncertain or failed. Inspect the saved exact receipt; this suite will not automatically submit it again or replace it.')
             receipt['sent'] = True
             self.save()
-        game = self.call('/games', receipt['request'], paid=paid, potential_calls=4)
+        maximum_calls = 5 if str(payload.get('setup', {}).get('theme', '')).strip() else 4
+        game = self.call('/games', receipt['request'], paid=paid, potential_calls=maximum_calls)
         with self.lock:
             receipt['gameId'] = game['id']
             self.save()
@@ -162,7 +170,9 @@ class Runner(legacy.Runner):
                 'incidentCount': 3 if ruleset == 'MC' else 2,
                 'incidentVisibility': 'public', 'characterPool': 'standard',
                 'includeAI': ruleset in ['MZ', 'MC'],
-                'theme': ['雨停之后的旧街', '末班车后的来信'][sample - 1],
+                # Theme behavior has a separate two-sample suite. Keep this
+                # mechanical matrix on the original two-request happy path.
+                'theme': '',
                 'seed': 261114200 + RULESETS.index(ruleset) * 10 + sample,
             })
             self.save()

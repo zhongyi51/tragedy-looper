@@ -1,0 +1,842 @@
+{
+  "version": "provider-cache-v1",
+  "base": "https://tragedy-looper-shixi-1108.diphosphine.chatgpt.site",
+  "httpRequests": 76,
+  "purpose": "Actual evolving states and seats, not repeated identical prompts; bounded integration QA, not model win rates.",
+  "games": [
+    {
+      "provider": "deepseek",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 30.457,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "暗跃+2 直推医院暗跃至 2，满足复仇者之灯轮回末失败条件；女学生与上班族不安+1 作为第4/第2日事件保险，三目标分散迷惑对手。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 13509,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 3480,
+                  "reasoningTokens": 3418
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 13509,
+                  "completion_tokens": 3480,
+                  "total_tokens": 16989,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 3418
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 13509
+                },
+                "estimatedCost": 0.0082287,
+                "latencyMs": 23182
+              }
+            ],
+            "spentEstimate": 0.008228699999999999
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 13.14,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "医院是第4日医院事件关键地点；剧作家已在医院暗置牌，优先用暗跃禁止封堵其暗跃累积，避免后续团灭或主人公死亡。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "deepseek",
+                "model": "deepseek-flash",
+                "modelLabel": "DeepSeek",
+                "costKind": "conservative_estimate",
+                "normalizedUsage": {
+                  "inputTokens": 12328,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 0,
+                  "outputTokens": 721,
+                  "reasoningTokens": 674
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 12328,
+                  "completion_tokens": 721,
+                  "total_tokens": 13049,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 674
+                  },
+                  "prompt_cache_hit_tokens": 0,
+                  "prompt_cache_miss_tokens": 12328
+                },
+                "estimatedCost": 0.004563599999999999,
+                "latencyMs": 6117
+              }
+            ],
+            "spentEstimate": 0.0127923
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "pendingPaid": true
+        }
+      ],
+      "gameId": "02b311cb-d28b-4877-ad4a-5858c9d83d40",
+      "error": "HTTP 400 TRUNCATED; not retried"
+    },
+    {
+      "provider": "openrouter",
+      "decisions": [
+        {
+          "revision": 0,
+          "phase": "mm_cards",
+          "seat": "M",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 10.9,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "intrigue_2#0",
+                "target": "hospital"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#0",
+                "target": "girl_student"
+              },
+              {
+                "type": "place",
+                "card": "paranoia_1#1",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "医院暗跃推进轮回末败北，同时提高两名事件犯人的不安；上班族可用自身能力补足阈值，形成事件与地点双线压力。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.036046,
+                "normalizedUsage": {
+                  "inputTokens": 13831,
+                  "cachedInputTokens": 0,
+                  "cacheWriteTokens": 13828,
+                  "outputTokens": 147,
+                  "reasoningTokens": 86
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 13831,
+                  "completion_tokens": 147,
+                  "total_tokens": 13978,
+                  "cost": 0.036046,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 0,
+                    "cache_write_tokens": 13828,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.036046,
+                    "upstream_inference_prompt_cost": 0.034576,
+                    "upstream_inference_completions_cost": 0.00147
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 86,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.036046,
+                "latencyMs": 5200
+              }
+            ],
+            "spentEstimate": 0.036045999999999995
+          },
+          "nextRevision": 3,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 3,
+          "phase": "hero_cards",
+          "seat": "A",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 9.023,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "forbid_intrigue#0",
+                "target": "hospital"
+              }
+            ],
+            "reason": "作为领导者承担暗跃禁止，阻止医院可能的暗跃积累，降低第4日医院事件风险，并让队友投入友好或移动。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0138923,
+                "normalizedUsage": {
+                  "inputTokens": 12666,
+                  "cachedInputTokens": 7613,
+                  "cacheWriteTokens": 5050,
+                  "outputTokens": 50,
+                  "reasoningTokens": 0
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 12666,
+                  "completion_tokens": 50,
+                  "total_tokens": 12716,
+                  "cost": 0.0138923,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7613,
+                    "cache_write_tokens": 5050,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0138923,
+                    "upstream_inference_prompt_cost": 0.0133923,
+                    "upstream_inference_completions_cost": 0.0005
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0138923,
+                "latencyMs": 2345
+              }
+            ],
+            "spentEstimate": 0.04993829999999999
+          },
+          "nextRevision": 4,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 4,
+          "phase": "hero_cards",
+          "seat": "B",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 14.476,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "shrine_maiden"
+              }
+            ],
+            "reason": "给巫女友好+2，为神社减暗跃和角色调查铺路；她未被剧作家盖牌，今日不会遭友好禁止，并避免重复暗跃禁止。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0136798,
+                "normalizedUsage": {
+                  "inputTokens": 12297,
+                  "cachedInputTokens": 7613,
+                  "cacheWriteTokens": 4681,
+                  "outputTokens": 121,
+                  "reasoningTokens": 62
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 12297,
+                  "completion_tokens": 121,
+                  "total_tokens": 12418,
+                  "cost": 0.0136798,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7613,
+                    "cache_write_tokens": 4681,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0136798,
+                    "upstream_inference_prompt_cost": 0.0124698,
+                    "upstream_inference_completions_cost": 0.00121
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 62,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0136798,
+                "latencyMs": 4305
+              }
+            ],
+            "spentEstimate": 0.06361809999999998
+          },
+          "nextRevision": 5,
+          "nextPhase": "hero_cards"
+        },
+        {
+          "revision": 5,
+          "phase": "hero_cards",
+          "seat": "C",
+          "day": 1,
+          "loop": 1,
+          "latencySeconds": 13.176,
+          "receipt": {
+            "commands": [
+              {
+                "type": "place",
+                "card": "goodwill_2#0",
+                "target": "office_worker"
+              }
+            ],
+            "reason": "给上班族友好+2，争取次日达到3点查明其角色；若遭拒绝也可获得身份线索。暗跃禁止留由领导者负责，避免抵消。",
+            "automatic": false,
+            "repairAttempts": 0,
+            "repairCauses": [],
+            "repairMode": null,
+            "usage": [
+              {
+                "status": "completed",
+                "provider": "openrouter",
+                "model": "openai/gpt-6.1-sol",
+                "modelLabel": "GPT-6.1 Sol",
+                "costKind": "provider_reported",
+                "actualCost": 0.0133348,
+                "normalizedUsage": {
+                  "inputTokens": 12055,
+                  "cachedInputTokens": 7613,
+                  "cacheWriteTokens": 4439,
+                  "outputTokens": 147,
+                  "reasoningTokens": 85
+                },
+                "thinking": "enabled",
+                "reasoningEffort": "low",
+                "usage": {
+                  "prompt_tokens": 12055,
+                  "completion_tokens": 147,
+                  "total_tokens": 12202,
+                  "cost": 0.0133348,
+                  "is_byok": false,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 7613,
+                    "cache_write_tokens": 4439,
+                    "audio_tokens": 0,
+                    "video_tokens": 0
+                  },
+                  "cost_details": {
+                    "upstream_inference_cost": 0.0133348,
+                    "upstream_inference_prompt_cost": 0.0118648,
+                    "upstream_inference_completions_cost": 0.00147
+                  },
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 85,
+                    "image_tokens": 0,
+                    "audio_tokens": 0
+                  }
+                },
+                "estimatedCost": 0.0133348,
+                "latencyMs": 5260
+              }
+            ],
+            "spentEstimate": 0.07695289999999999
+          },
+          "nextRevision": 7,
+          "nextPhase": "mm_ability"
+        }
+      ],
+      "gameId": "37bd5daf-e656-4f61-96ee-2ee972f6d62a",
+      "completedRealDecisions": 4,
+      "passed": true
+    }
+  ],
+  "authors": [
+    {
+      "provider": "deepseek",
+      "gameId": "c85e1a74-df12-44c1-95d8-7d2306893859",
+      "latencySeconds": 57.064,
+      "title": "末班车票",
+      "intro": "医院走廊的灯管闪了最后一下，末班列车的汽笛从很远的地方传来。神社石阶上落着一张被雨泡皱的车票，字迹模糊，却没人记得是谁掉的。都市的便利店自动门开开合合，像在等一个不会来的人。学校天台的风把什么东西吹走了——有人说，那晚的末班车，多了一个乘客。",
+      "validation": {
+        "errors": [],
+        "warnings": []
+      },
+      "winner": "mastermind",
+      "terminalRevision": 27,
+      "generation": {
+        "source": "ai",
+        "version": "script-author-4",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "modelLabel": "DeepSeek",
+        "pipeline": "plan-compile-select",
+        "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+        "scriptHash": "20dcef21556ed17ea9a38f62c0670a1709e9da0f4fd2969a76fdacca250a25cd",
+        "theme": "末班列车与消失的车票",
+        "captionSource": "public-theme-model",
+        "captionAttempts": 1,
+        "plan": {
+          "mainPlot": "murder_plan",
+          "subPlots": [
+            "hideous_script"
+          ],
+          "characters": [
+            "boy_student",
+            "girl_student",
+            "class_rep",
+            "teacher",
+            "doctor",
+            "nurse",
+            "police"
+          ],
+          "days": 2,
+          "loops": 2,
+          "incidentCount": 1,
+          "settings": {
+            "incidentVisibility": "public"
+          }
+        },
+        "planSource": "model",
+        "attempts": 3,
+        "planAttempts": 1,
+        "selectionAttempts": 1,
+        "candidateCount": 6,
+        "compiledCandidateCount": 24,
+        "attemptedCandidateCount": 24,
+        "chosenId": "candidate-11",
+        "designGrounding": {
+          "version": "catalog-design-1",
+          "selection": {
+            "focus": "survival",
+            "threats": [
+              "role:teacher",
+              "role:nurse",
+              "role:police",
+              "incident:0"
+            ],
+            "counterplay": [
+              "card:forbid_intrigue",
+              "card:forbid_move",
+              "ability:teacher:1",
+              "ability:police:0"
+            ],
+            "clues": [
+              "ability:teacher:1",
+              "ability:police:0",
+              "public:schedule",
+              "rule:victory"
+            ],
+            "loopFacts": [
+              "rule:victory",
+              "rule:reset"
+            ]
+          }
+        },
+        "probe": {
+          "version": "engine-probe-1",
+          "scope": "private",
+          "limits": {
+            "profiles": 2,
+            "maxCommands": 400,
+            "maxCommandsPerTrace": 200,
+            "maxMs": 300
+          },
+          "clockGuard": "best_effort",
+          "note": "有限策略试跑只记录已观察到的路径；没有观察到胜利不代表无解，样本胜负不代表平衡或最优对抗。",
+          "status": "completed",
+          "commands": 75,
+          "elapsedMs": 0,
+          "limitedBy": null,
+          "traces": [
+            {
+              "profile": "pressure-defense",
+              "status": "terminal",
+              "commands": 51,
+              "winner": "mastermind",
+              "loopsReached": 2,
+              "daysReached": 3,
+              "failedLoops": 2,
+              "occurredIncidents": 1,
+              "declaredRoleReveals": 0,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": false,
+              "commandDigest": "5ba9b5ff"
+            },
+            {
+              "profile": "quiet-exploration",
+              "status": "terminal",
+              "commands": 24,
+              "winner": "heroes",
+              "loopsReached": 1,
+              "daysReached": 2,
+              "failedLoops": 0,
+              "occurredIncidents": 0,
+              "declaredRoleReveals": 1,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": true,
+              "commandDigest": "b3bf60b2"
+            }
+          ],
+          "observations": {
+            "completedTraces": 2,
+            "heroSurvivalObserved": true,
+            "mastermindWinObserved": true,
+            "eventsObserved": 1,
+            "informationObserved": 1
+          },
+          "rankingEvidence": {
+            "completedTraces": 2,
+            "observedSurvival": 1,
+            "observedThreat": 1,
+            "observedEvents": 1,
+            "observedInformation": 1,
+            "coverage": 5
+          }
+        },
+        "quality": {
+          "review": "static-and-bounded-probe",
+          "score": 88
+        },
+        "usage": {
+          "requests": 3,
+          "estimatedCost": 0.0189213,
+          "actualReportedCost": 0,
+          "reportedRequests": 0,
+          "estimatedRequests": 3,
+          "latencyMs": 50527,
+          "promptTokens": 31855,
+          "completionTokens": 7804,
+          "reasoningTokens": 7519,
+          "cacheHitTokens": 0,
+          "cacheWriteTokens": 0,
+          "unknownRequests": 0,
+          "rejectedRequests": 0,
+          "costKind": "conservative_estimate"
+        }
+      },
+      "author": "DeepSeek 策划 · 约束编译",
+      "passed": true
+    },
+    {
+      "provider": "openrouter",
+      "gameId": "510ae1f3-7849-4aec-a716-d7225ed26c42",
+      "latencySeconds": 29.866,
+      "title": "末班列车远去，车票消失于记忆",
+      "intro": "都市的夜雨里，末班列车的鸣笛渐渐远去。医院的窗上映着冷光，神社的檐角滴水，学校走廊里的灯仍未熄灭。潮湿的风掠过空空的口袋，带来纸张曾经贴着指尖的触感。那张车票分明还留在记忆里，为什么每当想起，票面便会一点点淡去？",
+      "validation": {
+        "errors": [],
+        "warnings": []
+      },
+      "winner": "mastermind",
+      "terminalRevision": 55,
+      "generation": {
+        "source": "ai",
+        "version": "script-author-4",
+        "provider": "openrouter",
+        "model": "openai/gpt-6.1-sol",
+        "modelLabel": "GPT-6.1 Sol",
+        "pipeline": "plan-compile-select",
+        "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+        "scriptHash": "63c739894b3c63874effe89653bed9b8773014ae7d48e0a16b1341fe4aae1c90",
+        "theme": "末班列车与消失的车票",
+        "captionSource": "public-theme-model",
+        "captionAttempts": 1,
+        "plan": {
+          "mainPlot": "murder_plan",
+          "subPlots": [
+            "unsettling_rumor"
+          ],
+          "characters": [
+            "boy_student",
+            "girl_student",
+            "teacher",
+            "office_worker",
+            "doctor",
+            "police"
+          ],
+          "days": 2,
+          "loops": 2,
+          "incidentCount": 1,
+          "settings": {
+            "incidentVisibility": "public"
+          }
+        },
+        "planSource": "model",
+        "attempts": 3,
+        "planAttempts": 1,
+        "selectionAttempts": 1,
+        "candidateCount": 6,
+        "compiledCandidateCount": 24,
+        "attemptedCandidateCount": 24,
+        "chosenId": "candidate-12",
+        "designGrounding": {
+          "version": "catalog-design-1",
+          "selection": {
+            "focus": "incident_timing",
+            "threats": [
+              "plot:murder_plan",
+              "role:girl_student",
+              "role:police",
+              "incident:0"
+            ],
+            "counterplay": [
+              "card:move_h",
+              "card:move_v",
+              "card:paranoia_minus_1",
+              "ability:doctor:0"
+            ],
+            "clues": [
+              "ability:teacher:1",
+              "ability:office_worker:0",
+              "public:schedule"
+            ],
+            "loopFacts": [
+              "rule:victory",
+              "rule:reset"
+            ]
+          }
+        },
+        "probe": {
+          "version": "engine-probe-1",
+          "scope": "private",
+          "limits": {
+            "profiles": 2,
+            "maxCommands": 400,
+            "maxCommandsPerTrace": 200,
+            "maxMs": 300
+          },
+          "clockGuard": "best_effort",
+          "note": "有限策略试跑只记录已观察到的路径；没有观察到胜利不代表无解，样本胜负不代表平衡或最优对抗。",
+          "status": "completed",
+          "commands": 67,
+          "elapsedMs": 0,
+          "limitedBy": null,
+          "traces": [
+            {
+              "profile": "pressure-defense",
+              "status": "terminal",
+              "commands": 43,
+              "winner": "mastermind",
+              "loopsReached": 2,
+              "daysReached": 3,
+              "failedLoops": 2,
+              "occurredIncidents": 1,
+              "declaredRoleReveals": 0,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": false,
+              "commandDigest": "16c6785c"
+            },
+            {
+              "profile": "quiet-exploration",
+              "status": "terminal",
+              "commands": 24,
+              "winner": "heroes",
+              "loopsReached": 1,
+              "daysReached": 2,
+              "failedLoops": 0,
+              "occurredIncidents": 0,
+              "declaredRoleReveals": 1,
+              "culpritReveals": 0,
+              "plotReveals": 0,
+              "maxEX": 0,
+              "heroSurvivalObserved": true,
+              "commandDigest": "42aadc87"
+            }
+          ],
+          "observations": {
+            "completedTraces": 2,
+            "heroSurvivalObserved": true,
+            "mastermindWinObserved": true,
+            "eventsObserved": 1,
+            "informationObserved": 1
+          },
+          "rankingEvidence": {
+            "completedTraces": 2,
+            "observedSurvival": 1,
+            "observedThreat": 1,
+            "observedEvents": 1,
+            "observedInformation": 1,
+            "coverage": 5
+          }
+        },
+        "quality": {
+          "review": "static-and-bounded-probe",
+          "score": 88
+        },
+        "usage": {
+          "requests": 3,
+          "estimatedCost": 0.0855195,
+          "actualReportedCost": 0.0855195,
+          "reportedRequests": 3,
+          "estimatedRequests": 0,
+          "latencyMs": 23833,
+          "promptTokens": 31451,
+          "completionTokens": 703,
+          "reasoningTokens": 388,
+          "cacheHitTokens": 0,
+          "cacheWriteTokens": 31175,
+          "unknownRequests": 0,
+          "rejectedRequests": 0,
+          "costKind": "provider_reported"
+        }
+      },
+      "author": "GPT-6.1 Sol 策划 · 约束编译",
+      "passed": true
+    }
+  ],
+  "info": {
+    "version": "0.8.0",
+    "providers": [
+      {
+        "id": "deepseek",
+        "label": "DeepSeek",
+        "model": "deepseek-flash",
+        "configured": true,
+        "rates": {
+          "input": 0.3,
+          "cached": 0.006,
+          "output": 1.2,
+          "currency": "USD",
+          "kind": "conservative_estimate",
+          "asOf": "2026-11-08"
+        }
+      },
+      {
+        "id": "openrouter",
+        "label": "GPT-6.1 Sol",
+        "model": "openai/gpt-6.1-sol",
+        "configured": true,
+        "rates": {
+          "input": 2,
+          "cached": 0.1,
+          "cacheWrite": 2.5,
+          "output": 10,
+          "currency": "USD",
+          "kind": "provider_reported_or_estimate",
+          "asOf": "2026-11-16"
+        }
+      }
+    ],
+    "configured": true,
+    "defaultProvider": "deepseek",
+    "model": "deepseek-flash",
+    "modelLabel": "DeepSeek",
+    "rates": {
+      "input": 0.3,
+      "cached": 0.006,
+      "output": 1.2,
+      "currency": "USD",
+      "kind": "conservative_estimate",
+      "asOf": "2026-11-08"
+    },
+    "authorBudget": 0.12,
+    "authorBudgets": {
+      "deepseek": 0.12,
+      "openrouter": 0.5
+    },
+    "polishBudgets": {
+      "deepseek": 0.03,
+      "openrouter": 0.05
+    },
+    "contentHash": "67728bc087dc5e93c13823fe10e2e2e3550a5e10784475bf00515a0ef50376de",
+    "hosted": true,
+    "authorVersion": "script-author-4",
+    "aiVersion": "decision-5"
+  }
+}

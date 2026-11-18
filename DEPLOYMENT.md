@@ -6,7 +6,8 @@
 
 - Sites 访问策略必须是仅所有者。Worker 还会拒绝没有 `oai-authenticated-user-id` 的请求。
 - D1 的每条游戏记录按 Sites 用户 ID 隔离；不同账户不能读取对局、剧本或回放。
-- `DEEPSEEK_API_KEY` 通过 Sites 环境变量工具以 `is_secret: true` 保存，仅从 Worker 的 `env` 读取。不要写入 `.openai/hosting.json`、客户端、Git 历史或存档。
+- `DEEPSEEK_API_KEY` 与 `OPENROUTER_API_KEY` 通过 Sites 环境变量工具以 `is_secret: true` 保存，仅从 Worker 的 `env` 读取。不要写入 `.openai/hosting.json`、客户端、Git 历史或存档。
+- DeepSeek 仍是默认模型。配置 OpenRouter 密钥后，新对局和剧本工坊可选择固定的 `openai/gpt-6.2-sol`（low）；模型选择随对局保存，不因密钥缺失自动切换供应商。
 - `.openai/hosting.json` 配置 `project_id` 和 `"d1": "DB"`；运行 `node scripts/build-worker.mjs` 生成部署构件。GitHub 源码不携带当前私人站点标识，部署时由操作者设置自己的项目。
 - `drizzle/0000_initial.sql` 和迁移 journal 随部署包提交；表结构不在请求中动态创建。已经应用的迁移不得修改。
 
@@ -38,4 +39,5 @@ node --check dist/server/index.js
 - 请求仍必须通过所有者私有的 Sites 平台访问门禁；应用端拒绝所有带 `Origin` 的浏览器来源请求。
 - QA 使用固定独立的 `service:sites-qa` 存档空间，无法读取、修改或枚举用户存档；用户正常接口也无法读取 QA 对局。
 - 只开放 `GET /api/qa/info`、`POST /api/qa/games`、单局读取，以及单局 `command` / `ai-step` / `bot-step` / `advance`、回放和用量读取。不开启对局列表、剧本工坊、分支或其他接口。
-- 真实 AI 测试复用现有服务端 `DEEPSEEK_API_KEY`，遵守每局预算与租约；不读取、返回或复制密钥。QA 对局独立保留，正常玩家列表不会出现测试记录。
+- 真实 AI 测试按对局的 `aiProvider` 复用相应服务端 `DEEPSEEK_API_KEY` 或 `OPENROUTER_API_KEY`，遵守每局预算与租约；不读取、返回或复制密钥。QA 对局独立保留，正常玩家列表不会出现测试记录。
+- 隔离观战局在首次模型请求前，可用 `fixture-step` 原子重放 1–80 条合法指令；任何一条非法都会整体拒绝。`ai-step` 只在此测试空间返回所选指令、简短理由、修复原因与本次 token 用量，方便按明确战术标准评分；正常接口始终不返回这些诊断。隔离 QA 可用 `qaFirstMaxTokens=1/64/128` 故意压低首请求上限以测试截断恢复；普通用户不能使用，故障注入结果须与正常对局评分分开报告。
