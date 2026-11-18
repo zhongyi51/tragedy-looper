@@ -62,7 +62,7 @@ function choices(v,blocked,sheet){
   return `<div class="between">${why?`<div class="why"><b><i>${esc(why.stamp)}</i>${esc(why.cause)}</b>${why.detail?`<small>${esc(why.detail)}</small>`:''}</div>`:''}<p>人物和计数会复原，查出的角色和你的推理都会保留。</p>
    <div class="row">${next>=0?btn(icon('loop')+`开始第 ${v.loop+1} 轮回`,'choose','primary big',`data-index="${next}"${off}`):''}${final>=0?btn('放弃剩下的轮回，进入最后的战斗','choose','',`data-index="${final}"${off}`):''}</div></div>`;
  }
- const group=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head">${gr.actor?`<img src="/${char(gr.actor).portrait}" alt="">`:''}<div><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div></div>`:''}
+ const group=gr=>`<div class="choice-group">${gr.title?`<div class="choice-head">${gr.actor?`<img src="/${char(gr.actor).avatar}" alt="">`:''}<div><b>${esc(gr.title)}</b>${gr.detail?`<small>${esc(gr.detail)}</small>`:''}</div></div>`:''}
   <div class="choice-items">${gr.items.map(it=>`<button type="button" class="choice ${it.cls||''}" data-do="choose" data-index="${it.i}"${it.hl?` data-hl="${esc(it.hl)}"`:''}${off}>${esc(it.text)}</button>`).join('')}</div></div>`;
  return `<div class="choices${v.phaseId==='guess'?' guess':''}">${groups.map(group).join('')}
   ${pass>=0?`<div class="choice-pass">${btn(esc(v.actions[pass].label),'choose',groups.length?'':'primary',`data-index="${pass}"${off}`)}</div>`:''}</div>`;

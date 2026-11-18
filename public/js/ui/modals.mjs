@@ -89,7 +89,7 @@ export function truthModal(script,g){
   <div class="truth-plots"><div><small>规则 Y</small><b>${esc(name(script.mainPlot))}</b></div>${script.subPlots.map(p=>`<div><small>规则 X</small><b>${esc(name(p))}</b></div>`).join('')}</div>
   <div class="truth-grid">${script.characters.map(c=>{
    const role=script.roles[c],special=role!=='person';
-   return `<div class="truth-card${special?'':' plain'}${known[c]?' found':''}"><img src="/${char(c).portrait}" alt=""><b>${esc(name(c))}</b><span>${esc(name(role))}</span>${g.mode==='heroes'&&special?`<small>${known[c]?(script.ruleset==='MZ'?'曾宣告':'已识破'):'未识破'}</small>`:''}</div>`;
+   return `<div class="truth-card${special?'':' plain'}${known[c]?' found':''}"><img src="/${char(c).avatar}" alt=""><b>${esc(name(c))}</b><span>${esc(name(role))}</span>${g.mode==='heroes'&&special?`<small>${known[c]?(script.ruleset==='MZ'?'曾宣告':'已识破'):'未识破'}</small>`:''}</div>`;
   }).join('')}</div>
   <h4>事件日程</h4>${script.incidents.map(e=>`<div class="schedule"><b>第 ${e.day} 日</b><span>${esc(name(e.type))}</span><em>犯人 ${esc(name(e.culprit))}</em></div>`).join('')||'<p class="hint">没有事件。</p>'}
   <footer class="modal-foot">${btn('再来一局','new')}${btn('终局复盘','review')}${btn(icon('film')+'回放','open-replay','primary')}</footer>`,'wide truth');

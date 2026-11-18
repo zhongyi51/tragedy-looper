@@ -45,7 +45,7 @@ function token(v,c,ctx){
  const cls=['tok',!c.alive&&'dead',danger&&'danger',warn&&'warn',targetable&&'targetable',ctx.selected&&!targetable&&'muted',ctx.spot?.who===c.id&&'spot'].filter(Boolean).join(' ');
  const stat=(key,n,suffix='')=>`<span class="st ${key}${n?'':' zero'}">${icon(key==='g'?'heart':key==='p'?'unrest':'intrigue')}<b>${n}</b>${suffix}</span>`;
  return `<button type="button" class="${cls}" data-character="${c.id}" title="${esc(title)}">
-  <span class="tok-art"><img src="/${d.portrait}" alt="" loading="lazy" draggable="false"></span>
+  <span class="tok-art"><img src="/${d.avatar}" alt="" loading="lazy" draggable="false"></span>
   <span class="tok-tags">${role?`<span class="tag role ${knownRole?'known':'secret'}">${esc(name(role))}</span>`:guess?`<span class="tag role guess" title="你的推理">${esc(name(guess))}?</span>`:''}${culpritDays.map(day=>`<span class="tag culprit" title="第 ${day} 日事件的犯人">${day}日犯人</span>`).join('')}${suspectDays.map(day=>`<span class="tag culprit guess" title="你的推理：第 ${day} 日事件的犯人">${day}日犯人?</span>`).join('')}${c.extra?'<span class="tag extra" title="EX 卡">EX</span>':''}${movementLock?`<span class="tag extra" title="${esc(movementLock)}">${c.movementLockedDay===v.day?'移动禁止':c.movementLockedDay+'日禁移动'}</span>`:''}${c.guard?`<span class="tag guard" title="护卫">${icon('shield')}${c.guard}</span>`:''}</span>
   <span class="tok-cards">${cardsOn(v,c.id,ctx.spot)}</span>
   ${preview?`<span class="tok-preview">${esc(preview)}</span>`:''}
