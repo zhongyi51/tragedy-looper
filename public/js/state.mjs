@@ -9,7 +9,6 @@ export const state={
  syncRequired:false,recoveryPaused:false,actionError:'',actionErrorCode:'',advancedRevision:'',
  aiFeed:[],truth:null,banner:null,pendingOutcome:null,
  sideTab:'intel',sideOpen:false,sideWide:false,sheetTool:'no',
- skin:stored('tl-skin','original')==='summer'?'summer':'original',
  sound:stored('tl-sound','on')!=='off',
  autoPlay:stored('tl-autoplay','on')!=='off',
  speed:stored('tl-speed','1')==='2'?2:1,

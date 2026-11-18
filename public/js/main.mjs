@@ -56,7 +56,7 @@ function navHtml(){
  const {info,page,sound}=state;
  return `<button type="button" class="brand" data-do="nav-home" aria-label="返回首页"><span class="brand-mark">${icon('loop')}</span><span class="brand-text">时隙<small>TRAGEDY LOOPER</small></span></button>
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
-  <div class="nav-meta"><button type="button" class="skin-switch" data-do="skin" aria-pressed="${state.skin==='summer'}" title="切换全体人物的原版与夏装立绘">${icon('sun')}<span>夏日换肤</span></button><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(availableModels(info).map(p=>p.label).join('、')):'没有连接 AI 模型，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
+  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(availableModels(info).map(p=>p.label).join('、')):'没有连接 AI 模型，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
 const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ + MC</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
@@ -79,7 +79,7 @@ function render(){
  else patch(page,(state.page==='home'?homeHtml(state):state.page==='game'?emptyGameHtml():state.page==='editor'?editorHtml(state):state.page==='rules'?rulesHtml(state):replayIntroHtml(state))+footerHtml());
  patch($('#layer'),bannerHtml(state.banner)+state.modal);
  shell.inert=Boolean(state.modal);
- document.body.dataset.skin=state.skin;document.body.dataset.page=kind;document.body.classList.toggle('dialog-open',Boolean(state.modal));
+ document.body.dataset.page=kind;document.body.classList.toggle('dialog-open',Boolean(state.modal));
  if(state.modal&&!hadModal)$('.modal .primary, .modal button, .modal input, .modal select')?.focus();
 }
 
@@ -225,7 +225,6 @@ async function loadReplay({full=replay.full}={}){
 
 /* ---------- events ---------- */
 const actions={
- skin(){state.skin=state.skin==='summer'?'original':'summer';localStorage.setItem('tl-skin',state.skin);setCatalog(state.catalog,state.skin);render();toast(state.skin==='summer'?'已换上夏日服装':'已换回原版服装');},
  sound(){state.sound=!state.sound;localStorage.setItem('tl-sound',state.sound?'on':'off');render();play('click_001');},
  guide(){openModal(guideModal());},
  close:closeModal,
@@ -463,7 +462,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* ---------- start ---------- */
 try{
  [state.catalog,state.info,state.saves,state.library]=await Promise.all([api('/catalog'),api('/info'),api('/games'),api('/scripts/library').then(libraryItems).catch(()=>[])]);
- setCatalog(state.catalog,state.skin);
+ setCatalog(state.catalog);
  const id=localStorage.getItem('tl-game'),resume=localStorage.getItem('tl-resume'),wanted=location.hash.replace(/^#\//,'');
  if(id)try{state.g=await api('/games/'+id);if(resume===id){state.page='game';localStorage.removeItem('tl-resume');}}catch(error){if(resume)throw error;if(error.status===404)localStorage.removeItem('tl-game');}
  if(PAGES.some(([page])=>page===wanted)&&!(wanted==='game'&&!state.g))state.page=wanted;

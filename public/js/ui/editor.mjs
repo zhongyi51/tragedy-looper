@@ -20,7 +20,7 @@ function form(d){
  const castCard=c=>{
   const on=cast.includes(c.id);
   return `<div class="cast-card${on?' on':''}">
-   <button type="button" class="cast-toggle" data-do="cast" data-id="${c.id}" aria-pressed="${on}" title="${on?'移出剧本':'加入剧本'}"><img src="/${c.avatar}" alt="" loading="lazy"><b>${esc(c.name_zh_working)}</b>${on?icon('check'):icon('plus')}</button>
+   <button type="button" class="cast-toggle" data-do="cast" data-id="${c.id}" aria-pressed="${on}" title="${on?'移出剧本':'加入剧本'}"><img src="/${c.portrait}" alt="" loading="lazy"><b>${esc(c.name_zh_working)}</b>${on?icon('check'):icon('plus')}</button>
    ${on?select('role',c.id,roles,d.roles?.[c.id]||'person',c.name_zh_working+'的角色'):''}
   </div>`;
  };

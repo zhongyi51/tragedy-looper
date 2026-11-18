@@ -108,7 +108,7 @@ async function api(req,res,u,owner){const p=u.pathname;
 }
 const assetsRoot=path.resolve(root,'assets');
 const allowAssets=new Set(catalog.characters.flatMap(c=>[c.portrait,c.card]).map(p=>'/'+p));for(const n of ['click_001','drop_001','confirmation_001','error_001','glitch_001','bong_001','open_001'])allowAssets.add('/assets/audio/Audio/'+n+'.ogg');
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.webp':'image/webp','.ogg':'audio/ogg','.svg':'image/svg+xml'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.svg':'image/svg+xml'};
 // The client is whatever ships in public/, listed once at startup; nothing outside it is reachable.
 const publicRoot=path.join(root,'public');
 const publicFiles=new Map(readdirSync(publicRoot,{recursive:true,withFileTypes:true}).filter(d=>d.isFile()&&mime[path.extname(d.name)]).map(d=>{const file=path.join(d.parentPath,d.name);return ['/'+path.relative(publicRoot,file).split(path.sep).join('/'),file];}));

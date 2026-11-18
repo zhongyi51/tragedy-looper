@@ -1,13 +1,8 @@
 // Catalog-backed names and card metadata shared by every screen.
 let catalog=null,names=new Map(),characters=new Map();
 
-export function setCatalog(value,skin='original'){
- const cast=value.characters.map(c=>{
-  if(skin!=='summer')return {...c,avatar:c.portrait};
-  const art='skins/summer/'+c.id+'.webp';
-  return {...c,portrait:art,card:art,avatar:'skins/summer/avatars/'+c.id+'.webp'};
- });
- catalog={...value,characters:cast};names=new Map();characters=new Map(cast.map(c=>[c.id,c]));
+export function setCatalog(value){
+ catalog=value;names=new Map();characters=new Map(value.characters.map(c=>[c.id,c]));
  for(const list of [value.plots,value.incidents,value.roles,value.characters])for(const x of list)names.set(x.id,x.name_zh_working);
  for(const l of value.locations)names.set(l.id,l.name_zh);
 }

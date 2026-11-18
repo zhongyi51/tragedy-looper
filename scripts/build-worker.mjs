@@ -44,7 +44,7 @@ function bundleModule(file){
  return id;
 }
 const assets={},add=(url,p,type)=>assets[url]={data:readFileSync(path.join(root,p)).toString('base64'),type};
-const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.webp':'image/webp'};
+const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
 // Same rule as the local server: the client is every known file type under public/.
 for(const d of readdirSync(path.join(root,'public'),{recursive:true,withFileTypes:true}).filter(d=>d.isFile()&&types[path.extname(d.name)]).sort((a,b)=>path.join(a.parentPath,a.name).localeCompare(path.join(b.parentPath,b.name)))){const p=path.relative(root,path.join(d.parentPath,d.name)).split(path.sep).join('/');add(p.replace(/^public/,''),p,types[path.extname(d.name)]);}
 assets['/']=assets['/index.html'];
