@@ -50,7 +50,7 @@ export function newGameModal(state,mode='heroes',script='starter',values={}){
    <p class="hint">人物会从所选池中抽取。人工智能可模拟日程中的事件。</p>
    <p class="hint">指定规则会缩小推理范围；想保留悬念请选“随机”。</p>
    ${setup.ruleset==='MC'?'<p class="hint">MC 的愚者、双子、绝对者须各自担任事件犯人；私家侦探不能担任犯人。请为所选规则留足事件数。</p>':''}`:'<p class="hint">这份剧本已有固定的规则、人物与日程。选择快速随机或 AI 编剧即可在此定制，或在剧本工坊编辑。</p>'}
-   <p class="hint">事件日程按原版公开日期和名称。发生时告知结果，犯人与配役仍需推理；MZ 的伪装事件显示公开名称。</p>
+   <p class="hint">${draft?.settings?.incidentVisibility==='hidden'?'本剧本隐藏日程中的事件名称。':'事件日程按原版公开日期和名称。'}发生时告知结果，犯人与配役仍需推理；MZ 的伪装事件显示公开名称。</p>
   </details>
   <footer class="modal-foot">${btn('取消','close')}${btn((state.creating?'正在准备…':'开始')+(state.creating?'':icon('next')),'create','primary big',state.creating||source==='library'&&!selected?'disabled':'')}</footer>`,'wide');
 }

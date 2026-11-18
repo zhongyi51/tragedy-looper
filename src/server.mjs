@@ -1,6 +1,7 @@
+import {workshopDrafts} from './workshop-drafts.mjs';
 import {budgetChange} from './game-budget.mjs';
 import http from 'node:http';
-import {existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync,createReadStream,statSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {randomBytes,randomUUID} from 'node:crypto';
@@ -15,6 +16,7 @@ import {AUTHOR_VERSION} from './author.mjs';
 import {runtimeAiInfo,creationAiSettings,withAiSettings,gameAiInfo,providerOptions,selectedProvider,authorBudgetFor,polishBudgetFor} from './ai-settings.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),runtime=process.env.TL_RUNTIME||path.join(root,'runtime');mkdirSync(runtime,{recursive:true});
 const db=new DatabaseSync(path.join(runtime,'games.sqlite'));db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY); CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, owner TEXT, mode TEXT, state TEXT, budget REAL, spent REAL DEFAULT 0, created TEXT); CREATE TABLE IF NOT EXISTS frames(game TEXT, revision INTEGER, command TEXT, state TEXT, hash TEXT, PRIMARY KEY(game,revision)); CREATE TABLE IF NOT EXISTS receipts(game TEXT, commandId TEXT, revision INTEGER, PRIMARY KEY(game,commandId)); CREATE TABLE IF NOT EXISTS calls(id TEXT PRIMARY KEY, game TEXT, status TEXT, data TEXT);');
+db.exec(readFileSync(new URL('../drizzle/0002_workshop_drafts.sql',import.meta.url),'utf8'));
 const busy=new Set();
 db.exec('CREATE TABLE IF NOT EXISTS script_feedback(game TEXT PRIMARY KEY, owner TEXT NOT NULL, script_hash TEXT NOT NULL, source TEXT NOT NULL, rating TEXT NOT NULL, updated TEXT NOT NULL); CREATE INDEX IF NOT EXISTS feedback_script_hash ON script_feedback(script_hash);');
 db.exec('CREATE TABLE IF NOT EXISTS game_creation(owner TEXT NOT NULL, request_id TEXT NOT NULL, request_hash TEXT NOT NULL, game TEXT NOT NULL, status TEXT NOT NULL, error TEXT, created TEXT NOT NULL, PRIMARY KEY(owner,request_id));');
@@ -41,6 +43,9 @@ function replay(g,full=false){const seat=full?'M':'public';return {format:'trage
 async function api(req,res,u,owner){const p=u.pathname;
  if(p==='/api/info')return json(res,200,{version:VERSION,...runtimeAiInfo(),contentHash,authorVersion:AUTHOR_VERSION,aiVersion:AI_DECISION_VERSION});
  if(p==='/api/catalog')return json(res,200,catalog);
+ if(p==='/api/scripts/drafts'||p.startsWith('/api/scripts/drafts/'))return json(res,200,await workshopDrafts({
+  path:p,method:req.method,owner,body:()=>body(req),one:(sql,...args)=>db.prepare(sql).get(...args),all:(sql,...args)=>db.prepare(sql).all(...args)
+ }));
  if(p==='/api/scripts/library')return json(res,200,{scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return json(res,200,db.prepare('SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50').all(owner).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){
@@ -103,7 +108,7 @@ async function api(req,res,u,owner){const p=u.pathname;
 }
 const assetsRoot=path.resolve(root,'assets');
 const allowAssets=new Set(catalog.characters.flatMap(c=>[c.portrait,c.card]).map(p=>'/'+p));for(const n of ['click_001','drop_001','confirmation_001','error_001','glitch_001','bong_001','open_001'])allowAssets.add('/assets/audio/Audio/'+n+'.ogg');
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.ogg':'audio/ogg','.svg':'image/svg+xml'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.webp':'image/webp','.ogg':'audio/ogg','.svg':'image/svg+xml'};
 // The client is whatever ships in public/, listed once at startup; nothing outside it is reachable.
 const publicRoot=path.join(root,'public');
 const publicFiles=new Map(readdirSync(publicRoot,{recursive:true,withFileTypes:true}).filter(d=>d.isFile()&&mime[path.extname(d.name)]).map(d=>{const file=path.join(d.parentPath,d.name);return ['/'+path.relative(publicRoot,file).split(path.sep).join('/'),file];}));

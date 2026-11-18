@@ -9,10 +9,11 @@ export const state={
  syncRequired:false,recoveryPaused:false,actionError:'',actionErrorCode:'',advancedRevision:'',
  aiFeed:[],truth:null,banner:null,pendingOutcome:null,
  sideTab:'intel',sideOpen:false,sideWide:false,sheetTool:'no',
+ skin:stored('tl-skin','original')==='summer'?'summer':'original',
  sound:stored('tl-sound','on')!=='off',
  autoPlay:stored('tl-autoplay','on')!=='off',
  speed:stored('tl-speed','1')==='2'?2:1,
  rulesTab:'basics',
- editor:{text:'',report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:'',lockSeed:false,lengthPreset:'standard',difficulty:'standard',provider:'deepseek'}},
+ editor:{text:'',savedText:'',fileId:null,fileRevision:0,files:[],fileBusy:false,report:null,tab:'form',generator:{ruleset:'FS',seed:Date.now()%1000000,theme:'',lockSeed:false,lengthPreset:'standard',difficulty:'standard',provider:'deepseek'}},
  replay:{data:null,at:0,gameId:null,playing:false,full:false}
 };

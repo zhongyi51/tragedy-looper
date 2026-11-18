@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createWorker} from '../worker/index.mjs';
 function fixture(){
- const sql=new DatabaseSync(':memory:');for(const migration of ['0000_initial.sql','0001_script_feedback.sql'])sql.exec(readFileSync(new URL('../drizzle/'+migration,import.meta.url),'utf8'));
+ const sql=new DatabaseSync(':memory:');for(const migration of ['0000_initial.sql','0001_script_feedback.sql','0002_workshop_drafts.sql'])sql.exec(readFileSync(new URL('../drizzle/'+migration,import.meta.url),'utf8'));
  const wrap=(query,args=[])=>({bind(...values){return wrap(query,values);},async first(){return sql.prepare(query).get(...args)||null;},async all(){return {results:sql.prepare(query).all(...args)};},async run(){const r=sql.prepare(query).run(...args);return {meta:{changes:Number(r.changes)}};}});
  const DB={prepare:q=>wrap(q),async batch(statements){sql.exec('BEGIN');try{const out=[];for(const s of statements)out.push(await s.run());sql.exec('COMMIT');return out;}catch(e){sql.exec('ROLLBACK');throw e;}}};
  const worker=createWorker({'/':{type:'text/html',data:Buffer.from('<h1>Game</h1>').toString('base64')}});
@@ -277,4 +277,25 @@ test('completed creation recovery does not require the former model credential o
  const recovered=await request('/api/games',input);assert.equal(recovered.status,200);assert.equal(recovered.data.id,first.data.id);assert.equal(recovered.data.aiConfigured,false);
  assert.equal(sql.prepare('SELECT count(*) AS n FROM games').get().n,1);assert.equal(sql.prepare('SELECT count(*) AS n FROM calls').get().n,0);
  const fresh=await request('/api/games',{...input,requestId:'another-model-recovery'});assert.equal(fresh.data.code,'NO_KEY');
+});
+
+test('private workshop drafts can be resumed incomplete, copied, and played with their own schedule',async()=>{
+ const {request}=fixture(),base='/api/scripts/drafts',id=crypto.randomUUID(),url=base+'/'+id;
+ const write=(content,revision)=>request(url,{content,revision});
+ const incomplete=JSON.stringify({title:'海风草稿',characters:[]});
+ assert.equal((await write(incomplete,0)).data.revision,1);
+ assert.equal((await write(incomplete,0)).data.revision,1);
+ assert.equal((await request(url,undefined,'another-owner')).status,404);
+ assert.deepEqual((await request(base,undefined,'another-owner')).data,[]);
+ const script=(await request('/api/scripts/starter')).data;
+ script.settings.incidentVisibility='hidden';script.intro='晴天。';script.privateDesign={premise:'秘密'};
+ const saved=JSON.stringify(script);
+ assert.equal((await write(saved,1)).data.revision,2);
+ assert.equal((await write(incomplete,1)).status,409);
+ const loaded=JSON.parse((await request(url)).data.content);assert.deepEqual(loaded,script);
+ const copy=base+'/'+crypto.randomUUID();assert.equal((await request(copy,{content:saved,revision:0})).data.revision,1);
+ assert.equal((await request(base)).data.length,2);
+ const game=await request('/api/games',{mode:'heroes',opponent:'bot',script:loaded});
+ assert.equal(game.status,201);assert.equal(game.data.script.intro,'晴天。');
+ assert.deepEqual(game.data.script.incidents,[{day:3}]);assert.equal(game.data.script.privateDesign,undefined);
 });

@@ -1,3 +1,4 @@
+import {workshopDrafts} from '../src/workshop-drafts.mjs';
 import {budgetChange} from '../src/game-budget.mjs';
 import {catalog,starter,generateScript,validateScript,publicScript,contentHash,scriptForGame} from '../src/content.mjs';
 import {createGame,view,hash,VERSION,applyCommand,turn} from '../src/engine.mjs';
@@ -49,6 +50,9 @@ export async function handleApi(req,env,owner){
  const db=env.DB;if(!db)fail(503,'云端存储还没准备好');const u=new URL(req.url),p=u.pathname;
  if(p==='/api/info')return reply({version:VERSION,...runtimeAiInfo(env),contentHash,hosted:true,authorVersion:AUTHOR_VERSION,aiVersion:AI_DECISION_VERSION});
  if(p==='/api/catalog')return reply(catalog);
+ if(p==='/api/scripts/drafts'||p.startsWith('/api/scripts/drafts/'))return reply(await workshopDrafts({
+  path:p,method:req.method,owner,body:()=>readBody(req),one:(sql,...args)=>one(db,sql,...args),all:(sql,...args)=>rows(db,sql,...args)
+ }));
  if(p==='/api/scripts/library')return reply({scripts:listCuratedScripts()});
  if(p==='/api/games'&&req.method==='GET')return reply((await rows(db,'SELECT id,mode,created,state,spent FROM games WHERE owner=? ORDER BY created DESC LIMIT 50',owner)).map(saveSummary));
  if(p==='/api/games'&&req.method==='POST'){

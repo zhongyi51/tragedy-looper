@@ -13,7 +13,7 @@ import {availableModels,authorModel,opponentSettings} from './ai-settings.mjs';
 import {TABLE_SKELETON,emptyGameHtml,tableRegions} from './ui/game.mjs';
 import {homeHtml} from './ui/home.mjs';
 import {rulesHtml} from './ui/rules.mjs';
-import {editorHtml} from './ui/editor.mjs';
+import {editorHtml,report as draftReport} from './ui/editor.mjs';
 import {replayIntroHtml,replayBarHtml} from './ui/replay.mjs';
 import {budgetModal,newGameModal,characterModal,guideModal,truthModal,reviewModal,bannerHtml} from './ui/modals.mjs';
 import {analyze,emptyMarks,markRole,markPlot,markCulprit} from './deduce.mjs';
@@ -56,7 +56,7 @@ function navHtml(){
  const {info,page,sound}=state;
  return `<button type="button" class="brand" data-do="nav-home" aria-label="返回首页"><span class="brand-mark">${icon('loop')}</span><span class="brand-text">时隙<small>TRAGEDY LOOPER</small></span></button>
   <nav class="nav-links" aria-label="主导航">${PAGES.map(([id,label,glyph])=>`<button type="button" class="${page===id?'active':''}" data-do="nav-${id}" aria-label="${label}"${page===id?' aria-current="page"':''}>${icon(glyph)}<span>${label}</span></button>`).join('')}</nav>
-  <div class="nav-meta"><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(availableModels(info).map(p=>p.label).join('、')):'没有连接 AI 模型，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
+  <div class="nav-meta"><button type="button" class="skin-switch" data-do="skin" aria-pressed="${state.skin==='summer'}" title="切换全体人物的原版与夏装立绘">${icon('sun')}<span>夏日换肤</span></button><span class="ai-status${info.configured?' online':''}" title="${info.configured?'模型：'+esc(availableModels(info).map(p=>p.label).join('、')):'没有连接 AI 模型，对手是离线机器人'}"><i></i><span>${info.configured?'AI 已连接':'离线模式'}</span></span>${iconBtn(sound?'soundOn':'soundOff','sound',sound?'关闭声音':'开启声音')}</div>`;
 }
 const footerHtml=()=>`<footer class="footer"><span>原作 惨劇RoopeR / BakaFire Party · 非官方模拟器 · JP5 / FS + BTX + MZ + MC</span><span><a href="https://main-bakafire.ssl-lolipop.jp/rooper/sr_dl_04_sozai.htm" target="_blank" rel="noreferrer">惨劇コモンズ作成：BakaFire、NEKOG(紺ノ玲)</a> · Kenney CC0 音效</span></footer>`;
 
@@ -79,7 +79,7 @@ function render(){
  else patch(page,(state.page==='home'?homeHtml(state):state.page==='game'?emptyGameHtml():state.page==='editor'?editorHtml(state):state.page==='rules'?rulesHtml(state):replayIntroHtml(state))+footerHtml());
  patch($('#layer'),bannerHtml(state.banner)+state.modal);
  shell.inert=Boolean(state.modal);
- document.body.dataset.page=kind;document.body.classList.toggle('dialog-open',Boolean(state.modal));
+ document.body.dataset.skin=state.skin;document.body.dataset.page=kind;document.body.classList.toggle('dialog-open',Boolean(state.modal));
  if(state.modal&&!hadModal)$('.modal .primary, .modal button, .modal input, .modal select')?.focus();
 }
 
@@ -94,6 +94,7 @@ function setPage(page,{push=true}={}){
  animator.cancel();Object.assign(state,{page,auto:false,modal:'',sideOpen:false,banner:null,pendingOutcome:null});stopReplay();fx.cleanup();
  if(push)route(page);
  render();window.scrollTo(0,0);
+ if(page==='editor')refreshDrafts();
  if(page==='home')api('/games').then(saves=>{state.saves=saves;if(state.page==='home')render();}).catch(()=>{});
  kick();
 }
@@ -118,25 +119,65 @@ function selectCard(id){
 /* ---------- script workshop ---------- */
 const editor=state.editor;
 function setDraft(draft){editor.text=JSON.stringify(draft,null,2);editor.report=null;validateSoon();}
+function startManuscript(draft){
+ Object.assign(editor,{fileId:crypto.randomUUID(),fileRevision:0,savedText:'',tab:'form',copyId:null});
+ setDraft(draft);render();
+}
+function canReplaceDraft(){
+ return !editor.fileBusy&&!state.working&&(!editor.text||editor.text===editor.savedText||confirm('当前修改还没有保存。仍要切换草稿吗？'));
+}
+async function refreshDrafts(){
+ const seq=editor.listRequest=(editor.listRequest||0)+1;
+ try{const files=await api('/scripts/drafts');if(seq!==editor.listRequest)return;editor.files=files;editor.filesError=false;}
+ catch{if(seq!==editor.listRequest)return;editor.filesError=true;}
+ if(state.page==='editor')render();
+}
+async function openDraft(id){
+ if(!canReplaceDraft())return;
+ const previous=editor.text,previousId=editor.fileId;
+ const file=await api('/scripts/drafts/'+id);
+ if(editor.text!==previous||editor.fileId!==previousId)return;
+ Object.assign(editor,{fileId:file.id,fileRevision:file.revision,text:file.content,savedText:file.content,copyId:null,tab:parseDraft(file.content)?'form':'json',report:null});
+ validateSoon();render();
+}
+async function saveDraft(copy=false){
+ if(editor.fileBusy||!editor.text.trim())return;
+ const content=editor.text,id=copy?(editor.copyId??=crypto.randomUUID()):(editor.fileId??=crypto.randomUUID());
+ editor.fileBusy=true;render();
+ try{
+  const file=await api('/scripts/drafts/'+id,{content,revision:copy?0:editor.fileRevision});
+  Object.assign(editor,{fileId:id,fileRevision:file.revision,savedText:content,copyId:null});
+  editor.listRequest=(editor.listRequest||0)+1;
+  editor.files=[file,...editor.files.filter(f=>f.id!==id)];
+  toast(copy?'已保存为独立副本':'草稿已保存');
+ }finally{editor.fileBusy=false;render();}
+}
 function readDraft(){const draft=parseDraft(editor.text);if(!draft)throw Error('剧本 JSON 格式有误');return draft;}
 async function validate(){
- const draft=parseDraft(editor.text);
- editor.report=draft?await api('/scripts/validate',draft):{failure:'剧本 JSON 格式有误'};
- return editor.report;
+ const text=editor.text,draft=parseDraft(text);
+ const result=draft?await api('/scripts/validate',draft):{failure:'剧本 JSON 格式有误'};
+ if(editor.text===text){editor.report=result;patch($('#draft-report'),draftReport(result));}
+ return result;
 }
 async function validDraft(){
- const draft=readDraft(),report=await validate();render();
+ const text=editor.text,draft=readDraft(),report=await validate();
+ if(editor.text!==text)throw Error('剧本刚刚发生变化，请再次检查。');
  if(report.errors.length)throw Error('剧本有误：'+report.errors.map(x=>x.message).join('；'));
  return draft;
 }
 function validateSoon(){
  clearTimeout(validateSoon.timer);
- validateSoon.timer=setTimeout(()=>validate().then(()=>{if(state.page==='editor')render();}).catch(()=>{}),300);
+ validateSoon.timer=setTimeout(()=>validate().catch(()=>{}),300);
 }
-function applyEdit(edit){
+function applyEdit(edit,draw=true){
  const draft=parseDraft(editor.text);if(!draft)return;
- setDraft(editDraft(draft,edit));render();
+ setDraft(editDraft(draft,edit));if(draw)render();else markDraftChanged();
 }
+function markDraftChanged(){
+ const badge=$('#draft-status');if(badge)badge.textContent='尚未保存';
+ const button=$('[data-do="save-draft"]');if(button)button.disabled=editor.fileBusy||!editor.text.trim();
+}
+const isWritingField=t=>t.matches('textarea[data-edit],input[data-edit]:not([type=number])');
 
 /* ---------- new-game constraints ---------- */
 function readGameSetup(){
@@ -184,6 +225,7 @@ async function loadReplay({full=replay.full}={}){
 
 /* ---------- events ---------- */
 const actions={
+ skin(){state.skin=state.skin==='summer'?'original':'summer';localStorage.setItem('tl-skin',state.skin);setCatalog(state.catalog,state.skin);render();toast(state.skin==='summer'?'已换上夏日服装':'已换回原版服装');},
  sound(){state.sound=!state.sound;localStorage.setItem('tl-sound',state.sound?'on':'off');render();play('click_001');},
  guide(){openModal(guideModal());},
  close:closeModal,
@@ -249,7 +291,7 @@ const actions={
   let createdSuccessfully=false;
   state.creating=true;state.modal=newGameModal(state,mode,type,setup);render();
   try{
-   const request={mode,budget:setup.budget,incidentVisibility:'public',communication:setup.communication,...opponentSettings(setup.opponent)};
+   const request={mode,budget:setup.budget,...(type==='editor'?{}:{incidentVisibility:'public'}),communication:setup.communication,...opponentSettings(setup.opponent)};
    if(type==='ai')request.authorProvider=authorModel(state.info,setup.authorProvider);
    if(randomSetup(type))request.setup=generationOptions(type,setup);
    else if(type==='library')request.libraryId=setup.libraryId;
@@ -273,14 +315,19 @@ const actions={
  async choose(b){const option=state.g.actions[+b.dataset.index];if(option)await step(option.command);},
  bot:()=>step(undefined,'bot-step'),
  async auto(){if(!state.auto&&state.actionError){state.actionError='';state.actionErrorCode='';}await session.runAuto();},
- 'blank-script'(){setDraft(blankDraft());editor.tab='form';render();},
+ 'blank-script'(){if(canReplaceDraft())startManuscript(blankDraft());},
+ 'refresh-drafts':refreshDrafts,
+ 'open-draft':b=>openDraft(b.dataset.id),
+ 'save-draft':()=>saveDraft(),
+ 'copy-draft':()=>saveDraft(true),
+ 'work-section':b=>document.getElementById('work-'+b.dataset.section)?.scrollIntoView(),
  cast(b){applyEdit({kind:'cast',key:b.dataset.id});},
  async generate(b){await generate(b.dataset.do);},
  'ai-generate':b=>generate(b.dataset.do),
  'ai-polish':b=>generate(b.dataset.do),
- async 'starter-editor'(){setDraft(await api('/scripts/starter'));render();},
+ async 'starter-editor'(){if(canReplaceDraft())startManuscript(await api('/scripts/starter'));},
  async validate(){await validate();render();},
- 'play-editor'(){readDraft();openModal(newGameModal(state,'mastermind','editor'));},
+ async 'play-editor'(){await validDraft();openModal(newGameModal(state,'mastermind','editor'));},
  async 'export-script'(){download(await validDraft(),'script-private.SPOILERS.json');},
  async 'export-public'(){download(publicDraft(await validDraft()),'script-public.json');},
  async 'print-public'(){download(printableHtml(await validDraft(),false),'script-public.html','text/html');},
@@ -301,6 +348,7 @@ const actions={
 };
 async function generate(kind){
  if(state.working)return;
+ if(kind!=='ai-polish'&&!canReplaceDraft())return;
  const gen=editor.generator;
  if(kind!=='ai-polish'&&!gen.lockSeed)gen.seed=freshSeed(gen.seed);
  const config=kind==='ai-polish'?{script:readDraft(),theme:gen.theme,provider:authorModel(state.info,gen.provider)}:{ruleset:gen.ruleset,seed:+gen.seed,theme:gen.theme,
@@ -308,7 +356,7 @@ async function generate(kind){
  state.working=true;render();
  try{
   const data=await api(kind==='generate'?'/scripts/generate':kind==='ai-polish'?'/scripts/ai-polish':'/scripts/ai-generate',config);
-  setDraft(data.script||data);
+  if(kind==='ai-polish')setDraft(data.script||data);else startManuscript(data.script||data);
   toast(kind==='generate'?(gen.lockSeed?'已按种子生成剧本':'已生成另一份剧本'):(kind==='ai-polish'?'AI 润色完成':'AI 编剧完成')+(Number.isFinite(data.estimatedCost)?(data.costKind==='provider_reported'?'，$':'，约 $')+data.estimatedCost.toFixed(5):''));
  }finally{state.working=false;render();}
 }
@@ -340,9 +388,12 @@ document.addEventListener('input',e=>{
  if(t.id==='gen-seed'){editor.generator.seed=+t.value;editor.generator.lockSeed=true;const lock=$('#gen-lock');if(lock)lock.checked=true;const button=$('[data-do="generate"]');if(button)button.textContent='按种子生成';}
  else if(t.id==='gen-theme')editor.generator.theme=t.value;
  else if(t.id==='notes')localStorage.setItem('note-'+t.dataset.note,t.value);
- else if(t.id==='script-editor'){editor.text=t.value;editor.report=null;validateSoon();}
+ else if(t.id==='script-editor'){editor.text=t.value;editor.report=null;markDraftChanged();validateSoon();}
+ else if(isWritingField(t))applyEdit({kind:t.dataset.edit,key:t.dataset.key,value:t.value},false);
  else if(t.id==='replay-range'){stopReplay();seekReplay(+t.value,{fromSlider:true});}
 });
+
+document.addEventListener('toggle',e=>{if(e.target.id==='work-generator'&&e.target.isConnected)editor.generatorOpen=e.target.open;},true);
 
 document.addEventListener('change',async e=>{
  const t=e.target;
@@ -355,6 +406,7 @@ document.addEventListener('change',async e=>{
   if(t.id==='gen-lock'){editor.generator.lockSeed=t.checked;render();return;}
   if(t.id==='gen-length'){editor.generator.lengthPreset=t.value;return;}
   if(t.id==='gen-difficulty'){editor.generator.difficulty=t.value;return;}
+  if(isWritingField(t))return;
   if(t.dataset.edit)return applyEdit({kind:t.dataset.edit,key:t.dataset.key,value:t.value});
   if(t.dataset.sheetCulprit)return editMarks(marks=>markCulprit(marks,t.dataset.sheetCulprit,t.value));
   if(t.id==='autoplay'){
@@ -365,7 +417,7 @@ document.addEventListener('change',async e=>{
    const file=t.files[0];if(!file)return;
    if(file.size>20*1024*1024)throw Error('文件太大，最多 20MB');
    const data=JSON.parse(await file.text());
-   if(t.id==='script-file')setDraft(data);
+   if(t.id==='script-file'){if(canReplaceDraft())startManuscript(data);}
    else{validateReplay(data,state.catalog);stopReplay();Object.assign(replay,{data:sanitizePublicReplay(data),at:0,gameId:null,full:false});}
    render();
   }
@@ -402,6 +454,7 @@ document.addEventListener('keydown',e=>{
  }
 });
 
+window.addEventListener('beforeunload',e=>{if(editor.text&&editor.text!==editor.savedText){e.preventDefault();e.returnValue='';}});
 window.addEventListener('hashchange',()=>{const page=location.hash.replace(/^#\//,'');if(page!==state.page)setPage(page,{push:false});});
 window.addEventListener('online',()=>session.connectionRestored());
 window.addEventListener('focus',()=>session.connectionRestored());
@@ -410,12 +463,13 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* ---------- start ---------- */
 try{
  [state.catalog,state.info,state.saves,state.library]=await Promise.all([api('/catalog'),api('/info'),api('/games'),api('/scripts/library').then(libraryItems).catch(()=>[])]);
- setCatalog(state.catalog);
+ setCatalog(state.catalog,state.skin);
  const id=localStorage.getItem('tl-game'),resume=localStorage.getItem('tl-resume'),wanted=location.hash.replace(/^#\//,'');
  if(id)try{state.g=await api('/games/'+id);if(resume===id){state.page='game';localStorage.removeItem('tl-resume');}}catch(error){if(resume)throw error;if(error.status===404)localStorage.removeItem('tl-game');}
  if(PAGES.some(([page])=>page===wanted)&&!(wanted==='game'&&!state.g))state.page=wanted;
  $('#app').innerHTML='<div id="shell"><header class="nav" id="nav"></header><div id="page"></div></div><div id="layer"></div>';
  render();
+ if(state.page==='editor')refreshDrafts();
  if(state.page==='game'){await session.resumeRules();kick();}
 }catch(error){
  $('#app').innerHTML=`<main class="startup-error"><h1>连接失败</h1><p>${esc(error.message)}</p>${error.requiresLogin?'<a class="btn primary" data-reauth href="/signin-with-chatgpt" target="_top">重新登录</a>':btn('重新连接','reconnect','primary')}</main>`;
