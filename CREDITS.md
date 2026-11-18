@@ -19,4 +19,4 @@ Midnight Zone 规则依据原作者[官方速览表](https://bakafire.main.jp/ro
 
 Mystery Circle 依据原作者[MC 官方速览](https://bakafire.main.jp/rooper/pdf/summary_002.pdf)及[官方通用 FAQ](https://main-bakafire.ssl-lolipop.jp/rooper/sr_game_02_rule.htm)整理；与英文 Midnight Circle 玩家手册比对，产品标记 MC，具体机制按上述公开速览与现行裁定；官方目录的集合名为 Mystery Circle Χ，而速览标题为 Mystery Circle。英文资料中黑之学园、伪装自杀和猎奇杀人 EX 时序存在措辞差异，本实现统一按上述原作者规则处理。
 
-夏日系列是惨劇コモンズ 5th 立绘的非官方改编，由本项目在原画的服装区域加入夏日配色和纹样，并裁切棋盘头像。原作与美术署名 BakaFire、NEKOG（紺ノ玲）。换装立绘和头像沿用 CC BY-SA 2.1 Japan 条款。
+夏日系列是惨劇コモンズ 5th 立绘的非官方改编。本项目以原人物为底稿，用 AI 绘制新的夏季服装，并从换装立绘裁切棋盘头像。原作与美术署名 BakaFire、NEKOG（紺ノ玲）。换装立绘和头像沿用 CC BY-SA 2.1 Japan 条款。
