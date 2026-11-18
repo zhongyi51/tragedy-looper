@@ -27,7 +27,7 @@ test('model choices keep existing compact controls and expose the selected autho
  setCatalog(catalog);const info=runtimeAiInfo(env),state={info,editor:{text:'',tab:'form',generator:{ruleset:'FS',seed:1,theme:'',provider:'openrouter'}}};
  const html=newGameModal(state,'heroes','ai',{authorProvider:'openrouter',opponent:'openrouter'});
  assert.match(html,/<select id="new-opponent">/);assert.match(html,/<option value="ai">DeepSeek AI<\/option>/);
- assert.match(html,/<option value="openrouter" selected>GPT-6.1 Sol AI<\/option>/);
+ assert.match(html,/<option value="openrouter" selected>GPT-6.2 Sol AI<\/option>/);
  assert.match(html,/<select id="new-author-provider">/);assert.match(html,/每次上限 \$0.50/);
  assert.match(editorHtml(state),/id="gen-provider"/);assert.match(editorHtml(state),/每次上限 \$0.50/);
  assert.deepEqual(opponentSettings('openrouter'),{opponent:'ai',aiProvider:'openrouter'});

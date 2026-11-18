@@ -4,7 +4,7 @@ import {providersInfo,modelFor,ratesFor,providerLabel} from './model-provider.mj
 
 const invalid=(message,code='MODEL_PROVIDER')=>Object.assign(Error(message),{code,status:400});
 export function selectedProvider(value='deepseek',env,{required=false}={}){
- if(!['deepseek','openrouter'].includes(value))throw invalid('请选择 DeepSeek 或 GPT-6.1 Sol');
+ if(!['deepseek','openrouter'].includes(value))throw invalid('请选择 DeepSeek 或 GPT-6.2 Sol');
  if(required&&!providersInfo(env).find(p=>p.id===value)?.configured)throw invalid(`还没有配置 ${providerLabel(value)} 密钥，可以改用已连接的模型或离线机器人。`,'NO_KEY');
  return value;
 }

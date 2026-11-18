@@ -221,7 +221,7 @@ test('cloud advertises both model providers without disclosing credentials',asyn
  const r=await request('/api/info');assert.equal(r.status,200);
  assert.equal(r.data.defaultProvider,'deepseek');assert.equal(r.data.providers.length,2);
  assert.deepEqual(r.data.providers.map(p=>[p.id,p.configured]),[['deepseek',true],['openrouter',true]]);
- assert.equal(r.data.providers.find(p=>p.id==='openrouter').model,'openai/gpt-6.1-sol');
+ assert.equal(r.data.providers.find(p=>p.id==='openrouter').model,'openai/gpt-6.2-sol');
  assert.equal(r.data.authorBudgets.deepseek,.12);assert.equal(r.data.authorBudgets.openrouter,.50);
  assert.doesNotMatch(JSON.stringify(r.data),/unit-deepseek-secret|unit-openrouter-secret|API_KEY/);
  delete env.DEEPSEEK_API_KEY;const onlySol=(await request('/api/info')).data;assert.equal(onlySol.configured,true);assert.equal(onlySol.defaultProvider,'openrouter');
@@ -240,14 +240,14 @@ test('cloud saves Sol choice through reload and branch and settles actual provid
  const {request,env,sql}=fixture();env.DEEPSEEK_API_KEY='unit-deepseek-secret';env.OPENROUTER_API_KEY='unit-openrouter-secret';let calls=0;
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   calls++;assert.equal(url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(options.headers.Authorization,'Bearer '+env.OPENROUTER_API_KEY);
-  const body=JSON.parse(options.body);assert.equal(body.model,'openai/gpt-6.1-sol');assert.equal(body.reasoning.effort,'low');assert.ok(body.session_id||body.prompt_cache_key);
+  const body=JSON.parse(options.body);assert.equal(body.model,'openai/gpt-6.2-sol');assert.equal(body.reasoning.effort,'low');assert.ok(body.session_id||body.prompt_cache_key);
   return new Response(JSON.stringify({id:'provider-test',model:body.model,usage:{prompt_tokens:1000,completion_tokens:100,cost:.012345,prompt_tokens_details:{cached_tokens:800,cache_write_tokens:100},completion_tokens_details:{reasoning_tokens:40}},choices:[{finish_reason:'stop',message:{content:'{"choice":0,"reason":"选择合法行动"}'}}]}));
  });
  const created=await request('/api/games',{mode:'mastermind',aiProvider:'openrouter',opponent:'ai',budget:1});assert.equal(created.status,201);let g=created.data;
- assert.equal(g.aiProvider,'openrouter');assert.equal(g.opponent,'ai');assert.equal(g.modelLabel,'GPT-6.1 Sol');
+ assert.equal(g.aiProvider,'openrouter');assert.equal(g.opponent,'ai');assert.equal(g.modelLabel,'GPT-6.2 Sol');
  for(let n=0;n<3;n++)g=(await request('/api/games/'+g.id+'/bot-step',{revision:g.revision})).data;
  assert.equal(g.phaseId,'hero_cards');
- const requestBody={revision:g.revision,commandId:'sol-once'};const step=await request('/api/games/'+g.id+'/ai-step',requestBody);assert.equal(step.status,200);assert.equal(step.data.decision.controller,'GPT-6.1 Sol');assert.equal(calls,1);
+ const requestBody={revision:g.revision,commandId:'sol-once'};const step=await request('/api/games/'+g.id+'/ai-step',requestBody);assert.equal(step.status,200);assert.equal(step.data.decision.controller,'GPT-6.2 Sol');assert.equal(calls,1);
  assert.equal((await request('/api/games/'+g.id+'/ai-step',requestBody)).status,200);assert.equal(calls,1);
  const saved=sql.prepare('SELECT spent,state FROM games WHERE id=?').get(g.id);assert.ok(Math.abs(saved.spent-.012345)<1e-10);
  const ledger=JSON.parse(sql.prepare('SELECT data FROM calls WHERE game=?').get(g.id).data);assert.equal(ledger.costKind,'provider_reported');assert.equal(ledger.actualCost,.012345);assert.equal(ledger.normalizedUsage.cachedInputTokens,800);

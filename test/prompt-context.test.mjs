@@ -70,9 +70,9 @@ test('compiled-plan repair retains complete facts and exact original cache prefi
 });
 
 test('decision summary names the selected model without exposing mastermind reasoning',()=>{
- assert.deepEqual(decisionSummary('ai-step','M',{modelLabel:'GPT-6.1 Sol',reason:'SECRET_PLAN'}),{controller:'GPT-6.1 Sol',automatic:false,seat:'M'});
- assert.equal(decisionSummary('ai-step','A',{modelLabel:'GPT-6.1 Sol',reason:'公开行动依据'}).reason,'公开行动依据');
- assert.equal(decisionSummary('ai-step','M',{automatic:true,modelLabel:'GPT-6.1 Sol'}).controller,'规则引擎');
+ assert.deepEqual(decisionSummary('ai-step','M',{modelLabel:'GPT-6.2 Sol',reason:'SECRET_PLAN'}),{controller:'GPT-6.2 Sol',automatic:false,seat:'M'});
+ assert.equal(decisionSummary('ai-step','A',{modelLabel:'GPT-6.2 Sol',reason:'公开行动依据'}).reason,'公开行动依据');
+ assert.equal(decisionSummary('ai-step','M',{automatic:true,modelLabel:'GPT-6.2 Sol'}).controller,'规则引擎');
 });
 
 
@@ -84,7 +84,7 @@ test('Sol uses a 2048-token low-reasoning decision cap while DeepSeek retains it
  t.mock.method(globalThis,'fetch',async(_url,init)=>{requests.push(JSON.parse(init.body));return output({choice:0});});
  const answer=await decide(s,'M',{provider:'openrouter',apiKey:'not_a_real_test_key'});
  assert.equal(requests[0].max_tokens,2048);assert.equal(requests[0].reasoning.effort,'low');
- assert.equal(answer.provider,'openrouter');assert.equal(answer.modelLabel,'GPT-6.1 Sol');
+ assert.equal(answer.provider,'openrouter');assert.equal(answer.modelLabel,'GPT-6.2 Sol');
  assert.deepEqual(requests[0].prompt_cache_options,{mode:'explicit',ttl:'30m'});
  const original=decisionContext(s,'M').messages;
  assert.ok(requests[0].messages[0].content[0].text.startsWith(original[0].content));

@@ -7,7 +7,7 @@
 - Sites 访问策略必须是仅所有者。Worker 还会拒绝没有 `oai-authenticated-user-id` 的请求。
 - D1 的每条游戏记录按 Sites 用户 ID 隔离；不同账户不能读取对局、剧本或回放。
 - `DEEPSEEK_API_KEY` 与 `OPENROUTER_API_KEY` 通过 Sites 环境变量工具以 `is_secret: true` 保存，仅从 Worker 的 `env` 读取。不要写入 `.openai/hosting.json`、客户端、Git 历史或存档。
-- DeepSeek 仍是默认模型。配置 OpenRouter 密钥后，新对局和剧本工坊可选择固定的 `openai/gpt-6.1-sol`（low）；模型选择随对局保存，不因密钥缺失自动切换供应商。
+- DeepSeek 仍是默认模型。配置 OpenRouter 密钥后，新对局和剧本工坊可选择固定的 `openai/gpt-6.2-sol`（low）；模型选择随对局保存，不因密钥缺失自动切换供应商。
 - `.openai/hosting.json` 配置 `project_id` 和 `"d1": "DB"`；运行 `node scripts/build-worker.mjs` 生成部署构件。GitHub 源码不携带当前私人站点标识，部署时由操作者设置自己的项目。
 - `drizzle/0000_initial.sql` 和迁移 journal 随部署包提交；表结构不在请求中动态创建。已经应用的迁移不得修改。
 

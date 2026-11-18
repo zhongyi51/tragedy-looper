@@ -11,16 +11,16 @@ const base=(process.env.DEEPSEEK_BASE_URL||'https://api.deepseek.com').replace(/
 // Sol settles with OpenRouter usage.cost when supplied; these rates only cover
 // fallback estimates and reservations, including the observed cache-write price.
 export const rates=Object.freeze({input:0.30,cached:0.006,output:1.20,currency:'USD',kind:'conservative_estimate',asOf:'2026-11-08'});
-const solRates=Object.freeze({input:2,cached:0.1,cacheWrite:2.5,output:10,currency:'USD',kind:'provider_reported_or_estimate',asOf:'2026-11-16'});
+const solRates=Object.freeze({input:2,cached:0.1,cacheWrite:2.5,output:10,currency:'USD',kind:'provider_reported_or_estimate',asOf:'2026-11-18'});
 const providerIds=['deepseek','openrouter'];
-function checkProvider(provider){if(!providerIds.includes(provider))throw new AiError('MODEL_PROVIDER','请选择 DeepSeek 或 GPT-6.1 Sol。');return provider;}
+function checkProvider(provider){if(!providerIds.includes(provider))throw new AiError('MODEL_PROVIDER','请选择 DeepSeek 或 GPT-6.2 Sol。');return provider;}
 export function modelFor(provider='deepseek'){
  checkProvider(provider);
- if(provider==='openrouter')return 'openai/gpt-6.1-sol';
+ if(provider==='openrouter')return 'openai/gpt-6.2-sol';
  if(!['deepseek-flash','deepseek-v4-flash','deepseek-v4-flash-vision-exp'].includes(model))throw new AiError('MODEL_OPTIONS','当前仅支持 DeepSeek Flash 官方模型。');
  return model;
 }
-export function providerLabel(provider='deepseek'){return checkProvider(provider)==='openrouter'?'GPT-6.1 Sol':'DeepSeek';}
+export function providerLabel(provider='deepseek'){return checkProvider(provider)==='openrouter'?'GPT-6.2 Sol':'DeepSeek';}
 export function ratesFor(provider='deepseek'){return checkProvider(provider)==='openrouter'?solRates:rates;}
 export function configureKey(value,provider='deepseek'){checkProvider(provider);if(typeof value!=='string'||value.length<10)throw new AiError('NO_KEY','无效密钥');keys[provider]=value;}
 export const configured=(provider='deepseek')=>Boolean(keys[checkProvider(provider)]);

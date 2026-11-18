@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {configureKey,configured,modelFor,ratesFor,providerLabel,providersInfo,normalizeUsage,estimateUsage,reserveFor,requestJson} from '../src/model-provider.mjs';
 
 const messages=[{role:'system',content:'固定规则 JSON'},{role:'user',content:'当前局面'}];
-const reply=(usage={prompt_tokens:1000,completion_tokens:100},content='{"choice":0}',finish='stop')=>new Response(JSON.stringify({id:'response-test',model:'openai/gpt-6.1-sol',provider:'OpenAI',usage,choices:[{finish_reason:finish,message:{content,reasoning:'PRIVATE_REASONING_DO_NOT_SAVE'}}]}));
+const reply=(usage={prompt_tokens:1000,completion_tokens:100},content='{"choice":0}',finish='stop')=>new Response(JSON.stringify({id:'response-test',model:'openai/gpt-6.2-sol',provider:'OpenAI',usage,choices:[{finish_reason:finish,message:{content,reasoning:'PRIVATE_REASONING_DO_NOT_SAVE'}}]}));
 
 test('provider configuration isolates credentials and exposes only safe model metadata',async t=>{
  configureKey('deepseek_fake_test_credential');configureKey('openrouter_fake_test_credential','openrouter');
  assert.equal(configured(),true);assert.equal(configured('openrouter'),true);
  const info=providersInfo();assert.deepEqual(info.map(x=>x.id),['deepseek','openrouter']);
- assert.equal(info[1].model,'openai/gpt-6.1-sol');assert.equal(info[1].label,'GPT-6.1 Sol');
+ assert.equal(info[1].model,'openai/gpt-6.2-sol');assert.equal(info[1].label,'GPT-6.2 Sol');
  assert.ok(!JSON.stringify(info).includes('_fake_test_credential'));
  assert.deepEqual(providersInfo({OPENROUTER_API_KEY:'worker-secret'}).map(x=>x.configured),[false,true]);
  const sent=[];t.mock.method(globalThis,'fetch',async(url,init)=>{sent.push({url,header:init.headers.Authorization,body:JSON.parse(init.body)});return reply();});
@@ -56,7 +56,7 @@ test('OpenRouter actual usage cost settles once, retaining raw usage and normali
  const usage={prompt_tokens:1000,completion_tokens:120,cost:.00234,prompt_tokens_details:{cached_tokens:600,cache_write_tokens:300},completion_tokens_details:{reasoning_tokens:100}};
  let billed,reserved;t.mock.method(globalThis,'fetch',async()=>reply(usage));
  const result=await requestJson(messages,{provider:'openrouter',apiKey:'test_openrouter_key',onReserve:x=>reserved=x,onUsage:x=>billed=x});
- assert.deepEqual(result,{choice:0});assert.equal(billed.provider,'openrouter');assert.equal(billed.modelLabel,'GPT-6.1 Sol');assert.equal(billed.costKind,'provider_reported');assert.equal(billed.actualCost,.00234);assert.equal(billed.estimatedCost,.00234);assert.equal(billed.reserved,reserved);
+ assert.deepEqual(result,{choice:0});assert.equal(billed.provider,'openrouter');assert.equal(billed.modelLabel,'GPT-6.2 Sol');assert.equal(billed.costKind,'provider_reported');assert.equal(billed.actualCost,.00234);assert.equal(billed.estimatedCost,.00234);assert.equal(billed.reserved,reserved);
  assert.deepEqual(billed.usage,usage);assert.deepEqual(billed.normalizedUsage,{inputTokens:1000,cachedInputTokens:600,cacheWriteTokens:300,outputTokens:120,reasoningTokens:100});
  assert.ok(!JSON.stringify(billed).includes('PRIVATE_REASONING'));
  assert.equal(estimateUsage(usage,'openrouter'),(100*2+600*.1+300*2.5+120*10)/1e6);

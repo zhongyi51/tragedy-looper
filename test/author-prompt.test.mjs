@@ -9,7 +9,7 @@ const sourceFor=ruleset=>getCuratedScript(listCuratedScripts().find(s=>s.ruleset
 const planFor=ruleset=>{const s=sourceFor(ruleset);return {mainPlot:s.mainPlot,subPlots:s.subPlots,characters:s.characters,days:s.days,loops:s.loops,incidentCount:s.incidents.length,settings:s.settings};};
 const userInput=messages=>JSON.parse(messages.find(message=>message.role==='user').content);
 const select=input=>{const c=input.candidates[0];return {candidateId:c.id,design:{focus:c.designChoices.focus[0],...Object.fromEntries(['threats','counterplay','clues','loopFacts'].map(section=>[section,c.designChoices[section].slice(0,section==='loopFacts'?2:3)]))}};};
-const providerResponse=answer=>new Response(JSON.stringify({model:'openai/gpt-6.1-sol',id:'author-prompt-mock',usage:{prompt_tokens:1000,completion_tokens:100,cost:.001,prompt_tokens_details:{cached_tokens:600,cache_write_tokens:400},completion_tokens_details:{reasoning_tokens:60}},choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer)}}]}));
+const providerResponse=answer=>new Response(JSON.stringify({model:'openai/gpt-6.2-sol',id:'author-prompt-mock',usage:{prompt_tokens:1000,completion_tokens:100,cost:.001,prompt_tokens_details:{cached_tokens:600,cache_write_tokens:400},completion_tokens_details:{reasoning_tokens:60}},choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer)}}]}));
 
 for(const ruleset of ['FS','BTX','MZ','MC'])test(`${ruleset} author rules prefix is complete and independent of theme, seed and cast restrictions`,()=>{
  const a=authorPrompt({ruleset,theme:'THEME_A_SENTINEL',seed:12}),b=authorPrompt({ruleset,theme:'THEME_B_SENTINEL',seed:99,characters:planFor(ruleset).characters});
@@ -61,7 +61,7 @@ test('Sol authoring preserves the full prefix through repair, shares mechanical 
  assert.deepEqual(first.messages.slice(0,3),repair.messages.slice(0,3));
  assert.equal(first.session_id,repair.session_id);assert.equal(first.session_id,selection.session_id);assert.notEqual(caption.session_id,first.session_id);
  assert.equal(first.prompt_cache_key,selection.prompt_cache_key);
- assert.equal(result.generation.version,AUTHOR_VERSION);assert.equal(result.generation.provider,'openrouter');assert.equal(result.generation.model,'openai/gpt-6.1-sol');assert.match(result.author,/GPT-6\.1 Sol/);
+ assert.equal(result.generation.version,AUTHOR_VERSION);assert.equal(result.generation.provider,'openrouter');assert.equal(result.generation.model,'openai/gpt-6.2-sol');assert.match(result.author,/GPT-6\.2 Sol/);
  assert.equal(result.generation.planAttempts,2);assert.deepEqual(validateScript(result).errors,[]);
  const u=result.generation.usage;
  assert.equal(u.requests,4);assert.equal(u.estimatedCost,.004);assert.equal(u.actualReportedCost,.004);assert.equal(u.costKind,'provider_reported');
